@@ -445,8 +445,9 @@ pub(super) fn pane(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> (Vec<El>, El) {
     let body = match empty(ui, p).filter(|_| !searching) {
         Some(empty) => empty,
         None => {
-            let mut list = col().key("history-list");
-            for entry in &pane.entries {
+            let mut list = col().key("history-list").label(tr("History"));
+            let count = pane.entries.len();
+            for (index, entry) in pane.entries.iter().enumerate() {
                 let id = entry.id;
                 let mut meta = tr(entry.kind.label()).to_string();
                 if let Some(application) = &entry.application {
@@ -468,7 +469,8 @@ pub(super) fn pane(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> (Vec<El>, El) {
                         ui.history.selected = Some(id);
                         ui.history.clear_armed = false;
                     },
-                ));
+                )
+                .position_in_set(index + 1, count));
             }
             let search = TextInput::new(&pane.search)
                 .placeholder(tr("Search history"))
@@ -568,7 +570,9 @@ fn header_actions(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<El> {
                 set_retention(ui, retention);
             }
         })
-        .build(p.k, layer);
+        .build(p.k, layer)
+        .label(tr("History retention"))
+        .a11y_value(tr(ui.settings.history_retention.label()));
     let mut actions = vec![retention];
     if !ui.history.entries.is_empty() || ui.history.clear_armed {
         actions.push(if ui.history.clear_armed {
@@ -776,7 +780,9 @@ fn again_section(ui: &Ui, p: Paint, id: u64, layer: &mut Vec<El>) -> El {
                 choose_model(ui, id, model, name);
             }
         })
-        .build(p.k, layer);
+        .build(p.k, layer)
+        .label(tr("Transcribe again"))
+        .a11y_value(current.clone());
     let mut section = col()
         .key("again")
         .gap(6.0)
@@ -890,7 +896,9 @@ fn language_row(ui: &Ui, p: Paint, pending: &Pending, layer: &mut Vec<El>) -> El
                 pending.language = code.into();
             }
         })
-        .build(p.k, layer);
+        .build(p.k, layer)
+        .label(tr("Language"))
+        .a11y_value(current.clone());
     row()
         .key("again-pending")
         .gap(8.0)

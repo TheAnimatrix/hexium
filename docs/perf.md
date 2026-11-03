@@ -72,6 +72,10 @@ The copy loads no model, except in the listening cases below.
 | `perf/launch.bench.ts` | `cold-launch` | `launch.ready` | Process start to the first painted window | waits for an unlock |
 | `perf/launch.bench.ts` | `hidden-launch` | `launch.ready` | Process start to `local API started`, tray only | runs |
 | `perf/listening.bench.ts` | `listening-at-rest` | `cpu.work` | 8 s listening at rest, microphone released and open | runs |
+| `perf/interaction.bench.ts` | `switch-panes` | `ui.cpu` | General → History → Output → General, each click until the next pane's content is in the accessibility tree | waits for an unlock |
+| `perf/interaction.bench.ts` | `history-scroll` | `ui.cpu` | History's list scrolled down 6,000 points and back at 3,000 points a second | waits for an unlock |
+| `perf/interaction.bench.ts` | `history-search` | `ui.cpu` | "cache key" typed into History's search, a key every 120 ms; each key searches 10,000 entries | waits for an unlock |
+| `perf/interaction.bench.ts` | `model-picker` | `ui.cpu` | The speech model picker opened, its list of every model, back to the comparison, and closed | waits for an unlock |
 
 Secondary metrics are thread wakeups (`cpu.wakes`), GPU use, and private
 memory. `strobe query <rec> threads` names the threads; Hex names every
@@ -98,3 +102,35 @@ keyboard hook and loads the default English model, which
 `perf/seeds/.generated` (read only; strobe copies the seed into each private
 home). The warm profile opens the machine's real microphone; neither records.
 Leave the dictation shortcut alone while it runs.
+
+## Interaction cases
+
+`perf/interaction.bench.ts` uses the Settings window the way a person does.
+strobe drives it from outside, through what Windows gives assistive
+technology: it finds each control in Hex's accessibility tree (UI
+Automation, which Rune builds with AccessKit) and posts mouse and key input to
+the window. Hex needs no build feature, flag, or bridge for this; a release
+build answers the same way for a screen reader.
+
+- Selectors are element keys, which the tree exposes as UI Automation
+  `AutomationId`s: `nav-history`, `history-search`, `transcription-control`.
+  A key path (`model0/choose-model`) names a key inside a keyed ancestor.
+  `role=<role>` and `text=<name>` also work. Keep the keys these cases use
+  stable; `docs/features/accessibility.md` lists them.
+- Each click waits (`until`) for a key that only the next view has, so a run
+  ends when the change is in the tree, not after a fixed wait.
+- `interaction.*` counts an input only when the accessibility tree changed
+  within a second of it, so the change shows to strobe as well as on screen.
+- The home holds a full History: 10,000 dictations, Hex's cap, from
+  `perf/seeds/history.ts` (written once into `perf/seeds/.generated/history`).
+  The list shows the newest 200, as search results do.
+- Choosing a model is not a case: it downloads or loads a model, which costs
+  the network and the model, not the window. `model-picker` measures the
+  picker's own views.
+- They need an unlocked session: Windows hit-tests every point to the lock
+  screen while it is locked, so strobe refuses pointer input then.
+
+```sh
+strobe bench perf/interaction.bench.ts --base origin/dev --head .
+strobe bench perf/interaction.bench.ts#history-search --check   # untimed smoke run
+```

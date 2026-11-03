@@ -1072,6 +1072,7 @@ fn item(p: Paint, surface: &Surface, live: &Animated, shown: &Shown) -> El {
                 button
                     .role("button")
                     .label("Draw")
+                    .checked(lit)
                     .help("Draw")
                     .hit()
                     .on_press_tx(press(id)),

@@ -1363,6 +1363,7 @@ fn view(ui: &Ui, cx: &mut Cx<Ui>) -> El {
     };
     let panel = col()
         .key("panel")
+        .role("main")
         .grow(1.0)
         .shrink()
         .mt(8.0)
@@ -1387,9 +1388,11 @@ fn view(ui: &Ui, cx: &mut Cx<Ui>) -> El {
             actions,
         ))
         .child(body);
+    // The OS window is the accessibility tree's root; this box adds nothing
+    // to it.
     let window = row()
         .key("window")
-        .role("window")
+        .role("none")
         .fill(p.k.c.bg_deep)
         .hover_motion_within(Anim::INSTANT, Anim::INSTANT)
         .child(sidebar(ui, p))
@@ -1439,6 +1442,8 @@ fn pane_header(p: Paint, title: &str, switch: Option<El>, actions: Vec<El>) -> E
         .child(
             text(title)
                 .key("pane-title")
+                .role("heading")
+                .level(1)
                 .font(p.k.ty.body_medium)
                 .color(p.text())
                 .shrink()
@@ -1483,6 +1488,9 @@ mod tests;
 
 #[cfg(test)]
 mod offscreen;
+
+#[cfg(test)]
+mod accessibility_tests;
 
 #[cfg(test)]
 mod snap_isolation;

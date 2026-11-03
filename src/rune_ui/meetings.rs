@@ -733,9 +733,11 @@ fn recordings(ui: &Ui, p: Paint, layer: &mut Vec<El>, action: El) -> (Vec<El>, E
             Some(tr("Record a call to see its notes and transcript here.")),
         )
     } else {
-        let mut list = col().key("meetings-list");
+        let mut list = col().key("meetings-list").label(tr("Meetings"));
         let mut day: Option<&str> = None;
-        for (index, meeting) in pane.visible().into_iter().enumerate() {
+        let visible = pane.visible();
+        let count = visible.len();
+        for (index, meeting) in visible.into_iter().enumerate() {
             if day != Some(meeting.day.as_str()) {
                 list = list.child(ld::group(
                     p,
@@ -763,7 +765,8 @@ fn recordings(ui: &Ui, p: Paint, layer: &mut Vec<El>, action: El) -> (Vec<El>, E
                     selected: pane.selected.as_deref() == Some(meeting.id.as_str()),
                 },
                 move |ui: &mut Ui| ui.meetings.select(id.clone()),
-            ));
+            )
+            .position_in_set(index + 1, count));
         }
         let detail = match pane.selected.as_deref().and_then(|id| pane.meeting(id)) {
             Some(meeting) => detail(ui, p, meeting, layer),
