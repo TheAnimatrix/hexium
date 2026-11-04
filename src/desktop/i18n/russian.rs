@@ -1151,6 +1151,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Save the last 15 seconds of your screen. macOS shows the screen-recording dot the whole time it's on", "Сохраняет последние 15 секунд экрана. Пока включено, macOS постоянно показывает точку записи экрана"),
     ("Replay last 15 s", "Сохранить последние 15 с"),
     ("Press to save the last 15 s; hold to narrate over it", "Нажмите, чтобы сохранить последние 15 с; удерживайте, чтобы озвучить"),
+    ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
 ];
 
 #[cfg(test)]
