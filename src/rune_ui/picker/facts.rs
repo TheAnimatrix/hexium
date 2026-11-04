@@ -236,6 +236,7 @@ pub(super) fn blurb(def: &ModelDefinition) -> &'static str {
         M::NbWhisperMedium => tr("Whisper, tuned for Norwegian by its National Library"),
         M::KbWhisperMedium => tr("Whisper, tuned for Swedish by its National Library"),
         M::GraniteSpeech5 => tr("IBM's model for seven languages, with punctuation"),
+        M::IndicTranscribeFlex => tr("27 Indian languages, with English mixed in as you speak it"),
         M::AppleSpeech => tr("Apple's speech recognition, kept up to date by macOS"),
         M::Custom(_) => "",
     }

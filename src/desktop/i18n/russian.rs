@@ -1486,6 +1486,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("A file could not be chosen.", "Не удалось выбрать файл."),
     ("Agent tools for captures", "Инструменты агента для записей"),
     ("Adds hex annotate zoom, inspect, frames, and skill so coding agents can read a capture closely", "Добавляет hex annotate zoom, inspect, frames и skill, чтобы агенты для кода могли внимательно изучить запись"),
+    ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
 ];
 
 #[cfg(test)]
