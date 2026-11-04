@@ -1,19 +1,16 @@
 # Hex Design System
 
 Hex's window, meeting capsules, transcription picker, and onboarding are
-drawn with [Rune](https://github.com/anomalyco/rune) in OpenCode's design
-language:
+drawn with [Rune](https://github.com/anomalyco/rune) and its theme:
 
-- **`rune-kit`** provides the generic components, named after
-  `@opencode/ui`'s: `Button`, `IconButton`, `Switch`, `SegmentedControl`,
+- **`rune-kit`** provides the generic components: `Button`, `IconButton`, `Switch`, `SegmentedControl`,
   `Select`, `Menu`, `Popover`, `TextInput`, `TextArea`, `Badge`, `Progress`,
   and the rest.
-- **`rune-theme-opencode`** provides every colour, elevation, radius, type
-  style, and motion token (`rune_theme_opencode::kit(dark)`), which is
-  `@opencode/ui`'s tokens as data. Hex follows the system appearance, so every
+- **Rune's theme crate** provides every colour, elevation, radius, type
+  style, and motion token (its `kit(dark)`). Hex follows the system appearance, so every
   view works in light and dark.
 
-The window follows OpenCode Desktop's layout: a deep-background sidebar and a
+The window has a deep-background sidebar and a
 raised, rounded content panel. Hex keeps its own information, sections, and
 copy; the look comes from the kit.
 
@@ -99,7 +96,7 @@ missing capability omits the row instead of imitating it.
 
 - Sentence case for every label, button, title, and section label:
   "Open settings", "Stop & transcribe", "Permissions needed". Proper nouns keep
-  their capitals: Hex, OpenCode, Apple Intelligence, Finder, Zoom.
+  their capitals: Hex, Apple Intelligence, Finder, Zoom.
 - One product name: "Hex", in copy, comments, and docs alike. `HEX_*`
   environment variables are identifiers, not copy.
 - Use "…" (one character) for ellipses, for both progress ("Saving…") and for

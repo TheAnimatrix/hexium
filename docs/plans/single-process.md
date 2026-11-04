@@ -103,7 +103,7 @@ no instance, otherwise    -> become the instance in this process (custom data ro
   sidebar's Quit Hex, Ctrl-C, and update restarts call `AppHandle::quit`.
   Without a tray, closing the window quits Hex.
 - The runtime thread owns `WindowsDesktopHost` (listener, `TranscriptionPreparation`,
-  OpenCode catalog, personal transformations, and `WindowsUpdater`), publishes
+  personal transformations, and `WindowsUpdater`), publishes
   `Arc<Published>`, and wakes the window.
 - Shortcut capture polls keyboard state in the window while suppressing the
   low-level hook, because modifier-only chords do not arrive as window key

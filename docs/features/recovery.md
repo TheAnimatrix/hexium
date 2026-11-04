@@ -468,12 +468,11 @@ still establish lossless dictation and stale-command rejection together.
 `recover.optional-processing`: ordinary dictation falls back to usable text.
 
 ```ts
-ordinary dictation -> corrections -> optional rewrite -> transformations -> paste
-                                      │                  │
-                                      v                  v
-                             rewrite fails       chain fails
-                             -> corrected text   -> chain's input // discard partial results
-                             // the log says why: rewrite off for the mode, or the failure reason
+ordinary dictation -> corrections -> transformations -> paste
+                                         │
+                                         v
+                                    chain fails
+                                    -> chain's input // discard partial results
 
 later request -> expected output                       // recovery still needs observation
 ```

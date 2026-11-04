@@ -276,9 +276,7 @@ Limits:
   per meeting.
 
 Final-transcript readiness is separate from notes. The event and `complete`
-mean the transcript and Markdown are written; notes (Apple Intelligence, or
-OpenCode with Summarize with OpenCode) are written after that, may fail, and
-can be regenerated later. Read them from `notes` in `hex meetings show <id>
+mean the transcript and Markdown are written; notes (Apple Intelligence) are written after that, may fail, and can be regenerated later. Read them from `notes` in `hex meetings show <id>
 --json` (`null` until written; `generated_at_ms` changes when they're
 rewritten). Subscribing, listing, and showing are read-only: they run no
 command, upload nothing, and write nothing.
