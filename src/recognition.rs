@@ -461,6 +461,7 @@ pub fn listen(
                         raw,
                         reply,
                     } => {
+                        tracing::info!(?action, "PROBE capture control in the listener");
                         let release_while_idle = microphone_policy.release_while_idle;
                         let other_recording = programmatic.is_some();
                         let suspended =

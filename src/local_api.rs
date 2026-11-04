@@ -625,6 +625,7 @@ fn handle_request(request: HttpRequest, context: &HttpContext) -> RequestAction 
         return developer_control_action(request, context.developer_control.is_some());
     }
     if request.method == "POST" && path == "/control" {
+        tracing::info!("PROBE control received");
         return json_post_action(
             request,
             context.control.is_some(),

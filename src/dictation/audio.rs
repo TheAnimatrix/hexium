@@ -650,6 +650,7 @@ impl Owner {
                 } else {
                     self.capture.finish_with_tail(at, tail)
                 };
+                tracing::info!(tail_ms = tail.as_millis() as u64, "PROBE audio owner finished the clip");
                 if let Finish::Transcribe(clip) = &mut finish {
                     clip.set_source(self.clip_source());
                     if clip.is_digital_silence() {

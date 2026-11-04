@@ -1027,6 +1027,7 @@ impl Pump {
             let _ = call.reply.send(reply);
         }
         while let Ok(call) = self.control_calls.try_recv() {
+            tracing::info!("PROBE control on the main thread");
             self.control(call);
         }
         while let Some(action) = self
