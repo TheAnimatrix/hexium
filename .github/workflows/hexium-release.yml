@@ -1,0 +1,134 @@
+name: Hexium release
+
+# Builds Hexium for Windows (x64, ARM64: executables + installers), Linux
+# (x64, ARM64: executables, .deb, .rpm) and Apple silicon macOS (DMG) through
+# upstream's reusable build workflows, then publishes them as one GitHub
+# release named after the Hex version and commit. Builds are unsigned and
+# never update themselves (src/updater.rs reports updates unavailable).
+on:
+  push:
+    branches: [dev]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "site/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hexium-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      short: ${{ steps.resolve.outputs.short }}
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - id: resolve
+        run: |
+          {
+            echo "sha=$(git rev-parse HEAD)"
+            echo "short=$(git rev-parse --short=7 HEAD)"
+            echo "version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "hex") | .version')"
+          } >> "$GITHUB_OUTPUT"
+
+  desktop:
+    needs: resolve
+    uses: ./.github/workflows/build-desktop.yml
+    with:
+      sha: ${{ needs.resolve.outputs.sha }}
+      version: ${{ needs.resolve.outputs.version }}
+      artifact-prefix: hexium-${{ needs.resolve.outputs.short }}
+      retention-days: 7
+
+  installers:
+    needs: [resolve, desktop]
+    uses: ./.github/workflows/windows-installers.yml
+    with:
+      sha: ${{ needs.resolve.outputs.sha }}
+      version: ${{ needs.resolve.outputs.version }}
+      pattern: hexium-${{ needs.resolve.outputs.short }}-windows-*
+      digests: hexium-${{ needs.resolve.outputs.short }}-windows-x86_64=${{ needs.desktop.outputs.windows-x64-digest }} hexium-${{ needs.resolve.outputs.short }}-windows-aarch64=${{ needs.desktop.outputs.windows-arm64-digest }}
+      artifact-name: hexium-${{ needs.resolve.outputs.short }}-windows-installers
+      retention-days: 7
+
+  macos:
+    name: macOS arm64
+    needs: resolve
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      HEX_RELEASE_UNSIGNED: "1"
+      HEX_VERSION: ${{ needs.resolve.outputs.version }}
+      DMG: hexium-${{ needs.resolve.outputs.version }}-macos-arm64.dmg
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          key: hexium-release
+          cache-on-failure: true
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+      - name: Install the Metal toolchain
+        run: xcrun --sdk macosx metal --version || xcodebuild -downloadComponent MetalToolchain
+      - name: Build Hexium.app
+        run: |
+          scripts/setup.sh
+          bundle=$(scripts/build-app.sh)
+          "$bundle/Contents/MacOS/hex" --version
+          scripts/smoke-macos-app.sh "$bundle"
+          mkdir -p dist/staging
+          /usr/bin/ditto "$bundle" "dist/staging/$(basename "$bundle")"
+          ln -s /Applications dist/staging/Applications
+          hdiutil create -quiet -fs APFS -format ULFO -volname "Hexium" -srcfolder dist/staging "dist/$DMG"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: hexium-${{ needs.resolve.outputs.short }}-macos-arm64
+          path: dist/${{ env.DMG }}
+          retention-days: 7
+          if-no-files-found: error
+
+  release:
+    needs: [resolve, desktop, installers, macos]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHORT: ${{ needs.resolve.outputs.short }}
+      VERSION: ${{ needs.resolve.outputs.version }}
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: hexium-${{ needs.resolve.outputs.short }}-*
+          path: in
+          merge-multiple: true
+      - name: Name the files after Hexium and publish
+        run: |
+          mkdir out
+          find in -type f ! -name 'SHA256SUMS*' | while read -r f; do
+            name=$(basename "$f")
+            cp "$f" "out/${name/#hex-/hexium-}"
+          done
+          (cd out && sha256sum * > SHA256SUMS)
+          ls -la out
+          tag="v$VERSION-hexium.$SHORT"
+          gh release create "$tag" out/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$SHA" \
+            --title "Hexium $VERSION ($SHORT)" \
+            --notes "Hexium built from $SHA on Hex $VERSION. Unsigned: Windows SmartScreen and macOS Gatekeeper ask once. Windows: run hexium-setup-$VERSION-windows-x64.exe (or -arm64)."
