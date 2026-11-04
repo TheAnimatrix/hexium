@@ -22,6 +22,26 @@ pub(super) fn control(ui: &Ui, p: Paint) -> Option<El> {
         )),
         _ => None,
     };
+    // Hexium: Hex's updater is off; a newer Hexium release opens its page.
+    if action.is_none()
+        && let Some(release) = crate::hexium_updates::available()
+    {
+        return Some(
+            row()
+                .key("sidebar-update-control")
+                .gap(8.0)
+                .pl(6.0)
+                .center_y()
+                .child(controls::status_dot(p.accent()))
+                .child(controls::button(
+                    p,
+                    "sidebar-update",
+                    tr("Download Hexium update"),
+                    controls::ButtonKind::Secondary,
+                    move |_: &mut Ui, _| crate::hexium_updates::open(&release.url),
+                )),
+        );
+    }
     // An available update is a state, not the screen's main action.
     action.map(|(label, action)| {
         row()
