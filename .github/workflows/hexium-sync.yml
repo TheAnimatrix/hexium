@@ -1,0 +1,144 @@
+name: Hexium sync
+
+# The weekly upstream sync, patch-queue style (as Zen keeps Firefox):
+#   1. replay: hexium/sync.sh replays the forks' queues (hexium/forks) and the
+#      "hexium: …" queue on upstream Hex and pushes the result to
+#      sync/upstream. A patch that no longer applies opens an issue (label
+#      upstream-sync) with the log instead, and nothing else changes.
+#   2. check: Hexium check (upstream's Linux suite) on that commit.
+#   3. promote: dev moves to it, which runs Hexium release.
+# Pushes use deploy keys (HEXIUM_DEPLOY_KEY, FORK_KEY_<NAME>): upstream's
+# commits change workflow files, which GITHUB_TOKEN may not push, and a push
+# made with GITHUB_TOKEN would not start the release.
+on:
+  schedule:
+    - cron: "30 2 * * 1" # Mondays, 08:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hexium-sync
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      result: ${{ steps.sync.outputs.result }}
+      sha: ${{ steps.sync.outputs.sha }}
+      upstream: ${{ steps.sync.outputs.upstream }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: dev
+          fetch-depth: 0
+          ssh-key: ${{ secrets.HEXIUM_DEPLOY_KEY }}
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - name: Push access to the forks
+        # One deploy key per line of hexium/forks: a new fork needs its
+        # FORK_KEY_<NAME> secret and a line here.
+        env:
+          FORK_KEY_TRANSCRIBE_CPP: ${{ secrets.FORK_KEY_TRANSCRIBE_CPP }}
+          FORK_KEY_RUNE: ${{ secrets.FORK_KEY_RUNE }}
+        run: |
+          git config --global user.name "hexium-sync"
+          git config --global user.email "hexium-sync@users.noreply.github.com"
+          mkdir -p ~/.ssh
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          grep -v -e '^#' -e '^[[:space:]]*$' hexium/forks | while read -r name _ fork; do
+            var=FORK_KEY_$(printf %s "$name" | tr 'a-z.-' 'A-Z__')
+            key=$(printenv "$var" || true)
+            if [ -z "$key" ]; then
+              echo "::warning::$var is not set: a moved $name pin can't be replayed"
+              continue
+            fi
+            printf '%s\n' "$key" > ~/.ssh/"$var"
+            chmod 600 ~/.ssh/"$var"
+            printf 'Host fork-%s\n  HostName github.com\n  User git\n  IdentityFile ~/.ssh/%s\n  IdentitiesOnly yes\n' "$var" "$var" >> ~/.ssh/config
+            git config --global url."git@fork-$var:${fork#https://github.com/}".pushInsteadOf "$fork"
+          done
+      - id: sync
+        env:
+          FORKS_DIR: ${{ runner.temp }}/forks
+        run: |
+          mkdir -p "$FORKS_DIR"
+          set +e
+          hexium/sync.sh --no-check --push-to sync/upstream 2>&1 | tee "$RUNNER_TEMP/sync.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "upstream=$(git rev-parse --short upstream/dev)" >> "$GITHUB_OUTPUT"
+          if [ "$code" = 0 ] && grep -q 'already on top of upstream' "$RUNNER_TEMP/sync.log"; then
+            echo result=current >> "$GITHUB_OUTPUT"
+          elif [ "$code" = 0 ]; then
+            { echo result=replayed; echo "sha=$(git rev-parse HEAD)"; } >> "$GITHUB_OUTPUT"
+          elif [ "$code" = 2 ]; then
+            echo result=conflict >> "$GITHUB_OUTPUT"
+          else
+            exit "$code"
+          fi
+      - name: Ask for a hand with the conflict
+        if: steps.sync.outputs.result == 'conflict'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: ${{ steps.sync.outputs.upstream }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "The weekly sync could not replay Hexium's patches on upstream Hex \`$UPSTREAM\` ([run]($RUN)). dev is unchanged."
+            echo
+            echo '```'
+            grep -v '^hint:' "$RUNNER_TEMP/sync.log" | tail -n 40
+            echo '```'
+            echo
+            echo "To fix: run \`hexium/sync.sh\` in a clone, fix the files it names, \`git add\` them, and run \`hexium/sync.sh\` again: it finishes the rebase, checks and pushes dev, which closes this on the next sync."
+          } > body.md
+          gh label create -R "$GITHUB_REPOSITORY" upstream-sync --color FF9933 --description "Weekly upstream sync" --force > /dev/null
+          number=$(gh issue list -R "$GITHUB_REPOSITORY" --label upstream-sync --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment -R "$GITHUB_REPOSITORY" "$number" --body-file body.md
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" --title "Upstream sync needs a hand" --label upstream-sync --body-file body.md
+          fi
+          exit 1
+
+  check:
+    needs: replay
+    if: needs.replay.outputs.result == 'replayed'
+    uses: ./.github/workflows/hexium-check.yml
+    with:
+      sha: ${{ needs.replay.outputs.sha }}
+
+  promote:
+    needs: [replay, check]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: dev
+          fetch-depth: 0
+          ssh-key: ${{ secrets.HEXIUM_DEPLOY_KEY }}
+      - name: Move dev to the checked commit
+        env:
+          SHA: ${{ needs.replay.outputs.sha }}
+        run: |
+          git fetch -q origin sync/upstream
+          test "$(git rev-parse FETCH_HEAD)" = "$SHA"
+          git push --force-with-lease=dev:"$(git rev-parse origin/dev)" origin "$SHA:refs/heads/dev"
+      - name: Close a sync issue this resolves
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: ${{ needs.replay.outputs.upstream }}
+        run: |
+          for number in $(gh issue list -R "$GITHUB_REPOSITORY" --label upstream-sync --state open --json number --jq '.[].number'); do
+            gh issue close -R "$GITHUB_REPOSITORY" "$number" --comment "Synced onto upstream \`$UPSTREAM\`; the release build has started."
+          done
