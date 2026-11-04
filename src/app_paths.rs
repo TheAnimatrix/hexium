@@ -11,6 +11,13 @@ use tracing_subscriber::fmt::writer::MakeWriterExt;
 /// updates itself from Hex's release service, only from Hexium's releases.
 pub const HEXIUM: bool = true;
 
+/// Hexium: whether this build has the OpenCode features at all. Off, Hex
+/// never looks for, talks to, or sends anything to OpenCode (its service,
+/// model catalog, generation, Jev, or sessions), and no setting, row,
+/// notice, or command mentions it: mode rewriting, meeting notes with
+/// OpenCode, and sending captures to sessions are absent, not just off.
+pub const OPENCODE: bool = false;
+
 /// Whether this is a local build (`HEX_LOCAL_BUILD=1`): made from a checkout
 /// for its owner's own machine, so it never checks for or offers updates.
 pub fn is_local_build() -> bool {

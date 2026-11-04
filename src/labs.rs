@@ -1228,6 +1228,11 @@ mod tests {
 
     #[test]
     fn voice_prompt_is_its_own_atomic_and_carries_its_phrase() {
+        // Hexium: the lab hands text to OpenCode, so it's off without it.
+        if !crate::app_paths::OPENCODE {
+            assert!(!Feature::VoicePrompt.on_this_os());
+            return;
+        }
         let labs = LabsSettings::default();
         assert!(!voice_prompt_enabled(&labs));
         assert_eq!(
@@ -1919,6 +1924,11 @@ mod tests {
 
     #[test]
     fn cursor_context_is_its_own_switch_and_macos_only() {
+        // Hexium: the lab hands text to OpenCode, so it's off without it.
+        if !crate::app_paths::OPENCODE {
+            assert!(!Feature::CursorContext.on_this_os());
+            return;
+        }
         let mut labs = LabsSettings::default();
         assert!(!cursor_context_enabled(&labs));
         labs.cursor_context = true;

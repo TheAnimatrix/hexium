@@ -72,6 +72,11 @@ impl Missing {
 /// and asks each registered service for `/api/info`. On Windows it also
 /// looks in WSL while Labs › OpenCode in WSL is on.
 pub(crate) fn find() -> Result<Service, Missing> {
+    // Hexium: without OpenCode, nothing reads its registration, asks a
+    // service for `/api/info`, or looks in WSL.
+    if !crate::app_paths::OPENCODE {
+        return Err(Missing::NotRunning);
+    }
     let found = match state_dir() {
         Some(state) => find_in(&state),
         None => Err(Missing::NotRunning),
@@ -87,6 +92,10 @@ pub(crate) fn find_cancellable(
     deadline: Duration,
     cancelled: &AtomicBool,
 ) -> Result<Service, Missing> {
+    // Hexium: as `find`, nothing is looked for without OpenCode.
+    if !crate::app_paths::OPENCODE {
+        return Err(Missing::NotRunning);
+    }
     let started = Instant::now();
     let found = match state_dir() {
         Some(state) => find_in_cancellable(&state, deadline, cancelled),
@@ -814,6 +823,16 @@ pub(crate) mod tests {
         }
     }
 
+    /// Hexium: without OpenCode no registration is read, even one that
+    /// would answer.
+    #[test]
+    fn nothing_is_found_without_opencode() {
+        if crate::app_paths::OPENCODE {
+            return;
+        }
+        assert_eq!(find(), Err(Missing::NotRunning));
+        assert!(!running());
+    }
     #[test]
     fn a_registered_service_is_confirmed_by_its_pid() {
         let state = state_root("confirm");

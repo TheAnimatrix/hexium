@@ -819,7 +819,8 @@ pub(crate) fn run(
                                 !recording_flavour.raw()
                                     && (crate::dictation::modes::uses_page(
                                         &settings.dictation_processing,
-                                    ) || settings.labs.voice_prompt),
+                                    ) || (crate::app_paths::OPENCODE
+                                        && settings.labs.voice_prompt)),
                             )
                         } else {
                             Default::default()

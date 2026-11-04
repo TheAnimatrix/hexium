@@ -640,9 +640,12 @@ fn rows(ui: &Ui) -> Vec<Row> {
     rows.push(row(Feature::CopyDictationAudio, None));
     rows.push(row(Feature::HistoryMultiSelect, None));
     rows.push(row(Feature::OutputFixes, Some(&BOOK)));
-    rows.push(row(Feature::VoicePrompt, None));
+    // Hexium: both hand text to OpenCode, so neither row shows without it.
+    if crate::app_paths::OPENCODE {
+        rows.push(row(Feature::VoicePrompt, None));
+    }
     // macOS's Accessibility reads the text element's caret and nearby text.
-    if caps.os == super::platform::Os::Macos {
+    if crate::app_paths::OPENCODE && caps.os == super::platform::Os::Macos {
         rows.push(Row {
             note: Some(
                 tr("That text goes to the mode's OpenCode model, which may be a cloud provider. Password fields are never read.")
@@ -685,7 +688,10 @@ fn rows(ui: &Ui) -> Vec<Row> {
     }
     if caps.os == super::platform::Os::Windows {
         rows.push(row(Feature::TerminalPaste, Some(&TERMINAL)));
-        rows.push(row(Feature::OpenCodeInWsl, Some(&TERMINAL)));
+        // Hexium: no OpenCode, so the row stays hidden.
+        if crate::app_paths::OPENCODE {
+            rows.push(row(Feature::OpenCodeInWsl, Some(&TERMINAL)));
+        }
     }
     // Another shortcut dictates exactly like the main one, on every OS (#627).
     rows.push(row(Feature::SecondDictationShortcut, Some(&KEYBOARD)));

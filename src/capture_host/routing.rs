@@ -197,9 +197,14 @@ fn sends(config: &RouterConfig) -> bool {
 
 /// Whether an organization turned OpenCode processing off, which includes
 /// sending captures to OpenCode sessions (`DisableOpenCodeProcessing`).
+/// Hexium: a build without OpenCode never sends, so it reads as off too.
 fn opencode_managed() -> bool {
-    crate::policy::Policy::current().locks(crate::policy::Lock::OpenCodeProcessing)
+    !crate::app_paths::OPENCODE
+        || crate::policy::Policy::current().locks(crate::policy::Lock::OpenCodeProcessing)
 }
+
+/// Hexium: what sending a capture says in a build without OpenCode.
+const NO_SENDING: &str = "Sending captures isn't available in this build";
 
 /// Open OpenCode sessions, newest first, as Send to… lists them, read
 /// within `budget`. Blocks; call it off the UI thread.
@@ -339,6 +344,9 @@ pub(super) fn send_bundle(
     to: Option<String>,
     always: bool,
 ) -> Result<String, String> {
+    if !crate::app_paths::OPENCODE {
+        return Err(NO_SENDING.into());
+    }
     let jobs = JOBS
         .lock()
         .unwrap_or_else(|error| error.into_inner())
@@ -516,6 +524,14 @@ impl Worker {
     }
 
     fn handle(&mut self, job: Job) {
+        // Hexium: nothing is ever routed, so there is nothing to send or
+        // take back.
+        if !crate::app_paths::OPENCODE {
+            if let Job::SendBundle { reply, .. } = job {
+                let _ = reply.try_send(Err(NO_SENDING.into()));
+            }
+            return;
+        }
         match job {
             Job::Written { bundle, look } => self.written(bundle, look),
             Job::Send { to, always } => self.chosen(&to, always),
@@ -2012,6 +2028,25 @@ mod tests {
 
     /// Captures written to disk and looked at through `look_with`, with
     /// OpenCode's sessions, the tab, and the dev server swapped for these.
+    /// Hexium: without OpenCode no capture is looked at, sent, or taken
+    /// back, whatever the routing settings say.
+    #[test]
+    fn nothing_routes_without_opencode() {
+        if crate::app_paths::OPENCODE {
+            return;
+        }
+        let config = RouterConfig {
+            send_captures: true,
+            ..RouterConfig::default()
+        };
+        assert!(!sends(&config));
+        assert!(opencode_managed());
+        assert_eq!(
+            send_bundle(PathBuf::from("/nonexistent"), None, false),
+            Err(NO_SENDING.to_string())
+        );
+    }
+
     mod looked {
         use super::*;
         use scrawl_capture::routing::Hooks;
@@ -2071,6 +2106,10 @@ mod tests {
 
         #[test]
         fn routing_latency_with_a_slow_session_server() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             static READS: AtomicU64 = AtomicU64::new(0);
             fn slow(path: &str, budget: Duration) -> anyhow::Result<Vec<u8>> {
                 READS.fetch_add(1, Ordering::Relaxed);
@@ -2284,6 +2323,10 @@ mod tests {
         /// never `ses_…`.
         #[test]
         fn a_rule_sent_before_the_sessions_read_names_a_session_not_its_id() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let router = router_with(|c| {
                 c.apps
                     .insert("com.example.board".into(), "ses_board".into());
@@ -2328,6 +2371,10 @@ mod tests {
         /// never goes before the ring runs out.
         #[test]
         fn a_rule_answered_late_holds_its_send_from_the_answer() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let router = router_with(|c| {
                 c.apps
                     .insert("com.example.board".into(), "ses_board".into());
@@ -2365,6 +2412,10 @@ mod tests {
 
         #[test]
         fn the_capsule_holds_a_rules_send_while_the_pointer_is_on_it() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             static POSTS: AtomicU64 = AtomicU64::new(0);
             fn post(path: &Path, id: &str) -> anyhow::Result<scrawl_capture::handoff::Posted> {
                 POSTS.fetch_add(1, Ordering::Relaxed);
@@ -2409,6 +2460,10 @@ mod tests {
 
         #[test]
         fn a_new_capture_does_not_cancel_an_older_folder_rules_send() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             static POSTS: AtomicU64 = AtomicU64::new(0);
             fn post(path: &Path, id: &str) -> anyhow::Result<scrawl_capture::handoff::Posted> {
                 assert_eq!(id, "ses_board");
@@ -2528,6 +2583,10 @@ mod tests {
 
         #[test]
         fn a_pick_cancels_a_late_rule_resolution() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let router = router_with(|c| {
                 c.apps.insert("com.example.board".into(), "/p/board".into());
             });
@@ -2686,6 +2745,10 @@ mod tests {
 
         #[test]
         fn a_saved_site_or_app_rule_sends_whatever_the_routing_flags() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             for smart in [false, true] {
                 let sites = router_with(|c| {
                     c.smart_routing = smart;
@@ -2746,6 +2809,10 @@ mod tests {
 
         #[test]
         fn an_always_rule_keeps_sending_to_the_session_picked() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let senses = || look::Senses {
                 hooks: Hooks {
                     sdk: no_sdk,
@@ -2802,6 +2869,10 @@ mod tests {
         /// to the session picked, and one elsewhere is only guessed.
         #[test]
         fn an_always_rule_from_a_terminal_keys_on_its_folder() {
+            // Hexium: routing is off without OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             const GHOSTTY: &str = "com.mitchellh.ghostty";
             fn shell_in(folder: &str) -> look::Pane {
                 look::Pane {
@@ -2928,6 +2999,10 @@ mod tests {
 
         #[test]
         fn an_always_rule_to_a_worktree_session_sends_there_not_to_the_main_checkout() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let (main, _) = worktree_repo();
             let senses = || look::Senses {
                 hooks: Hooks {
@@ -2984,6 +3059,10 @@ mod tests {
 
         #[test]
         fn an_always_rule_names_the_session_it_sends_to() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let router = router_with(|c| {
                 c.sites
                     .insert("https://board.example.com".into(), "/p/board".into());
@@ -3024,6 +3103,10 @@ mod tests {
 
         #[test]
         fn a_capture_routed_after_a_newer_one_settled_is_still_sendable_by_name() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let context = RouteContext {
                 front_bundle_id: Some("com.brave.Browser".into()),
                 captured_bundle_id: Some("com.brave.Browser".into()),
@@ -3051,6 +3134,10 @@ mod tests {
 
         #[test]
         fn an_undo_opencode_refuses_is_published_too_late() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             let context = RouteContext {
                 front_bundle_id: Some("com.brave.Browser".into()),
                 captured_bundle_id: Some("com.brave.Browser".into()),
@@ -3085,6 +3172,10 @@ mod tests {
 
         #[test]
         fn the_port_ladder_is_a_guess() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             for smart in [false, true] {
                 let router = router_with(|c| c.smart_routing = smart);
                 let (answer, sent) = route(router, "com.brave.Browser", senses(dev_tab));
@@ -3102,6 +3193,10 @@ mod tests {
         /// picked, however confident sends may be. The port ladder doesn't read the app.
         #[test]
         fn the_captured_apps_checkout_is_a_guess() {
+            // Hexium: needs OpenCode.
+            if !crate::app_paths::OPENCODE {
+                return;
+            }
             for auto_send in [policy::AutoSend::Rules, policy::AutoSend::Confident] {
                 let router = router_with(|c| {
                     c.smart_routing = true;

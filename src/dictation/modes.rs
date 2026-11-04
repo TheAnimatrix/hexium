@@ -23,7 +23,8 @@ impl ModeRuntime {
             profiles: Profiles::from_settings(processing),
             // Labs › Voice prompt carries the browser host in its request,
             // so its mode runtime reads the page too.
-            reads_page: uses_page(processing) || settings.labs.voice_prompt,
+            reads_page: uses_page(processing)
+                || (crate::app_paths::OPENCODE && settings.labs.voice_prompt),
         }
     }
 
@@ -111,7 +112,8 @@ pub(crate) fn uses_page(settings: &DictationProcessingSettings) -> bool {
         || std::iter::once(&settings.default_mode)
             .chain(&settings.modes)
             .any(|mode| {
-                mode.post_processing.enabled
+                // Hexium: a rewrite never runs without OpenCode.
+                (crate::app_paths::OPENCODE && mode.post_processing.enabled)
                     || mode
                         .transformations
                         .iter()
@@ -291,7 +293,8 @@ mod tests {
             })
             .reads_page()
         );
-        assert!(
+        // Hexium: a rewrite never runs without OpenCode, so it reads nothing.
+        assert_eq!(
             runtime(|settings| {
                 settings
                     .dictation_processing
@@ -299,15 +302,18 @@ mod tests {
                     .post_processing
                     .enabled = true;
             })
-            .reads_page()
+            .reads_page(),
+            crate::app_paths::OPENCODE
         );
         // A voice prompt's request carries the browser host, so its lab
-        // reads the page even with no rewrite or website rule.
-        assert!(
+        // reads the page even with no rewrite or website rule. Hexium: only
+        // with OpenCode, whose model the prompt goes to.
+        assert_eq!(
             runtime(|settings| {
                 settings.labs.voice_prompt = true;
             })
-            .reads_page()
+            .reads_page(),
+            crate::app_paths::OPENCODE
         );
     }
 
@@ -375,6 +381,10 @@ mod tests {
 
     #[test]
     fn saved_post_processing_enables_the_global_rewrite() {
+        // Hexium: needs OpenCode.
+        if !crate::app_paths::OPENCODE {
+            return;
+        }
         let path = std::env::temp_dir().join(format!("hex-970-{}.json", std::process::id()));
         std::fs::write(
             &path,

@@ -78,6 +78,13 @@ pub fn send(capture: &str, to: Option<String>, always: bool) -> Result<ControlRe
 }
 
 pub fn explain(capture: &str, ask_jev: bool) -> Result<ControlReply, ControlError> {
+    // Hexium: routing reads OpenCode's sessions and may ask Jev.
+    if !crate::app_paths::OPENCODE {
+        return Err(ControlError::new(
+            "unsupported",
+            "Routing captures isn't available in this build",
+        ));
+    }
     let dir = resolve(capture)?;
     super::routing::router()
         .run(|| scrawl_capture::routing::explain_bundle(&dir, None, ask_jev))
