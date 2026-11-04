@@ -303,11 +303,18 @@ impl OfflineGgufSession {
         let result = session
             .stream(&options, stream_options)
             .map(|mut stream| drive(&mut stream));
+        let probe_drop = Instant::now();
         drop(session);
         if result.is_ok() {
             self.last_run = Some(Instant::now());
         }
+        let probe_new = Instant::now();
         self.session = self.model.session_with(&self.options).ok();
+        tracing::info!(
+            drop_us = (probe_new - probe_drop).as_micros() as u64,
+            new_us = probe_new.elapsed().as_micros() as u64,
+            "PROBE stream session rotated"
+        );
         result
     }
 

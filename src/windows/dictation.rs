@@ -473,6 +473,7 @@ pub fn run(
             else {
                 unreachable!("checked above");
             };
+            tracing::info!(tail_ms = tail.as_millis() as u64, "PROBE tail decided");
             let submitted = submit_capture(
                 &mut capture,
                 release.ended_at(),
@@ -610,6 +611,7 @@ pub fn run(
                     }
                     recording = false;
                     recording_feedback_started = false;
+                    tracing::info!("PROBE finish begins");
                     finishing = Some(Finishing {
                         raw: recording_raw,
                         print: print.take(),
@@ -895,6 +897,7 @@ fn process_dictation_job(
                 .lock()
                 .unwrap_or_else(|error| error.into_inner()) = Some(text.clone());
         }
+        tracing::info!("PROBE processed");
         if let Some(history) = history {
             let mut draft = crate::dictation::modes::history_draft(
                 raw_text,
@@ -916,6 +919,7 @@ fn process_dictation_job(
         }
         Ok(text)
     });
+    tracing::info!("PROBE history recorded");
     let latency_ms = started.elapsed().as_millis().min(u128::from(u32::MAX)) as u32;
     tracing::info!(
         audio_ms = job.audio_ms,

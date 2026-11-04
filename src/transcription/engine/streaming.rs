@@ -432,14 +432,22 @@ pub(super) fn finish_stream(
             (fed - clip.len()) / 16
         ));
     }
+    let probe = Instant::now();
     if clip.len() > fed {
         stream
             .feed(&clip[fed..])
             .map_err(|error| format!("stream feed failed: {error}"))?;
     }
+    let probe_fed = Instant::now();
     let text = stream
         .finalize()
         .map_err(|error| format!("stream finalize failed: {error}"))?;
+    tracing::info!(
+        rest_ms = clip.len().saturating_sub(fed) / 16,
+        feed_us = (probe_fed - probe).as_micros() as u64,
+        finalize_us = probe_fed.elapsed().as_micros() as u64,
+        "PROBE stream finished"
+    );
     if text.is_empty() {
         return Err("the stream returned no text".into());
     }
