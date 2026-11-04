@@ -173,13 +173,17 @@ mod tests {
             transformations: vec!["my-script".into()],
             ..DictationMode::default()
         })));
-        assert!(uses_browser(&with(DictationMode {
-            applications: vec!["Slack".into()],
-            post_processing: DictationPostProcessing {
-                enabled: true,
-                ..DictationPostProcessing::default()
-            },
-            ..DictationMode::default()
-        })));
+        // Hexium: a saved rewrite reads nothing without OpenCode.
+        assert_eq!(
+            uses_browser(&with(DictationMode {
+                applications: vec!["Slack".into()],
+                post_processing: DictationPostProcessing {
+                    enabled: true,
+                    ..DictationPostProcessing::default()
+                },
+                ..DictationMode::default()
+            })),
+            crate::app_paths::OPENCODE
+        );
     }
 }
