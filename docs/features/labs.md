@@ -139,17 +139,6 @@ Feature             Pane  Toggle (settings.json, hex settings)   On: what it doe
 ├── Terminal paste  no    paste_with_shift             (Windows) paste with Ctrl+Shift+V (#477/#478; Linux keeps it in General);
 │                                         Java games (javaw/java, e.g. Minecraft) still get Ctrl+V (#1362)
 │                                         // check: terminal_paste_sends_plain_control_v_to_java_games (windows/paste.rs)
-└── OpenCode in WSL no    labs.opencode_in_wsl          (Windows) Modes rewriting and the Modes model picker use an OpenCode service
-                                         running in the default WSL distribution when no Windows registration answers; looking for it can start WSL
-                                         // checks: the_passwd_line_for_the_uid_names_its_home, both_wsl_prefixes_name_the_distribution,
-                                         // a_distribution_or_home_windows_cant_reach_is_refused, a_zero_budget_or_cancellation_skips_the_lookup,
-                                         // the_cache_follows_the_default_distribution_and_uid, one_lookup_serves_every_caller_and_a_short_wait_stops,
-                                         // a_joiner_does_not_wait_for_a_lookup_older_than_its_cap, a_timed_out_lookup_defers_the_next_one,
-                                         // the_workspace_is_created_somewhere_windows_can_write_it,
-                                         // a_wsl_service_gets_the_workspace_its_linux_server_can_use,
-                                         // a_wsl_service_is_a_fallback_only_without_a_windows_one,
-                                         // a_failed_wsl_request_forgets_the_workspace, a_not_found_wsl_request_forgets_the_workspace,
-                                         // opencode_in_wsl_is_its_own_bit_and_windows_only; not run on a real Windows PC with WSL
 
 Settings › Labs                          // labs.page, a store (labs/store.rs)
 ├── Header -> "Labs", Search N labs (⌘F focuses it), Discover | Turned on · N
@@ -373,102 +362,6 @@ on macOS too). Off, output is exactly as before. Checks:
 `contributed_options_are_labs_toggles_off_by_default` in
 [panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
 dictation on a Mac or Windows PC with the toggle on.
-
-Spoken formatting (`spoken-formatting`, issue 630, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::spoken_formatting()` as each dictation's processing starts and runs
-`dictation::spoken_formatting::apply` before the mode's corrections, OpenCode
-rewriting, and transformations (on Windows and Linux, after the Global
-replacements). Whole phrases, ignoring case and Spanish accents, are
-replaced: "new line", "line break", "nueva línea", and "salto de línea" by
-one line break, "new paragraph" and "nuevo párrafo" by two, "open quote",
-"abrir comillas", and "abre comillas" by an opening `"`, and "close quote",
-"cerrar comillas", and "cierra comillas" by a closing one. A whole-word
-"quote" with a later "unquote" in the same dictation and words between them
-becomes the same pair of marks ("He said quote hello unquote." becomes
-`He said "hello".`, #1167); "quote" with no "unquote" after it, a lone
-"unquote", "quotes"/"quoted"/"unquoted", and "quote unquote" said back to
-back stay as they are. The commas,
-periods, and spaces the model puts around a command go with it ("Hello. New
-line. Next" becomes "Hello.\nNext"). Words such as "newline", "new liner",
-"lineal", or "comillas" alone stay as they are. English and Spanish phrases
-are recognized whatever the Language setting is (#1040); other languages
-are not covered yet. Dictate without processing, meetings, and live text are
-unchanged, and with the toggle off processing is exactly as before. Checks:
-the tests in [dictation/spoken_formatting.rs](../../src/dictation/spoken_formatting.rs);
-`spoken_formatting_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
-
-Spoken symbols (`spoken-symbols`, issue 678, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::spoken_symbols()` as each dictation's processing starts and runs
-`dictation::spoken_symbols::apply` right after spoken formatting and before filler
-words, the mode's corrections, OpenCode rewriting, and transformations.
-Whole English or Spanish words, ignoring case and Spanish accents, become
-symbols joined to their neighbours: "hashtag" and "hash sign" become `#` and
-"at sign" and "arroba" `@`, joined to the next word ("hashtag release" →
-"#release"); "underscore" and "guion bajo" `_`, "hyphen" and "guion" `-`,
-and "slash" `/` join both words ("my underscore variable" → "my_variable");
-"comma" and "coma" `,`, "colon" and "dos puntos" `:`, and "semicolon" and
-"punto y coma" `;` join the previous word and leave one space before the
-next ("done comma thanks" → "done, thanks"). The longer Spanish phrase wins
-("punto y coma" is `;`, not "punto y" + `,`). The commas, periods, and
-spaces the model puts around a spoken symbol go with it. Words such as
-"commas", "comas", "guiones", "hashtags", "slashed", or "colonel" stay as
-they are. Other languages are not covered yet (#1040), and the word list is fixed (no per-user symbol
-sets yet). Dictate without processing, meetings, and live text are
-unchanged, and with the toggle off processing is exactly as before. Checks:
-the tests in [dictation/spoken_symbols.rs](../../src/dictation/spoken_symbols.rs);
-`spoken_symbols_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
-
-Remove filler words (`filler-words`, issue 631, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::filler_words()` as each dictation's processing starts and runs
-`dictation::filler_words::strip_if` right after spoken formatting and before
-the mode's corrections, OpenCode rewriting, and transformations. It applies
-only when that dictation's language is exactly English
-(`filler_words::applies_to`): Auto and every other language are left
-untouched, because "er" and "um" are ordinary German and Portuguese words.
-The language comes from the submission, not the setting in force while the
-text is processed: macOS reads the saved transcription selection when the
-dictation is submitted, while Linux and Windows read the selection the
-transcription engine holds at submission, falling back to the saved selection
-when none is held. On Linux and Windows, a dictation finished while an
-in-place model reload for a language change is still running uses the previous
-language for this check. It is rule-based, with
-no model and no added latency. The English fillers "um", "umm", "uh", "uhh",
-"erm", "er", and "ah" are removed as whole words, lowercase or capitalised
-only, so "umbrella", "ahead", "error", "Uhura", "uh-huh", and "ER" stay. The
-comma or ellipsis that comes with a filler goes too, the spaces around it
-close up, no space is left before punctuation, a capitalised filler that
-started a sentence passes its capital to the next word ("Um, so I think"
-becomes "So I think"), and line breaks stay. Dictate without processing,
-meetings, and live text are unchanged, and with the toggle off processing is
-exactly as before. Checks: `only_english_dictations_apply_the_filter`,
-`enabled_english_dictations_strip_their_fillers`,
-`every_other_language_or_a_disabled_switch_keeps_the_words`,
-`fillers_leave_with_their_commas_and_spaces`,
-`a_filler_that_started_a_sentence_hands_on_its_capital`,
-`line_breaks_are_kept`, and `other_words_are_left_alone` in
-[dictation/filler_words.rs](../../src/dictation/filler_words.rs);
-`filler_words_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
 
 Subtitle export (`subtitle-export`, issue 633, macOS like Meetings; its row
 shows wherever Meetings does): while on, `hex meetings show <id> --srt` or
@@ -1323,7 +1216,6 @@ editor
 ├── ⌘Z            -> the text being typed, else the last mark, else the crop
 ├── Copy (⌘C)     -> the edited PNG on the clipboard
 ├── Save (⌘S)     -> a new file in screenshots.folder; the first shot is never changed
-├── Send to…      -> a list of open OpenCode sessions (typing searches title, folder, id,
 │                    as Annotate's; ↑↓ Enter); the PNG goes to the session as an image
 ├── a drag on the panel's edge or the toolbar's gap -> moves it, kept on the display
 └── Escape        -> ends the text, else closes the list, else closes the editor
@@ -1436,11 +1328,6 @@ through the panel outside its buttons. Checks:
 `movable_meeting_capsules_is_its_own_bit_and_off_by_default` in
 [labs.rs](../../src/labs.rs). Not yet observed: a drag on a real Mac; the
 row renders only in macOS builds, so no golden changes.
-
-Choose meeting summary model (`meeting-summary-model`, issues 1107 and 1160)
-graduated: Meetings › Settings › After a meeting › Summaries picks Off, On
-this Mac, or OpenCode, with OpenCode's Model nested under it
-([meetings.md](meetings.md)). Its bit (1 << 24) stays unused.
 
 Vocabulary in meeting notes (`meeting-notes-vocabulary`, issue 1154; every
 OS with Meetings; its row shows wherever Meetings does): for names and terms
@@ -1783,141 +1670,6 @@ vocabulary list itself (rewriting and search), and Linux's Terminal paste.
   ├── playground off → only the window opens; process.log says why, the CLI answers feature-off
   └── another link, or longer than 2 KiB → ignored and logged
   ```
-
-  An unknown story opens the list and an unknown variant the story; Rune
-  logs which to stderr. Checks: `reads_story_links`, `links_from_before_the_list_nested_still_open_their_story`, `ignores_other_links`
-  in [story_link.rs](../../src/rune_ui/story_link.rs);
-  `every_hud_story_and_variant_opens_from_its_link` and
-  `every_capsule_story_and_flow_opens_from_its_link` in
-  playground.rs open every HUD and capsule link headlessly. The URL
-  handler and the replay have no automated end-to-end check.
-- Voice Filter: the Voice Filter pane (macOS and Linux), the only home of
-  the Hex Microphone (macOS's driver, Linux's PipeWire virtual source), its
-  filter modes, and Try it
-  ([Hex Microphone](README.md#experimental-hex-microphone-and-voice-filter)).
-  Its toggle is `experimental.hex_microphone` (off by default). Off, the pane
-  is hidden and Hex neither reads the driver's status nor starts its sink
-  supervisor. While the driver is installed the Voice Filter runs (apps using
-  the Hex Microphone keep their audio), its pane shows, and its Labs row is
-  on and disabled: "On while the Hex Microphone driver is installed.
-  Uninstall the driver in Voice Filter to turn it off." Checks:
-  `voice_filter_shows_only_while_its_labs_toggle_is_on` and
-  `an_installed_driver_keeps_the_voice_filter_on` in
-  [panes.rs](../../src/rune_ui/tests/panes.rs);
-  `the_setting_or_an_installed_driver_turns_the_voice_filter_on_and_labs_never_does`
-  in [app_settings.rs](../../src/app_settings.rs).
-- Meetings (beta): see [Meetings](meetings.md). Its toggle is
-  `meetings.enabled`; on, Meetings is a top-level sidebar item (debug builds
-  keep it available regardless).
-- Import audio (macOS): Meetings offers **Import audio…** beside Start
-  recording. A local WAV, M4A, MP3, AIFF, or CAF file is decoded to 16 kHz
-  mono float WAV by the AVFoundation bridge, then transcribed with the
-  selected speech model as a normal meeting: its turns are labelled Speaker,
-  it gets the user Markdown export, and notes and summaries run afterward when
-  the meetings setting asks for them. Its toggle is `labs.meeting_import`
-  (off by default). The button, and the watcher before it spawns a worker,
-  both read `labs::meeting_import()`, which includes an organization's Labs
-  lock; with the lab off the button hides and an import request is refused
-  with Audio could not be imported, so no decoder or worker runs. While an
-  import runs the button stays visible, and another choice is refused until it
-  finishes. CLI/MCP query output, chapter prompts, notes input, the internal
-  transcript.md, and Copy Last Transcript still say You/Them for imported
-  meetings; only the pane and the user Markdown export say Speaker. Quitting
-  cancels the decode and removes its folder; a crash or a quit past the drain
-  leaves import.pending with no manifest, which the next launch's sweep
-  removes once its lock is free. Checks:
-  `meeting_import_is_its_own_bit_and_off_by_default`
-  ([labs.rs](../../src/labs.rs));
-  `only_the_listed_audio_files_are_imported`,
-  `the_title_is_the_file_name_without_its_extension`,
-  `decodes_a_stereo_float_wav_to_mono_16_khz`, and
-  `decodes_a_stereo_16_bit_wav_to_mono_16_khz`
-  ([meeting/import.rs](../../src/meeting/import.rs), macOS);
-  `only_abandoned_import_folders_are_removed`
-  ([meeting/sweep.rs](../../src/meeting/sweep.rs));
-  `imported_meetings_keep_their_flag_and_older_manifests_read_as_recorded`
-  ([tests.rs](../../src/meeting/tests.rs));
-  `an_empty_track_transcribes_to_nothing` and
-  `imported_meetings_label_their_one_track_speaker`
-  ([transcript.rs](../../src/meeting/transcript.rs)); the Linux-only pane test
-  `an_imported_meeting_labels_its_one_track_speaker`
-  ([rune_ui/meetings.rs](../../src/rune_ui/meetings.rs)). The decoder tests run
-  in Check macOS. Not verified on a real Mac: the native picker and quitting
-  at each mid-import moment have no automated end-to-end check.
-- Vocabulary biasing: Parakeet transcription biased toward the
-  [vocabulary](vocabulary.md) (`transcribe_cpp::RunExtension::ParakeetVocabulary`),
-  the request behind issue 452 / PR 457. Off (the default),
-  `dictation::vocabulary::transcription_bias` returns nothing, so no run or stream takes
-  the list; rewriting and search still use it, and the Vocabulary sheet says
-  so.
-- Terminal paste (Windows): paste with Ctrl+Shift+V instead of Ctrl+V for
-  apps that ignore a synthetic Ctrl+V (issue 477 / PR 478). Its toggle is the
-  shared `paste_with_shift`; Linux keeps it as a General › Advanced row.
-- Terminal paste shortcut (Windows, Linux): another dictation shortcut whose
-  paste is always Ctrl+Shift+V, whatever Terminal paste says. Its own switch
-  is `labs.terminal_paste_shortcut`, and General shows its recorder while on.
-- OpenCode in WSL (Windows): Modes rewriting and the Modes model picker use an
-  OpenCode service running inside the default WSL distribution. WSL2 forwards
-  loopback, so Hex dials the registered URL as usual; what it cannot see
-  without this lab is the registration, which lives in the distribution's
-  home.
-
-```ts
-Settings › Labs › OpenCode in WSL on            // labs.opencode_in_wsl
-├── a Windows registration answers /api/info -> it wins, exactly as before
-├── none answers -> read HKCU\…\Lxss\DefaultDistribution, DistributionName and DefaultUid on every lookup
-│   ├── a cached home is reused only when DistributionName and DefaultUid still match; otherwise
-│   │   rebuild it from passwd: \\wsl.localhost\<distribution>\etc\passwd, else \\wsl$\<distribution>\etc\passwd
-│   │   on older Windows 10 (at most 1 MiB) -> the line whose uid is DefaultUid -> its (one trailing / trimmed) home
-│   ├── only the default distribution is opened; opening it can start the WSL VM too
-│   ├── state dir -> <home>/.local/state/opencode; same service.json order, cap, loopback, /api/info, password
-│   ├── found -> Hex's workspace is created at <home>/.local/share/hex/opencode once, and every
-│   │   x-opencode-directory names the Linux path <home>/.local/share/hex/opencode
-│   └── the cache is dropped when its state dir can't be read, when the default distribution or
-│       uid changes, and on the next search that runs with the lab off
-├── one lookup runs at a time on a shared helper thread, with its own WSL_LOOKUP_CAP (3 s) budget.
-│   Its starter keeps its full budget; a joiner waits at most min(its own budget, the cap minus the
-│   lookup's age) and returns "OpenCode isn't running" at once once the lookup is older than the cap.
-│   Each wait checks Escape in WAIT_SLICE slices; a timeout or cancel never aborts the others
-├── a lookup that ran into its cap without a service pauses new lookups for 10 s, so a hung WSL
-│   doesn't make every rewrite wait out its deadline; a later try finds it once it starts
-├── no registration or no home -> OpenCode isn't running, or the update notice when one answered /api/info with 404
-└── Labs off -> nothing reads the registry or any WSL path; Hex is exactly as before
-```
-
-The pure parts (the passwd line for a uid, a Linux home to its UNC path, the
-Linux workspace string, the cache identity, the shared lookup and its skip
-window) live in
-[desktop/opencode_service/wsl.rs](../../src/desktop/opencode_service/wsl.rs);
-the registry and `\\wsl.localhost\`/`\\wsl$\` reads are Windows-only. Nothing
-runs `wsl.exe`, and the passwd contents and password are never logged. A zero
-budget is refused before any registry or UNC read. A scoped request to a WSL
-service that fails (a transport error or 404) forgets the workspace, so the
-next request retries `create_dir_all`.
-
-Limits: `XDG_STATE_HOME` set inside WSL is ignored (Hex always reads
-`<home>/.local/state/opencode`); a home that isn't in `/etc/passwd`, such as
-one from LDAP or SSSD, isn't found; Annotate's capture send is not covered.
-Checks: `the_passwd_line_for_the_uid_names_its_home`,
-`both_wsl_prefixes_name_the_distribution`,
-`a_distribution_or_home_windows_cant_reach_is_refused`,
-`a_zero_budget_or_cancellation_skips_the_lookup`,
-`the_cache_follows_the_default_distribution_and_uid`,
-`one_lookup_serves_every_caller_and_a_short_wait_stops`,
-`a_joiner_does_not_wait_for_a_lookup_older_than_its_cap`,
-`a_timed_out_lookup_defers_the_next_one`, and
-`the_workspace_is_created_somewhere_windows_can_write_it` in
-[wsl.rs](../../src/desktop/opencode_service/wsl.rs);
-`a_wsl_service_gets_the_workspace_its_linux_server_can_use`,
-`a_wsl_service_is_a_fallback_only_without_a_windows_one`,
-`a_failed_wsl_request_forgets_the_workspace`, and
-`a_not_found_wsl_request_forgets_the_workspace` in
-[opencode_service.rs](../../src/desktop/opencode_service.rs);
-`opencode_in_wsl_is_its_own_bit_and_windows_only` in
-[labs.rs](../../src/labs.rs). Not yet observed: a real Windows PC with a
-running OpenCode inside WSL, including whether the UNC read starts the
-distribution and whether its server accepts the Linux workspace path. The
-`windows-labs` golden shows the new card.
 
 Checks: `labs_is_one_flat_list_of_toggles_off_by_default`,
 `contributed_options_are_labs_toggles_off_by_default`,

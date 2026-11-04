@@ -74,7 +74,6 @@ hex
 │   ├── start|stop|cancel|replay|status  record a capture, end or discard it, save the last 15 s, or report
 │   ├── list [--limit N]           the newest captures in the captures folder
 │   ├── show <capture>             one capture's words, files, and where it went
-│   ├── send <capture> [--to <session>] [--always]  send it to an OpenCode session
 │   └── route <capture> [--ask-jev]  what routing sees and decides; sends nothing
 ├── screenshot [--pick]           Labs (macOS): shoot the display under the pointer and print the PNG's path; --pick opens the ⌘⇧4 picker
 ├── labs [on|off <feature>]       list Labs features or turn one on/off; edits settings.json (features/labs.md)
@@ -93,20 +92,6 @@ stream start as they do after a held shortcut. A `stop` replies `done` only
 when the clip went to transcription; a clip with no audio yet (the microphone
 was still opening) or a silent one is dropped with `discarded`, and nothing
 shows as transcribing.
-
-`dictation stop --print` stops the recording at once, exactly as `stop`
-does, so a following `start` isn't blocked; only this command then waits, up
-to 60 s, for the transcript and writes it to stdout instead of pasting it. The
-text gets the same processing as a paste (global replacements, the mode's
-corrections, OpenCode rewriting, and transformations). History keeps it as
-`printed`, and Paste Last skips it. No speech (nothing recorded yet, a silent
-clip, or an empty transcript) exits 4 with code `no-speech` and prints
-nothing; with nothing recording it refuses with `not-recording`. A failure,
-or the 60 s timeout prints nothing, exits 1, and never
-falls back to pasting. `--print` with any other action is a usage error
-(exit 2). The command is the same on Linux and Windows, where `hex dictation`
-and `hex paste-last` reach the listener's own queue as its shortcut would;
-Linux's `hex typed-text` does too.
 
 `dictation start --raw` and `toggle --raw` start a dictation that pastes the
 transcript as heard, skipping the Output pane's steps, as the Dictate without
@@ -206,19 +191,6 @@ of `done`, `failed`, or `cancelled`, and for a written bundle `words`, `gaps`,
 and `missing_transcript`, why it has no words). A start or replay while two captures
 are still writing is refused with `busy`. Every action is idempotent.
 
-`<capture>` is a bundle name (`1792933491953.scrawl`, the extension
-optional), a path, or `latest`. `list`, `show`, and `route` read the captures
-folder and need only the experiment; `send` needs captures on and a listening
-Hex. `send` with `--to` takes a session ID; for the newest capture it also
-takes a name its route lists, and it acts as the capsule's pick, so the
-capsule's Undo follows it. Without `--to` it goes where the capture's route
-(its rule, or its first guess) or its last send says. `--always`, for the
-newest capture only, also saves a rule sending its site or app there, as the
-capsule's ⇧⏎ does. Its reply says what became of it (`Sent to …`,
-`Queued for …` when OpenCode didn't answer, which Hex retries). `route` is
-Scrawl's `route --explain` (`--explain` is accepted); `--ask-jev` asks Jev
-again, one network call. An unknown capture is refused with `not-found`.
-
 A CLI-started meeting is the same recording the menu bar starts: the menu-bar
 state, the recording capsule, and Stop & Transcribe all apply to it.
 `meetings record` replies once the recording has started (or after 8 s);
@@ -300,8 +272,6 @@ Replies are tagged by `status`:
 {"version": 4, "status": "models", "models": [{"id": "parakeet_v3", "name": "…",
   "languages": ["en", "…"], "size": "…", "installed": true, "selected": true,
   "streams": true, "vocabulary": "bias", "supports_recognition_hints": false}]}
-{"version": 4, "status": "vocabulary", "entries": [{"term": "OpenCode",
-  "sounds_like": ["open code"]}, {"term": "Rune"}]}
 {"version": 4, "status": "scrawl-capture", "changed": true, "state": "idle",
   "bundle": "…/captures/1792933491953.scrawl", "elapsed_ms": null,
   "finishing": ["…/captures/1792933491953.scrawl"], "last": null}
@@ -481,36 +451,12 @@ lower the default output, Windows lowers other apps' audio sessions.
 `recording_duck_volume` sets the fraction of the original output volume (0–1,
 default 0.2), applied on the next intentional capture when ducking is selected.
 
-Writable keys: `release_microphone_while_idle`,
-`sound_effects`, `sound_effect_volume`, `sound_theme`, `microphone`,
-`avoid_bluetooth_microphone`, `recording_audio_behavior`, `recording_duck_volume`, `double_tap_lock`, `double_tap_only`,
-`shortcut_mode`, `dictation_hotkey`, `paste_last_hotkey`, `raw_dictation_hotkey`,
-`second_dictation_hotkey`, `labs.second_dictation_shortcut`, `labs.standalone_special_keys`, `show_dock_icon`, `vocabulary_boost`,
-`dictation_processing.default_mode`, `dictation_processing.modes`,
-`history_retention`, `meetings.enabled`,
-`meetings.output_folder`, `meetings.summaries`, `meetings.opencode_model`,
-`meetings.show_recording_indicator`, `meetings.recording_indicator_corner`,
-`meetings.retention`, `meetings.audio_retention`, `meetings.providers`, `meetings.calendar.excluded_calendars`,
-`meetings.calendar.remind`, `meetings.calendar.lead_minutes`,
-`experimental.hex_microphone`, `experimental.hex_microphone_mode`,
-`experimental.hex_microphone_comfort_noise`,
-`experimental.hex_microphone_strength`, `enable_on_launch`,
-`paste_with_shift`, `ui_language`, `indicator_position`, `updates.channel`.
-
 `transcription.recognition_hints` is deprecated: recognition hints merged into
 the [vocabulary](features/vocabulary.md). `get` returns the vocabulary's terms,
 comma-separated, and `set` (or `apply`) adds the comma-separated names to it;
 `list` leaves the key out. Model listings keep `supports_recognition_hints`
 (true where the model reads the vocabulary as its prompt) beside the newer
 `vocabulary`: `prompt`, `bias`, or `none`.
-
-`meetings.summaries` chooses who titles and summarizes meetings: `off`, `mac`
-(Apple Intelligence; nothing leaves this Mac, and nothing falls back to
-OpenCode), or `opencode` (sends the transcript to `meetings.opencode_model`,
-or a fast model Hex picks when that is `none`). Off a Mac it is `off` or
-`opencode`. The retired `meetings.summarize_with_apple_intelligence` and
-`meetings.summarize_with_opencode` are refused with the `meetings.summaries`
-command to use instead.
 
 A test (`control::settings::tests::every_persisted_setting_has_a_cli_key`)
 fails when a new persisted setting has no key here.
