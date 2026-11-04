@@ -11,7 +11,12 @@ use std::path::{Path, PathBuf};
 
 /// What `macos::stage` names an unpacked update's folder with, beside the
 /// installed bundle. Only this exact prefix is ever removed.
-pub const PREFIX: &str = ".Hex-update-";
+/// Hexium: its own `.Hexium-update-`, so it never touches Hex's folders.
+pub const PREFIX: &str = if crate::app_paths::HEXIUM {
+    ".Hexium-update-"
+} else {
+    ".Hex-update-"
+};
 
 /// An unpacked update this process could not remove.
 ///
