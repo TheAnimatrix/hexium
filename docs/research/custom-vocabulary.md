@@ -121,14 +121,10 @@ hints). It feeds:
 1. **Hints** for Whisper today, and for Qwen3-ASR once transcribe-cpp moves from
    0.2.4 to 0.4.x. #129 describes the change. The only API break the reporter
    hit was `Model::capabilities()` returning a `Result`.
-2. **The OpenCode rewrite prompt:** "these terms exist; prefer these spellings
-   when a word sounds like one". This is the cheapest option that can fix
-   "Hanks" and "Capuchin", because an LLM sees the whole sentence. It costs
-   latency and is optional per mode.
-3. **Replacements:** keep as the deterministic layer, with bulk import and the
+2. **Replacements:** keep as the deterministic layer, with bulk import and the
    #139 and #177 fixes first.
 
-Limits: an LLM can over-correct and add latency, and hints can induce Whisper
+Limits: hints can induce Whisper
 hallucination. Hex already has reports of Whisper inventing text on silence
 (anomalyco/hex #193 and #108, kitlangton/Hex #206). Superwhisper's own docs say the same
 about long vocabularies. Keep hint lists short and cap them.
@@ -239,8 +235,8 @@ similar result. Treat it as the fallback if the decoder spike disappoints.
 
 #### F. LLM correction with the vocabulary
 
-Already covered under A.2. Apple's FoundationModels is a possible local
-alternative to OpenCode. The Show HN post for `sayline.app` reports the Apple
+Apple's FoundationModels is a possible local
+option. The Show HN post for `sayline.app` reports the Apple
 model's content filter "blocked nearly every useful request" in a
 dictation-rewrite setting (anecdotal, one author). anomalyco/hex #167 already
 tracks Foundation Model support for Voice Action.
@@ -285,8 +281,7 @@ tracks Foundation Model support for Voice Action.
 1. **One vocabulary list per Hex, with import/export.** Terms, optional "heard
    as" aliases, optional per-mode scope. Fix #139 and #177. Add CSV or text
    bulk import (kitlangton/Hex #160). One-click "add from History".
-2. **Feed it to what exists:** Whisper hints (cap the list), the OpenCode
-   rewrite prompt for modes that have rewriting on, and deterministic
+2. **Feed it to what exists:** Whisper hints (cap the list) and deterministic
    replacements for aliases. Bump transcribe-cpp to 0.4.x for Qwen3-ASR hints
    (#129) as a separate step, since it changes the pinned dependency.
 3. **Confidence-gated phonetic snap (option B),** off by default, with the
@@ -337,7 +332,7 @@ Hex already has most of the pieces:
 Add:
 
 1. **A term corpus.** Text only to start: about 100 sentences, each containing
-   one or more target terms (OpenCode, Rune, Scrawl, Effect, Anomaly,
+   one or more target terms (Rune, Scrawl, Effect, Anomaly,
    Cappuccino, Hex, plus real names). Render with several `say` voices, at least
    one ElevenLabs voice, and a handful of Kit's own recordings, including the
    meeting clips where "Hanks" and "Capuchin" occurred. Real clips matter more

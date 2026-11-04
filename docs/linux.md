@@ -300,7 +300,7 @@ Start/Stop, and operational errors. Changing a shortcut or a setting the
 listener reads at start temporarily stops listening and restores the previous
 running state after the edit.
 
-Modes apply corrections, OpenCode rewriting, and transformations per
+Modes apply corrections and transformations per
 application or website; the application picker lists `.desktop` entries. On
 X11, Hex reads the focused application from the active window's process name
 (`code`, `chrome`). On Wayland, compositors with the foreign-toplevel protocol
