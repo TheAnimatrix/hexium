@@ -852,7 +852,7 @@ fn create_tray(window: rune::AppHandle<Ui>) -> Result<rune::Tray> {
         tray_icon::pixels(taskbar_is_light()),
     );
     let view = TrayView::default();
-    let spec = rune::TraySpec::new("hex", "Hex", icon)
+    let spec = rune::TraySpec::new("hexium", "Hexium", icon)
         .tooltip(view.tooltip())
         .menu(view.menu());
     let tray = rune::Tray::new(spec, move |event| match event {

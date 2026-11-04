@@ -642,7 +642,7 @@ pub fn default_mac_bundle_id(test_build: Option<&str>) -> &'static str {
     if test_build == Some("1") {
         "anomaly.hex.test"
     } else {
-        "anomaly.hex"
+        "com.avarnic.hexium"
     }
 }
 
@@ -2032,8 +2032,8 @@ mod tests {
                 "com.kitlangton.Hex.debug"
             ]
         );
-        assert_eq!(default_mac_bundle_id(None), "anomaly.hex");
-        assert_eq!(default_mac_bundle_id(Some("0")), "anomaly.hex");
+        assert_eq!(default_mac_bundle_id(None), "com.avarnic.hexium");
+        assert_eq!(default_mac_bundle_id(Some("0")), "com.avarnic.hexium");
         assert_eq!(default_mac_bundle_id(Some("1")), "anomaly.hex.test");
 
         assert_eq!(
