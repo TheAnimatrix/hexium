@@ -1015,7 +1015,8 @@ pub(super) fn application(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<CardRow
         },
         layer,
     ));
-    if s::updates_itself(ui) {
+    // Hexium: its releases are one channel, so there's nothing to pick.
+    if s::updates_itself(ui) && !crate::app_paths::HEXIUM {
         let shown = settings
             .updates
             .channel

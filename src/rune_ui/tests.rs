@@ -430,6 +430,11 @@ fn backspace_in_an_optional_recorder_turns_the_shortcut_off() {
 fn choosing_an_update_channel_saves_it_and_checks_now() {
     let mut rt = runtime("portal", true, GOLDEN_SIZE);
     tap(&mut rt, "advanced-toggle");
+    // Hexium: its releases are one channel, so there's no row to pick it.
+    if crate::app_paths::HEXIUM {
+        assert!(rt.find("update-channel").is_none());
+        return;
+    }
     assert_eq!(rt.state.settings.updates.channel, None);
     let (other, index) = other_update_channel();
     pick(&mut rt, "update-channel", index);
@@ -462,6 +467,11 @@ fn other_update_channel() -> (crate::app_settings::UpdateChannel, usize) {
 fn choosing_the_channel_in_effect_keeps_following_the_build() {
     let mut rt = runtime("portal", true, GOLDEN_SIZE);
     tap(&mut rt, "advanced-toggle");
+    // Hexium: its releases are one channel, so there's no row to pick it.
+    if crate::app_paths::HEXIUM {
+        assert!(rt.find("update-channel").is_none());
+        return;
+    }
     assert_eq!(rt.state.settings.updates.channel, None);
     let build = crate::updater::build_channel();
     let index = crate::app_settings::UpdateChannel::ALL
@@ -478,6 +488,11 @@ fn choosing_the_channel_in_effect_keeps_following_the_build() {
 fn installs_that_never_update_hide_the_update_channel() {
     let mut rt = runtime("portal", true, GOLDEN_SIZE);
     tap(&mut rt, "advanced-toggle");
+    // Hexium: its releases are one channel, so there's no row to pick it.
+    if crate::app_paths::HEXIUM {
+        assert!(rt.find("update-channel").is_none());
+        return;
+    }
     assert!(rt.find("update-channel").is_some());
     if let Some(view) = &mut rt.state.view {
         view.update_status = DesktopUpdateStatus::PackageManager;

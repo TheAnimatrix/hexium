@@ -6,6 +6,11 @@
 //! download must carry a valid Authenticode signature from Anomaly's
 //! Artifact Signing identity. Administrators turn updates off with the
 //! `DisableUpdates` policy value.
+//!
+//! Hexium: its builds are unsigned, so a download is trusted on the size and
+//! SHA-256 that Hexium's release manifest names (checked as it downloads,
+//! over HTTPS from Hexium's GitHub releases) and on running as the version
+//! it claims; no Authenticode signer is asked for.
 
 use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
@@ -67,6 +72,20 @@ enum Ineligible {
 
 impl Ineligible {
     fn message(self) -> &'static str {
+        // Hexium: its own installer and releases page.
+        if crate::app_paths::HEXIUM {
+            return match self {
+                Self::NotInstalled => {
+                    "This copy of Hexium can't update itself because the Hexium installer didn't install it. Install Hexium with hexium-setup from its GitHub releases to get updates in the app."
+                }
+                Self::OutsideProfile => {
+                    "This copy of Hexium can't update itself because it's installed outside your user folder. Reinstall Hexium with hexium-setup from its GitHub releases to get updates in the app."
+                }
+                Self::Receipt => {
+                    "This copy of Hexium can't update itself because its install record is from another installer. Reinstall Hexium with hexium-setup from its GitHub releases to get updates in the app."
+                }
+            };
+        }
         match self {
             Self::NotInstalled => {
                 "This copy of Hex can't update itself because the Hex installer didn't install it. Install Hex from anoma.ly/hex to get updates in the app."
@@ -207,9 +226,9 @@ pub fn updates_disabled_by_policy() -> bool {
 /// Stages `file` (hex.exe) and `console` (hex.com), when the release has
 /// one, as `version`.
 pub fn stage(file: &Path, console: Option<&Path>, version: &str) -> Result<Staged> {
-    verify_authenticode(file, AUTHENTICODE_SIGNER)?;
+    verify_signer(file)?;
     if let Some(console) = console {
-        verify_authenticode(console, AUTHENTICODE_SIGNER)?;
+        verify_signer(console)?;
     }
     let support = crate::app_paths::support_dir()?;
     let lock = OpenOptions::new()
@@ -255,6 +274,15 @@ pub fn stage(file: &Path, console: Option<&Path>, version: &str) -> Result<Stage
         tracing::warn!(%error, "could not update the Apps & Features version");
     }
     Ok(Staged(executable))
+}
+
+/// Anomaly's Authenticode signature on Hex's downloads; Hexium's are unsigned
+/// and rest on the manifest's SHA-256 (see the module notes).
+fn verify_signer(file: &Path) -> Result<()> {
+    if crate::app_paths::HEXIUM {
+        return Ok(());
+    }
+    verify_authenticode(file, AUTHENTICODE_SIGNER)
 }
 
 /// Requires a valid Authenticode signature (chain and timestamp checked by
@@ -337,6 +365,11 @@ fn retarget_shortcuts(folders: &[PathBuf; 3], support: &Path, executable: &Path)
         .env("HEX_TASKBAR", taskbar)
         .env("HEX_VERSIONS", support.join("versions"))
         .env("HEX_STAGING", &staging)
+        .env("HEX_SHORTCUT_NAME", format!("{}.lnk", shortcut_name()))
+        .env(
+            "HEX_SHORTCUT_DESCRIPTION",
+            format!("{} managed install", shortcut_name()),
+        )
         .env("HEX_EXECUTABLE", executable)
         .env_remove("PSModulePath")
         .stdin(Stdio::null())
@@ -353,6 +386,16 @@ fn retarget_shortcuts(folders: &[PathBuf; 3], support: &Path, executable: &Path)
         bail!("the shortcut update exited with {status}");
     }
     Ok(())
+}
+
+/// The Start Menu shortcut the installer makes: Hexium's installer names it
+/// and its description after Hexium.
+fn shortcut_name() -> &'static str {
+    if crate::app_paths::HEXIUM {
+        "Hexium"
+    } else {
+        "Hex"
+    }
 }
 
 /// How long the shortcut update may run before the update lock is released:
@@ -405,7 +448,7 @@ const SHORTCUT_REPOINT_SCRIPT: &str = "\
     $programs = $env:HEX_PROGRAMS; \
     if ($programs) { \
       try { \
-        $managed = Join-Path $programs 'Hex.lnk'; \
+        $managed = Join-Path $programs $env:HEX_SHORTCUT_NAME; \
         $broken = $false; \
         if (Test-Path -LiteralPath $managed -PathType Leaf -ErrorAction SilentlyContinue) { \
           try { $existing = $shell.CreateShortcut($managed); if (-not [string]$existing.TargetPath) { $broken = $true } } catch { $broken = $true } } \
@@ -415,7 +458,7 @@ const SHORTCUT_REPOINT_SCRIPT: &str = "\
           $fresh = $shell.CreateShortcut($temp); \
           $fresh.TargetPath = $executable; \
           $fresh.Arguments = 'app'; \
-          $fresh.Description = 'Hex managed install'; \
+          $fresh.Description = $env:HEX_SHORTCUT_DESCRIPTION; \
           $fresh.WorkingDirectory = $working; \
           $fresh.Save(); \
           $fs = [IO.File]::Open($temp, 'Open', 'ReadWrite'); \
@@ -557,7 +600,7 @@ pub fn console_missing() -> bool {
 /// PATH, for an install whose updater predates it. hex.com only starts the
 /// `hex.exe` beside it, so any release's copy serves this version.
 pub fn install_console(file: &Path) -> Result<()> {
-    verify_authenticode(file, AUTHENTICODE_SIGNER)?;
+    verify_signer(file)?;
     let support = crate::app_paths::support_dir()?;
     let beside = std::env::current_exe()?.with_file_name("hex.com");
     replace_file(file, &beside)?;
@@ -1059,7 +1102,7 @@ mod tests {
         let staging = support.join("updates");
         let folder = root.join("shortcuts");
         fs::create_dir_all(&folder).unwrap();
-        let managed = folder.join("Hex.lnk");
+        let managed = folder.join(format!("{}.lnk", shortcut_name()));
         let folders = [folder, PathBuf::new(), PathBuf::new()];
 
         // A link the user removed stays removed: the update never creates one.
@@ -1097,7 +1140,7 @@ mod tests {
             [
                 executable.display().to_string(),
                 "app".to_owned(),
-                "Hex managed install".to_owned(),
+                format!("{} managed install", shortcut_name()),
                 working.display().to_string(),
             ],
             "unexpected repaired shortcut: {text}"

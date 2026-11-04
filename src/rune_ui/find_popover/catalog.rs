@@ -156,7 +156,8 @@ pub(super) fn entries(ui: &Ui) -> Vec<Entry> {
         tr("Preview the tones Hex plays when you dictate."),
     );
     add(g, "interface-language", true, tr("Interface language"), "");
-    if settings::updates_itself(ui) {
+    // Hexium: its releases are one channel, so General has no picker.
+    if settings::updates_itself(ui) && !crate::app_paths::HEXIUM {
         add(g, "update-channel", true, tr("Update channel"), "");
     }
     all.extend(
