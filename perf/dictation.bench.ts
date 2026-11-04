@@ -105,6 +105,17 @@ export default bench({
         await printed(await ctx.phase("finish", () => stop(ctx)))
       },
     },
+    // Discovery: a dictation after the model sat idle for 4 minutes.
+    "after-idle": {
+      primary: "phase.finish",
+      metrics: ["cpu.work"],
+      async run(ctx) {
+        await ctx.page.wait(240_000)
+        await start(ctx)
+        await ctx.page.wait(STOP_AFTER_MS)
+        await printed(await ctx.phase("finish", () => stop(ctx)))
+      },
+    },
     // While a dictation records: the audio path, the live stream's
     // inference, and the HUD meter's plumbing. Each run is 6 s of one
     // recording; reset finishes it and starts the next.
