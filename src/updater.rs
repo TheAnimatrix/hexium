@@ -41,6 +41,13 @@ pub use platform::finish_on_launch;
 const APP: &str = "hex";
 const ARTIFACT: &str = "desktop";
 const ORIGIN: &str = "https://anoma.ly/release";
+/// Hexium: updates come from Hexium's own GitHub releases, never from Hex's
+/// release service. Each release publishes a manifest in the protocol's
+/// format beside its files (`hexium/release-manifest.py`); GitHub's
+/// `latest/download` serves the newest release's copy.
+const HEXIUM_RELEASES: &str = "https://github.com/TheAnimatrix/hexium/releases/latest/download";
+/// Hexium: where Download update leads when the release names no page.
+const HEXIUM_PAGE: &str = "https://github.com/TheAnimatrix/hexium/releases/latest";
 const STARTUP_DELAY: Duration = Duration::from_secs(10);
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 /// Dev builds land on every push to dev, so the Dev channel checks often.
@@ -115,6 +122,10 @@ fn home_channel(method: &Method, built: Option<&str>, version: &str) -> String {
 /// own. Package managers follow `stable`. A setting other than the build's
 /// channel makes the decision a switch, which waits for the user.
 fn channel(method: &Method, setting: Option<UpdateChannel>, home: &str) -> String {
+    // Hexium: its releases are one channel.
+    if crate::app_paths::HEXIUM {
+        return UpdateChannel::Stable.name().into();
+    }
     match setting {
         Some(channel) if !matches!(method, Method::Package(_)) => channel.name().into(),
         _ => home.into(),
@@ -675,7 +686,7 @@ fn check(
         } => Ok(match command {
             Some(command) => State::Command { command },
             None => State::Download {
-                url: notes_url.unwrap_or_else(|| "https://anoma.ly/hex".into()),
+                url: notes_url.unwrap_or_else(|| download_page().into()),
             },
         }),
         Decision::Install {
@@ -703,7 +714,7 @@ fn check(
                             .and_then(|target| protocol::resolve_url(&manifest_url, &target.url))
                             .or(manifest.release.notes_url)
                     })
-                    .unwrap_or_else(|| "https://anoma.ly/hex".into());
+                    .unwrap_or_else(|| download_page().into());
                 return Ok(State::Download { url });
             }
             let url = protocol::resolve_url(&manifest_url, &target.url)
@@ -816,10 +827,22 @@ fn manifest_url(channel: &str) -> String {
     let origin = std::env::var("HEX_RELEASE_BASE_URL")
         .ok()
         .filter(|origin| origin.starts_with("https://"));
+    if crate::app_paths::HEXIUM && origin.is_none() {
+        return format!("{HEXIUM_RELEASES}/{channel}.json");
+    }
     format!(
         "{}/{APP}/{ARTIFACT}/{channel}.json",
         origin.as_deref().unwrap_or(ORIGIN).trim_end_matches('/')
     )
+}
+
+/// Where Download update leads when the manifest names nothing better.
+fn download_page() -> &'static str {
+    if crate::app_paths::HEXIUM {
+        HEXIUM_PAGE
+    } else {
+        "https://anoma.ly/hex"
+    }
 }
 
 /// This build's target SHA-256, when the platform can tell (the target is
@@ -998,6 +1021,17 @@ mod tests {
         let direct = Method::Direct {
             channel: "stable".into(),
         };
+        // Hexium: one channel, whatever the build or the setting says.
+        if crate::app_paths::HEXIUM {
+            for (setting, home) in [
+                (None, "dev"),
+                (Some(UpdateChannel::Dev), "stable"),
+                (Some(UpdateChannel::Stable), "dev"),
+            ] {
+                assert_eq!(channel(&direct, setting, home), "stable");
+            }
+            return;
+        }
         assert_eq!(channel(&direct, None, "dev"), "dev");
         assert_eq!(
             channel(&direct, Some(UpdateChannel::Stable), "dev"),
@@ -1210,8 +1244,95 @@ mod tests {
         );
     }
 
+    /// Hexium: a manifest as hexium/release-manifest.py writes it, read
+    /// from the newest release, sends a direct install to that release's
+    /// file on github.com, a package install to the release page, and leaves
+    /// the build it names alone.
+    #[test]
+    fn a_hexium_release_manifest_installs_from_its_own_release() {
+        if !crate::app_paths::HEXIUM {
+            return;
+        }
+        let sha = "a".repeat(64);
+        let manifest = serde_json::json!({
+            "schema": 1, "app": APP, "artifact": ARTIFACT, "channel": "stable",
+            "sequence": 12, "published_at": "2026-11-09T06:13:02Z",
+            "release": {
+                "version": "3.3.0-hexium.12",
+                "notes_url": "https://github.com/TheAnimatrix/hexium/releases/tag/v3.3.0-hexium.12",
+                "rollout_percent": 100, "required": false,
+                "targets": {"windows-x64": {
+                    "url": "/TheAnimatrix/hexium/releases/download/v3.3.0-hexium.12/hexium-3.3.0-hexium.12-windows-x64.exe",
+                    "size": 32, "sha256": sha,
+                }},
+                "distributions": [{"kind": "direct"}, {"kind": "deb-x64", "version": "3.3.0-hexium.12"}],
+            },
+        })
+        .to_string();
+        let url = manifest_url("stable");
+        let install = |distribution: &str, version: &str, sha256: Option<String>| Install {
+            version: version.into(),
+            target: "windows-x64".into(),
+            distribution: distribution.into(),
+            rollout_bucket: 99,
+            sha256,
+            channel: Some("stable".into()),
+        };
+        let decision = protocol::decide(
+            APP,
+            ARTIFACT,
+            "stable",
+            &manifest,
+            &install("direct", "3.3.0-hexium.11", Some("b".repeat(64))),
+        );
+        let Decision::Install {
+            version, target, ..
+        } = decision
+        else {
+            panic!("{decision:?}");
+        };
+        assert_eq!(version, "3.3.0-hexium.12");
+        assert_eq!(
+            protocol::resolve_url(&url, &target.url).as_deref(),
+            Some(
+                "https://github.com/TheAnimatrix/hexium/releases/download/v3.3.0-hexium.12/hexium-3.3.0-hexium.12-windows-x64.exe"
+            )
+        );
+        assert!(matches!(
+            protocol::decide(
+                APP,
+                ARTIFACT,
+                "stable",
+                &manifest,
+                &install("direct", "3.3.0-hexium.11", Some(sha))
+            ),
+            Decision::None { .. }
+        ));
+        assert!(matches!(
+            protocol::decide(
+                APP,
+                ARTIFACT,
+                "stable",
+                &manifest,
+                &install("deb-x64", "3.3.0-hexium.11", None)
+            ),
+            Decision::Notify {
+                notes_url: Some(_),
+                ..
+            }
+        ));
+    }
+
     #[test]
     fn the_manifest_url_names_app_artifact_and_channel() {
+        // Hexium: the newest Hexium release's manifest, never Hex's service.
+        if crate::app_paths::HEXIUM {
+            assert_eq!(
+                manifest_url("stable"),
+                "https://github.com/TheAnimatrix/hexium/releases/latest/download/stable.json"
+            );
+            return;
+        }
         assert_eq!(
             manifest_url("stable"),
             "https://anoma.ly/release/hex/desktop/stable.json"

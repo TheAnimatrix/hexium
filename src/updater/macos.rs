@@ -7,6 +7,11 @@
 //! read-only, translocated, or root-owned location links to the DMG instead
 //! of escalating. Administrators turn updates off with `DisableUpdates` in
 //! the `anomaly.hex` defaults domain.
+//!
+//! Hexium: `Hexium.app` (`com.avarnic.hexium`) is ad-hoc signed, so the
+//! update must be an intact ad-hoc signed bundle with Hexium's identifier,
+//! and the manifest's SHA-256 (checked as it downloads, over HTTPS from
+//! Hexium's GitHub releases) vouches for where it came from.
 
 use std::ffi::CString;
 use std::fs;
@@ -21,14 +26,35 @@ use super::Method;
 
 pub const TARGET: &str = "macos-arm64";
 pub const DOWNLOAD_TARGET: &str = "macos-arm64-dmg";
-const BUNDLE_ID: &str = "anomaly.hex";
+const BUNDLE_ID: &str = if crate::app_paths::HEXIUM {
+    "com.avarnic.hexium"
+} else {
+    "anomaly.hex"
+};
 /// A Developer ID application from Anomaly's team (5NZ4Q7NXJ4), identified
 /// as `anomaly.hex`, and notarized. The release build checks its artifacts
 /// against the same file.
-const REQUIREMENT: &str = include_str!("../../app/update-requirement.txt");
+const DEVELOPER_ID: &str = include_str!("../../app/update-requirement.txt");
+/// What an update's signature must satisfy: Hexium's identifier on its
+/// ad-hoc signed builds, or Anomaly's Developer ID.
+const REQUIREMENT: &str = if crate::app_paths::HEXIUM {
+    "identifier \"com.avarnic.hexium\""
+} else {
+    DEVELOPER_ID
+};
+/// The bundle an update archive holds.
+const BUNDLE_NAME: &str = if crate::app_paths::HEXIUM {
+    "Hexium.app"
+} else {
+    "Hex.app"
+};
 /// Unpacked updates (and, after a swap, the replaced bundle) live in
 /// `.<name>-update-<version>` beside the installed bundle.
-const STAGING_PREFIX: &str = ".Hex-update-";
+const STAGING_PREFIX: &str = if crate::app_paths::HEXIUM {
+    ".Hexium-update-"
+} else {
+    ".Hex-update-"
+};
 
 /// An unpacked, verified bundle and the installed bundle it replaces.
 #[derive(Clone, Debug)]
@@ -128,7 +154,7 @@ pub fn stage(archive: &Path, version: &str) -> Result<Staged> {
         .ok_or_else(|| eyre!("Hex.app has no parent folder"))?;
     let staging = parent.join(format!("{STAGING_PREFIX}{version}"));
     unpack(archive, &staging)?;
-    let update = staging.join("Hex.app");
+    let update = staging.join(BUNDLE_NAME);
     let result = verify_bundle(&update, version, REQUIREMENT);
     if let Err(error) = result {
         let _ = fs::remove_dir_all(&staging);
@@ -188,7 +214,8 @@ fn verify_bundle(bundle: &Path, version: &str, requirement: &str) -> Result<()> 
         .wrap_err("could not run codesign")?;
     if !output.status.success() {
         bail!(
-            "the update's code signature is not Anomaly's notarized Developer ID: {}",
+            "the update's code signature does not satisfy {}: {}",
+            requirement.trim(),
             String::from_utf8_lossy(&output.stderr).trim()
         );
     }
@@ -247,13 +274,33 @@ mod tests {
 
     #[test]
     fn the_developer_id_requirement_compiles() {
-        let status = Command::new("/usr/bin/csreq")
-            .arg(format!("-r={}", REQUIREMENT.trim()))
-            .arg("-t")
-            .stdout(Stdio::null())
-            .status()
-            .unwrap();
-        assert!(status.success());
+        for requirement in [DEVELOPER_ID, REQUIREMENT] {
+            let status = Command::new("/usr/bin/csreq")
+                .arg(format!("-r={}", requirement.trim()))
+                .arg("-t")
+                .stdout(Stdio::null())
+                .status()
+                .unwrap();
+            assert!(status.success(), "{requirement}");
+        }
+    }
+
+    /// Hexium: its own ad-hoc signed bundle passes the requirement it ships
+    /// with; Hex's bundle, a wrong version, or a modified bundle never does.
+    #[test]
+    fn hexium_takes_only_its_own_intact_bundle() {
+        if !crate::app_paths::HEXIUM {
+            return;
+        }
+        let root = temporary("hexium");
+        let app = bundle(&root, BUNDLE_ID, "3.3.0-hexium.12");
+        verify_bundle(&app, "3.3.0-hexium.12", REQUIREMENT).unwrap();
+        assert!(verify_bundle(&app, "3.3.0-hexium.11", REQUIREMENT).is_err());
+        let hex = bundle(&root.join("hex"), "anomaly.hex", "3.3.0-hexium.12");
+        assert!(verify_bundle(&hex, "3.3.0-hexium.12", REQUIREMENT).is_err());
+        fs::write(app.join("Contents/MacOS/hex"), b"tampered").unwrap();
+        assert!(verify_bundle(&app, "3.3.0-hexium.12", REQUIREMENT).is_err());
+        let _ = fs::remove_dir_all(root);
     }
 
     /// A minimal ad-hoc signed `Hex.app` with `identifier` and `version`.
@@ -286,16 +333,16 @@ mod tests {
         let root = temporary("verify");
         let app = bundle(&root, BUNDLE_ID, "9.9.9");
         // An ad-hoc signature satisfies a plain identifier requirement…
-        verify_bundle(&app, "9.9.9", "identifier \"anomaly.hex\"").unwrap();
+        verify_bundle(&app, "9.9.9", &format!("identifier \"{BUNDLE_ID}\"")).unwrap();
         // …but never Anomaly's Developer ID requirement.
-        let error = verify_bundle(&app, "9.9.9", REQUIREMENT).unwrap_err();
+        let error = verify_bundle(&app, "9.9.9", DEVELOPER_ID).unwrap_err();
         assert!(error.to_string().contains("code signature"), "{error}");
-        assert!(verify_bundle(&app, "9.9.8", "identifier \"anomaly.hex\"").is_err());
+        assert!(verify_bundle(&app, "9.9.8", &format!("identifier \"{BUNDLE_ID}\"")).is_err());
         let other = bundle(&root.join("other"), "com.kitlangton.hex2", "9.9.9");
         assert!(verify_bundle(&other, "9.9.9", "identifier \"com.kitlangton.hex2\"").is_err());
         // A modified bundle no longer satisfies its signature.
         fs::write(app.join("Contents/MacOS/hex"), b"tampered").unwrap();
-        assert!(verify_bundle(&app, "9.9.9", "identifier \"anomaly.hex\"").is_err());
+        assert!(verify_bundle(&app, "9.9.9", &format!("identifier \"{BUNDLE_ID}\"")).is_err());
         let _ = fs::remove_dir_all(root);
     }
 
@@ -349,7 +396,7 @@ mod tests {
         verify_bundle(
             &staging.join("Hex.app"),
             "9.9.9",
-            "identifier \"anomaly.hex\"",
+            &format!("identifier \"{BUNDLE_ID}\""),
         )
         .unwrap();
         let _ = fs::remove_dir_all(root);
