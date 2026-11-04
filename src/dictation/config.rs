@@ -204,7 +204,8 @@ mod tests {
             },
             ..DictationMode::default()
         });
-        assert!(uses_browser(&rewrite));
+        // Hexium: a saved rewrite reads nothing without OpenCode.
+        assert_eq!(uses_browser(&rewrite), crate::app_paths::OPENCODE);
         assert!(!uses_scripts(&rewrite));
 
         let global = |transformation: &str| DictationProcessingSettings {
