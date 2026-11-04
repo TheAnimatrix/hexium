@@ -56,7 +56,7 @@ Transcription (Parakeet: RNN-T and TDT, Underdog Bark and Nemotron 3.5 ASR too) 
 │   replaces the span only when its score plus the boost per term piece beats
 │   the heard words'
 ├── Left alone: case-only differences, inflections ("Cappuccinos"), and addresses
-│   and paths ("opencode.ai"); rescoring also skips terms under 5 letters
+│   and paths; rescoring also skips terms under 5 letters
 │   without a spelling, which the RNN-T decoder can still write ("Kip" -> Kit)
 └── SenseVoice, Cohere, GigaAM, Apple Speech -> no vocabulary in transcription
 
@@ -97,15 +97,10 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
 │   agent's prompt explains it)
 ├── Its terms come first, then the shared list's, each term once (any case),
 │   so the 64-term cap keeps them
-├── OpenCode rewriting -> every OS, the mode chosen for the dictation
 └── Transcription -> macOS dictation only: the mode of the app and page last
     seen by the context monitor (≤ 0.5 s old) when the stream or whole-clip run
     starts; meetings, captures, the local API, Linux, and Windows hear with
     the shared list
-
-OpenCode rewriting (Modes)               // vocabulary.prompt
-└── Prompt gains "Vocabulary (spell these exactly when the speaker means them):
-    term (may be transcribed as a, b); …" before the foreground application
 
 Live meeting chapters (experiment live-chapters)  // vocabulary.chapters
 └── Chapter passes and the boundary pass start with "Names and terms that may
@@ -202,4 +197,4 @@ trip in control.rs; `vocabulary_lists_terms_with_their_spellings` in
 `mac-settings-vocabulary`, `mac-settings-vocabulary-empty`,
 `vocabulary-unused` (Whisper, no golden). Passed on macOS on
 2026-10-23; the unused-model note's checks have not been observed running. Not yet observed: the sheet edited in a running Hex, a CLI edit
-against a running Hex, or a rewrite with a live provider.
+against a running Hex.

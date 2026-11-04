@@ -18,7 +18,7 @@ override shipped behavior.
 - [`../AGENTS.md`](../AGENTS.md): architecture, invariants, development
   commands, and diagnostics. This is the implementation authority.
 - [`../ROADMAP.md`](../ROADMAP.md): prioritized product and engineering work.
-- [`design-system.md`](design-system.md): Rune + `rune-kit` + OpenCode theme
+- [`design-system.md`](design-system.md): Rune + `rune-kit` theme
   components, Hex pieces, copy rules, and `--snap` scene verification.
 - [`features/README.md`](features/README.md): existing user-facing capabilities,
   entry points, available verification, and gaps; detailed dictation and recovery maps.
@@ -26,8 +26,6 @@ override shipped behavior.
   how a benchmarked copy of Hex stays isolated.
 - [`downloads.md`](downloads.md): public download paths, R2 custom domains,
   GitHub release mirrors, and network recovery.
-- [`opencode-compatibility.md`](opencode-compatibility.md): audited OpenCode V2
-  source and CLI baseline, integration contract, and validation limits.
 - [`plans/personal-commands.md`](plans/personal-commands.md): shipped personal
   command contract and remaining lifecycle work.
 - [`plans/quickjs.md`](plans/quickjs.md): why and how configs run in embedded
