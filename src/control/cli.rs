@@ -1383,7 +1383,7 @@ fn open_arguments(
             if test_build {
                 "anomaly.hex.test"
             } else {
-                "anomaly.hex"
+                "com.avarnic.hexium"
             }
             .into(),
         ]),
@@ -1554,7 +1554,7 @@ mod tests {
         );
         assert_eq!(
             strings(open_arguments(None, false, vars())),
-            [&env[..], &["-b", "anomaly.hex"]].concat()
+            [&env[..], &["-b", "com.avarnic.hexium"]].concat()
         );
         assert_eq!(
             strings(open_arguments(None, true, [])),
