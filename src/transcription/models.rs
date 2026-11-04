@@ -14,12 +14,12 @@ use sha2::{Digest, Sha256};
 
 use super::artifacts::{
     COHERE_ARTIFACT, COHERE_LANGUAGES, GIGAAM_V3_E2E_RNNT_ARTIFACT, GRANITE_SPEECH_5_ARTIFACT,
-    GRANITE_SPEECH_5_LANGUAGES, IVRIT_WHISPER_ARTIFACT, NB_WHISPER_MEDIUM_ARTIFACT,
-    NEMOTRON_3_5_ASR_ARTIFACT, NEMOTRON_3_5_LANGUAGES, NEMOTRON_3_5_LOCALES, ORUKEET_ARTIFACT,
-    PARAKEET_ULTRA_ARTIFACT, PARAKEET_UNIFIED_ENGLISH_ARTIFACT, PARAKEET_V2_ARTIFACT,
-    PARAKEET_V3_ARTIFACT, PARAKEET_V3_LANGUAGES, QWEN_ARTIFACT, QWEN_LANGUAGES, QWENCLEO_ARTIFACT,
-    SENSEVOICE_ARTIFACT, UNDERDOG_BARK_3_CLEAN_ARTIFACT, UNDERDOG_BARK_3_PRO_ARTIFACT,
-    WHISPER_ARTIFACT,
+    GRANITE_SPEECH_5_LANGUAGES, INDIC_TRANSCRIBE_FLEX_ARTIFACT, INDIC_TRANSCRIBE_LANGUAGES,
+    IVRIT_WHISPER_ARTIFACT, NB_WHISPER_MEDIUM_ARTIFACT, NEMOTRON_3_5_ASR_ARTIFACT,
+    NEMOTRON_3_5_LANGUAGES, NEMOTRON_3_5_LOCALES, ORUKEET_ARTIFACT, PARAKEET_ULTRA_ARTIFACT,
+    PARAKEET_UNIFIED_ENGLISH_ARTIFACT, PARAKEET_V2_ARTIFACT, PARAKEET_V3_ARTIFACT,
+    PARAKEET_V3_LANGUAGES, QWEN_ARTIFACT, QWEN_LANGUAGES, QWENCLEO_ARTIFACT, SENSEVOICE_ARTIFACT,
+    UNDERDOG_BARK_3_CLEAN_ARTIFACT, UNDERDOG_BARK_3_PRO_ARTIFACT, WHISPER_ARTIFACT,
 };
 pub use super::custom_models::CustomModelId;
 pub use super::languages::{LANGUAGES, language_name};
@@ -50,6 +50,7 @@ pub enum TranscriptionModelId {
     GigaAmV3,
     NbWhisperMedium,
     GraniteSpeech5,
+    IndicTranscribeFlex,
     AppleSpeech,
     Custom(CustomModelId),
 }
@@ -87,6 +88,7 @@ impl TranscriptionModelId {
             Self::GigaAmV3 => "gigaam_v3",
             Self::NbWhisperMedium => "nb_whisper_medium",
             Self::GraniteSpeech5 => "granite_speech_5",
+            Self::IndicTranscribeFlex => "indic_transcribe_flex",
             Self::AppleSpeech => "apple_speech",
             Self::Custom(id) => id.as_str(),
         }
@@ -126,6 +128,7 @@ impl FromStr for TranscriptionModelId {
             "gigaam_v3" => Ok(Self::GigaAmV3),
             "nb_whisper_medium" => Ok(Self::NbWhisperMedium),
             "granite_speech_5" => Ok(Self::GraniteSpeech5),
+            "indic_transcribe_flex" => Ok(Self::IndicTranscribeFlex),
             "apple_speech" => Ok(Self::AppleSpeech),
             _ => CustomModelId::parse(value)
                 .map(Self::Custom)
@@ -490,6 +493,20 @@ pub const MODELS: &[ModelDefinition] = &[
         supports_language_detection: false,
     },
     ModelDefinition {
+        id: TranscriptionModelId::IndicTranscribeFlex,
+        name: "Indic-Transcribe-Flex",
+        // A 20 s Telugu-English clip in 0.75 s on an M4 (Metal, Q8_0).
+        realtime: "~26x",
+        // Bodhan AI's Voice of India average across 15 languages; not
+        // measured in Hexium.
+        word_error_rate: Some(11.3),
+        streams: false,
+        runtime: ModelRuntime::Gguf(&INDIC_TRANSCRIBE_FLEX_ARTIFACT),
+        languages: INDIC_TRANSCRIBE_LANGUAGES,
+        accepts_language_hint: true,
+        supports_language_detection: false,
+    },
+    ModelDefinition {
         id: TranscriptionModelId::IvritWhisperLargeV3Turbo,
         name: "ivrit.ai Whisper large-v3-turbo",
         // The same architecture and size as Whisper large-v3-turbo; on apollo
@@ -675,7 +692,7 @@ pub fn all_models() -> Vec<&'static ModelDefinition> {
 pub(crate) fn choices_for_runtime(language: &str) -> Vec<ModelChoice> {
     use Recommendation::{Fastest, MostAccurate, Recommended, Vocabulary};
     use TranscriptionModelId::{
-        CohereTranscribe, GigaAmV3, IvritWhisperLargeV3Turbo, NbWhisperMedium,
+        CohereTranscribe, GigaAmV3, IndicTranscribeFlex, IvritWhisperLargeV3Turbo, NbWhisperMedium,
         ParakeetUnifiedEnglish, ParakeetV3, Qwen3Asr06B, SenseVoiceSmall, WhisperLargeV3Turbo,
     };
     let choices: &[(TranscriptionModelId, Recommendation)] = match language {
@@ -712,6 +729,18 @@ pub(crate) fn choices_for_runtime(language: &str) -> Vec<ModelChoice> {
             (CohereTranscribe, MostAccurate),
         ],
         "tr" | "ms" | "fil" | "fa" | "mk" => &[(WhisperLargeV3Turbo, Recommended)],
+        // Hexium: Indic-Transcribe-Flex handles each language mixed with
+        // English (Voice of India: Hindi 4.1, Telugu 13.1 against Gemini 3
+        // Pro's 9.3 and 24.6).
+        "hi" => &[
+            (IndicTranscribeFlex, Recommended),
+            (Qwen3Asr06B, Fastest),
+            (WhisperLargeV3Turbo, Vocabulary),
+        ],
+        "te" | "ta" | "kn" | "ml" | "mr" | "gu" | "pa" | "ur" | "bn" => &[
+            (IndicTranscribeFlex, Recommended),
+            (WhisperLargeV3Turbo, Vocabulary),
+        ],
         // FLEURS Hebrew test: 18.45% WER against stock Whisper's 29.69%.
         "he" => &[
             (IvritWhisperLargeV3Turbo, Recommended),
@@ -1935,9 +1964,11 @@ mod tests {
             ]
         );
         assert_eq!(routing("mt"), [(ParakeetV3, Recommended)]);
-        for language in ["hi", "th", "id", "zh"] {
+        for language in ["th", "id", "zh"] {
             assert_eq!(routing(language)[0], (Qwen3Asr06B, Recommended));
         }
+        // Hexium: Hindi goes to Indic-Transcribe-Flex, Qwen stays the fast pick.
+        assert_eq!(routing("hi")[1], (Qwen3Asr06B, Fastest));
         assert_eq!(routing("de")[0], (ParakeetV3, Recommended));
     }
 
@@ -2086,14 +2117,14 @@ mod tests {
     }
 
     #[test]
-    fn bangla_is_transcribed_by_whisper_with_its_language_hint() {
+    fn bangla_is_transcribed_by_indic_transcribe_flex_with_its_language_hint() {
         let selection = recommended_selection("bn");
-        assert_eq!(selection.model, TranscriptionModelId::WhisperLargeV3Turbo);
+        assert_eq!(selection.model, TranscriptionModelId::IndicTranscribeFlex);
         assert_eq!(selection.language, "bn");
         let model = validate(&selection).unwrap();
         assert_eq!(model.runtime_language_hint("bn"), Some("bn"));
         let choices = choices_for_runtime("bn");
-        assert_eq!(choices.len(), 1);
+        assert_eq!(choices.len(), 2);
         assert_eq!(choices[0].recommendation, Recommendation::Recommended);
         assert!(
             validate(&TranscriptionSelection {

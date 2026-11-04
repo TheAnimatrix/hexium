@@ -1266,6 +1266,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("{} dictations selected", "Выбрано диктовок: {}"),
     ("Copy puts the selected dictations on the clipboard, oldest first, with a blank line between each", "Копирование помещает выбранные диктовки в буфер обмена, начиная с самой старой, с пустой строкой между ними"),
     ("Delete {} dictations", "Удалить диктовки: {}"),
+    ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
 ];
 
 #[cfg(test)]
