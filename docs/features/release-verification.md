@@ -176,7 +176,7 @@ physical dictation was performed, and no Linux binary was published.
 `04a42da`, build `20121`. The debug suite passed 481 Rust tests plus all twelve
 keyboard-layout child scenarios with twelve opt-in tests skipped; the earlier
 audited tree at `b774568` also passed the optimized suite (475 tests), strict
-Clippy in both profiles, the live OpenCode catalog check, and the native feedback
+Clippy in both profiles, and the native feedback
 output-assertion smoke. Strict debug Clippy, formatting, the public and command
 SDK typechecks, tests, and builds, and the app identity guards passed on the
 release commit. An independent read-only review of the capture-path refactor
@@ -315,8 +315,7 @@ feed leads with build `20125`, and both downloaded DMGs match the checksum.
 `c3f5823`, build `20124`, built with the default stable Rust 1.99.0. This release
 ships the dependency updates in #115 to #117 (including transcribe-cpp 0.2.4 and
 Effect 4.0.0) and #119. Before tagging, 492 debug and 491 release Rust tests
-passed; one timing-bound OpenCode discovery test failed once in release under a
-load average near 100 and passed on rerun. Clippy, formatting, app identity
+passed. Clippy, formatting, app identity
 guards, both SDK packages (70 and 52 tests), and the commands-workspace smoke
 (fresh, beta.97, beta.107, and rc.112 workspaces) passed. Linux CI passed on
 each merged pull request.
@@ -390,7 +389,7 @@ The installed executable SHA-256 was
 
 The installed Settings client had no audio handles or runtime locks. Closing its
 window left the same systemd service PID running and Listening. The screenshot
-at `/tmp/opencode/hex-service-settings.png` also retained an empty-transcript
+at `/tmp/hex-service-settings.png` also retained an empty-transcript
 failure; it was not dismissed to make the lifecycle check pass. This validates
 client-independent ownership, not transcription accuracy. The modified virtual
 microphone/Wayland smokes, Nix evaluation, physical logout, and signed
@@ -405,7 +404,7 @@ bin/tests Clippy, and the release build. The locally modified `4ff6c4c` build
 (executable SHA-256 `609f16cac11eb66cea7054092e7c4caee3f02c3bd1b8828f5232cf3b2b67df31`)
 was installed and launched with `hex app` on Arch/i3/X11. It reached Listening
 and opened a PipeWire ALSA playback stream; existing settings were unchanged.
-The installed Settings capture at `/tmp/opencode/hex-linux-sounds.png` showed
+The installed Settings capture at `/tmp/hex-linux-sounds.png` showed
 the new volume control with 50% selected. Actual tone audibility, physical
 hotkey-to-sound timing, Wayland UI, and macOS regressions were not exercised.
 

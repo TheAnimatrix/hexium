@@ -1,21 +1,5 @@
 # Annotate (macOS, Linux, and Windows)
 
-Annotate is Scrawl's capture engine hosted inside Hex (code and settings keep
-the name `capture`), steps 3 to 5 of
-[the plan](../plans/capture-in-hex.md). It runs the real
-`scrawl-capture` crate, imported into `crates/capture`: it records the active
-display with ScreenCaptureKit, on Linux the screen-cast portal and
-PipeWire (`capture.linux`), on Windows Windows.Graphics.Capture
-(`capture.windows`), (or a cabled iPhone through `scrawl-helper`'s
-mirror) and narration from Hex's microphone, takes ink and clicks (Shift on
-macOS and Windows, or the Annotate key held or the pen), transcribes the narration with word timestamps on
-Hex's loaded model, writes a Scrawl bundle into Scrawl's captures folder,
-copies it to the clipboard, and sends it to an OpenCode session with Scrawl's
-router (`crates/router`), run in Hex's process. Settings › Annotate (under
-Labs in the sidebar) holds its settings. Scrawl's capsule (switch
-chips, the on-screen picker, route chips) and its ink and laser overlay are
-Rune overlays.
-
 ```ts
 Turn it on                               // capture.gate
 ├── On by default in every macOS, Linux, and Windows build, stable included
@@ -190,9 +174,7 @@ On Linux                                 // capture.linux
 │   or grab already took their keys, so nothing reaches the app)
 ├── Pane -> no Screen Recording row, no transcriber choice, no "Show in screen
 │   recordings" (the portal asks; Wayland can't keep overlays out)
-├── Sending -> OpenCode's sessions and prompts over HTTP to the running
 │   service its registration names (service.json); nothing is started, and
-│   with no service the send says "OpenCode isn't running". The capsule's
 │   rows are clicked (no keyboard).
 │   See capture.send: everything goes inline, so a remote server works
 └── Gaps: no Area on Wayland (it gives Hex no pointer to aim it; X11 takes
@@ -266,7 +248,6 @@ First launch with Annotate on            // capture.import
 │   retention, read once (migration `scrawl-capture-settings`); token not used
 ├── Scrawl's router settings -> capture.routing, read once (migration
 │   `scrawl-routing-settings`): rules, autoSend, smartRouting and jevRouting;
-│   never the Jev key (Jev uses $OPENCODE_API_KEY or OpenCode's credential)
 ├── Scrawl's Application Support config.json -> its shortcut, unless it collides
 └── Scrawl's files are never written
 
@@ -490,7 +471,6 @@ The capsule                              // capture.capsule (rune_ui/capture_cap
 │   ├── Too late to take back -> the same list, the session marked "already
 │   │   sent", folded "Already sent to X"; a pick sends a copy there,
 │   │   and ✕ just closes (it leaves by itself after the brief hold). Closed, it doesn't wait for a pick.
-│   │   An Undo OpenCode refuses (an error) reads as too late
 │   ├── Sends -> CaptureCommand::Send{to} and Undo, naming the
 │   │   session by id (`RouteDest.session`), so sessions sharing a title never
 │   │   collide; the capsule shows titles
@@ -766,12 +746,10 @@ hex capture stop                         // capture.stop
     ├── Written -> image and text copied to the clipboard (Scrawl's handoff)
     └── Sent -> the capture-route thread (capture.route)
 
-What a send carries                      // capture.send (router opencode::send_bundle)
 ├── One prompt: the summary (transcript, marks, notes) as text, then the
 │   contact sheet as one inline `data:image/png;base64` file part
 │   (12 MiB encoded at most; past it, no image). The keyframes are not
 │   attached; the text says they are in `frames/` and `frames-full/` of the
-│   capture folder. The picture does not depend on the folder, so an OpenCode
 │   server on another machine reads it; the text only names where it was recorded
 ├── Every request goes to the running local service over HTTP
 │   (service.json); a service that isn't up is never started
@@ -779,7 +757,6 @@ What a send carries                      // capture.send (router opencode::send_
 │   stdin to a Python 3 standard-library HTTP client. The contact sheet stays
 │   inline; the bundle copy follows the accepted prompt in the background
 │   (the prompt says the folder may still be arriving). Credentials stay remote.
-│   An explicitly configured agentOpencode keeps the CLI and synchronous copy;
 │   without Python 3, the default path falls back to the CLI before any HTTP send
 │   └── macOS/Linux reuse the SSH connection for 60 s after its last use,
 │       through an owner-only control socket; Windows opens each connection.
@@ -788,8 +765,6 @@ What a send carries                      // capture.send (router opencode::send_
 │       check records unknown status and still sends. Neither CLI startup nor
 │       the light-bundle copy is on the default prompt's critical path
 ├── No video: a capture's movie is too large for a prompt
-└── Check: router opencode tests; a send from apollo to a throwaway session
-    on OpenCode V2 stored the contact sheet and keyframe as inline image/png (before one-sheet)
     (2026-10-29)
 
 Where it goes                            // capture.route; capture.routing's autoSend on
@@ -822,7 +797,6 @@ Where it goes                            // capture.route; capture.routing's aut
 │   │   nothing. The capsule's `Hold` pauses the countdown while the pointer is
 │   │   on it and resumes it with what it had left (at least 1 s; a hold the
 │   │   capsule never ends lapses after 2 min, and the next capture resumes
-│   │   it). Sending -> Sent, or Queued when OpenCode didn't take it. Whatever
 │   │   autoSend, smartRouting, or jevRouting say, a saved rule sends and
 │   │   nothing else sends on its own. smartRouting off decides with the port
 │   │   ladder, after rules and addresses, on the same look
@@ -843,20 +817,14 @@ Where it goes                            // capture.route; capture.routing's aut
 │   ├── Each Rule or Guess -> routing.json's `shown`: `as` rule or guess, and
 │   │   `why`, the router's leading reason; `hex capture route` prints it
 │   ├── Nothing / NoAnswer -> recent sessions only
-│   └── Unreachable -> the look read no sessions (OpenCode slow past the look's
 │       deadline, down, or refusing); a warning in process.log with the error, and
-│       the capsule reads "Couldn't reach OpenCode" with why ("OpenCode didn't
-│       answer"), or "OpenCode isn't running" alone, keeping Paste. A reason is
 │       shown only in plain words: one with a path, URL, OS error or code goes
 │       to process.log and the capsule shows none
-│       └── OpenCode refusing Hex's password (HTTP 401/403) -> "OpenCode needs a
 │           password Hex doesn't have", for the look and for a send, and
 │           process.log says where Hex reads it (service.json under this user's
-│           ~/.local/state/opencode, or OPENCODE_PASSWORD), never the password.
 │           The capture stays saved and copied. Check: capture_host::routing
 │           a_look_that_read_no_sessions_answers_unreachable,
 │           a_failed_send_says_what_went_wrong. Known gap (#1131): Hex on
-│           Windows can't read the registration of an OpenCode running in WSL,
 │           so that setup isn't supported
 ├── An answer for a capsule already closed (dismissed, or past its hold)
 │   leaves it closed; `hex capture list` and `send` still offer the capture

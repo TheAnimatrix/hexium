@@ -1,16 +1,5 @@
 # Windows Beta
 
-The Windows port is a beta with a Rune desktop app (a tray process; see
-[The app](#the-app)), WASAPI capture,
-local `transcribe.cpp` transcription, a global shortcut, and generation-safe
-automatic paste. Its daily-use surface includes live microphone, model, and
-shortcut settings, Hold, Tap, and double-tap shortcut modes, Paste Last
-Dictation, recording tones, a click-through HUD, retained History, text
-replacements, a resident system tray, and per-user Launch at login. Global and
-contextual Modes can rewrite completed dictation through the same
-deadline-bounded OpenCode processing policy as macOS, then run ordered built-in
-or user-defined TypeScript transformations.
-
 The default shortcut is `Ctrl+Space`. In **Hold** mode, hold both keys while
 speaking and release Space to transcribe and paste. In **Toggle** mode, press
 `Ctrl+Space` to start and again to finish, or press the **Cancel** shortcut
@@ -162,19 +151,6 @@ Open the desktop application after the model is installed:
 cargo run -- app
 ```
 
-The Settings card reads **Enabled** when the shortcut works system-wide in every
-app and **Disabled** when it does nothing; its button and the tray's
-**Enable / Disable Hex** switch between them. Hex enables itself on launch by
-default (**Enable on launch**). The microphone records only while you dictate.
-Changing the
-transcription model, microphone, dictation shortcut, double-tap behavior, or
-Paste Last setting automatically restarts the listener; you do not need to
-stop it first. Text replacements and feedback volume apply without a model
-reload. Mode rules, OpenCode profiles, and ordered transformations are
-snapshotted by the output worker and apply to the next completed dictation
-without restarting capture. The command-line listener uses the settings saved
-by the app:
-
 ```powershell
 cargo run -- listen --model parakeet_v3 --language pl
 ```
@@ -221,14 +197,6 @@ Choose **Set up** there to create `~/.config/hex/hex.config.ts` and load any
 transformations registered by that config. Hex runs the config in its embedded
 JavaScript engine (QuickJS), so nothing else needs installing.
 
-Transformations run in the displayed order after mode corrections and the
-optional OpenCode rewrite. Reordering, adding, or removing them persists in the
-global or contextual mode and applies to the next output job. Each
-transformation call is limited to one second and the engine to 64 MiB; a
-failed step preserves the previous pipeline output. Saving the config reloads
-it; a config that fails to load keeps the previous one and shows its error in
-the card.
-
 ## The App
 
 `hex app` (`--hidden` for a login launch) runs the tray app on Rune. Snapshot
@@ -239,7 +207,6 @@ hex app
 ├── named event already held -> signal it (the running app shows its window) -> exit
 └── becomes the app                                   // windows::rune::open
     ├── the local API's POST /control -> control::host::answer
-    ├── runtime thread: WindowsDesktopHost (listener, model preparation, OpenCode, transformations, updater), publishes every 250 ms
     ├── main thread: rune::App's winit loop and the window; rune::Tray runs on its own thread
     ├── --hidden -> windowless start; close -> hide (keep_running)
     ├── tray Show or a relaunch -> AppHandle::open (shows and focuses)
@@ -328,7 +295,6 @@ current-user startup registry, UI Automation, and Windows capture APIs.
 | Application picker in Modes | Implemented; lists Start menu shortcuts, App Paths, and apps with an open window, with each executable's icon; "Choose a file…" opens the native dialog through `rune::FileDialogs` |
 | Interface language | Implemented on every OS; English, Polish, Chinese, Japanese, German, Spanish, and Ukrainian |
 | Resident tray and Launch at login | Implemented; the tray menu (shared with Linux) has Paste last dictation, the speech-model picker, and the recording state |
-| Application modes with per-mode corrections, OpenCode rewriting, and transformations | Implemented on the shared ordered processing policy; global and contextual profiles persist their own corrections, model, reasoning variant, deadline, and ordered built-in/TypeScript transformations, while modes match by application name — physical end-to-end paste/UI validation remains |
 | Vocabulary as Whisper and Qwen3-ASR's context prompt | Implemented |
 | Release microphone while idle | Implemented; mutually exclusive with audio pre-roll, as documented in Settings |
 | While-dictating audio control (mute other apps or pause media) | Implemented via WASAPI session volumes and GSMTC |
@@ -344,36 +310,5 @@ current-user startup registry, UI Automation, and Windows capture APIs.
 Settings live in `%APPDATA%\hex\settings.json`, the same file macOS and
 Linux use.
 
-The Windows window uses the shared design system
-([design-system.md](design-system.md)): the same Rune panes as macOS and
-Linux under the native title bar. Mode processing, OpenCode rewriting, and transformations run
-through the same `dictation/processor` and `personal_commands` modules as
-macOS, and Windows reaches the running OpenCode service the same way: its
-registration file and loopback HTTP, never a CLI. Like macOS,
-an unset OpenCode model tries the ranked recommended models before the
-OpenCode default. An OpenCode service running inside WSL2 is found only with
-Labs › OpenCode in WSL on: WSL2 forwards its loopback URL, and the lab adds
-the default distribution's registration and a Linux workspace path for
-`x-opencode-directory`. Off, Hex reads only the Windows registration and an
-OpenCode in WSL isn't found.
-Remaining panes should be added only with their complete Windows behavior;
-empty look-alike screens do not count as parity.
-
 ## Current Port Boundary
 
-The Windows listener preserves physical press/release timestamps, keeps audio
-capture off the transcription and paste worker, and restores the previous
-clipboard only when no newer clipboard change supersedes it.
-`check-windows` builds and tests the optimized MSVC release for x64 and ARM64
-in Release's check and stable channels; pull requests only compile x64. The remaining code
-parity slice is the developer-only Meetings surface after the physical matrix
-is green. Shared
-first-run onboarding, complete OpenCode mode rewriting controls, and the bounded
-TypeScript transformation host already ship. Windows releases are built for
-x64 and ARM64 by
-[`release.yml`](../.github/workflows/release.yml) with
-[`scripts/build-windows.sh`](../scripts/build-windows.sh), Authenticode-signed,
-and published to the Anomaly release service with the other platforms
-(`docs/releasing.md`); [`.github/release/install-windows.ps1`](../.github/release/install-windows.ps1)
-installs from its stable manifest. Users install
-with the command under [Install](#install).
