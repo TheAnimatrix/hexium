@@ -230,8 +230,8 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-      VALUE "FileDescription", "Hex"
-      VALUE "ProductName", "Hex"
+      VALUE "FileDescription", "Hexium"
+      VALUE "ProductName", "Hexium"
       VALUE "FileVersion", "{version}"
       VALUE "ProductVersion", "{version}"
       VALUE "OriginalFilename", "hex.exe"
