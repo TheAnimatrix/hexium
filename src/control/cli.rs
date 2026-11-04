@@ -165,7 +165,7 @@ pub enum ControlCli {
         args: Vec<String>,
     },
     /// Annotate: record your screen with drawing and narration in the
-    /// running Hex, then list and send what you recorded (`hex capture`
+    /// running Hex, then list and show what you recorded (`hex capture`
     /// still works).
     #[command(name = "annotate", alias = "capture")]
     Annotate {
@@ -761,6 +761,8 @@ pub enum CaptureCommand {
         output: Output,
     },
     /// Send a capture to an OpenCode session.
+    // Hexium: no OpenCode, so no sending, taking back, or routing.
+    #[command(hide = !crate::app_paths::OPENCODE)]
     Send {
         /// A bundle name, path, or `latest`.
         capture: String,
@@ -785,12 +787,14 @@ pub enum CaptureCommand {
     },
     /// Take back the newest send while it can be undone (as the capsule's
     /// Undo).
+    #[command(hide = !crate::app_paths::OPENCODE)]
     Undo {
         #[command(flatten)]
         output: Output,
     },
     /// What routing sees for a capture and what it decides (Scrawl's
     /// `route --explain`). Sends nothing.
+    #[command(hide = !crate::app_paths::OPENCODE)]
     Route {
         /// A bundle name, path, or `latest`.
         capture: String,
@@ -837,6 +841,19 @@ pub fn capture(command: CaptureCommand) -> u8 {
         CaptureCommand::Replay { output } => (C::ScrawlCapture { action: A::Replay }, output),
         CaptureCommand::List { limit, output } => (C::ScrawlCaptureList { limit }, output),
         CaptureCommand::Show { capture, output } => (C::ScrawlCaptureShow { capture }, output),
+        CaptureCommand::Send { output, .. }
+        | CaptureCommand::Undo { output }
+        | CaptureCommand::Route { output, .. }
+            if !crate::app_paths::OPENCODE =>
+        {
+            return print(
+                ControlReply::error(
+                    "unsupported",
+                    "Sending and routing captures isn't available in this build",
+                ),
+                output,
+            );
+        }
         CaptureCommand::Send {
             capture,
             to,

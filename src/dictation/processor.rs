@@ -141,7 +141,11 @@ impl Profile {
             transformations
         };
         let mut profile = Self::new(name, &settings.prompt)
-            .ai_enabled(settings.enabled && !policy.locks(Lock::OpenCodeProcessing))
+            .ai_enabled(
+                crate::app_paths::OPENCODE
+                    && settings.enabled
+                    && !policy.locks(Lock::OpenCodeProcessing),
+            )
             .replacements(replacements)
             .transformations(transformations);
         if let Some((provider, model)) = settings
@@ -362,7 +366,7 @@ impl Profiles {
         if !profile.ai_enabled {
             tracing::info!(
                 profile = profile.name,
-                "dictation post-processing skipped: the OpenCode rewrite is off for this mode"
+                "dictation post-processing skipped: the rewrite is off for this mode"
             );
         }
         if !profile.ai_enabled || numbers_only {
@@ -914,6 +918,9 @@ fn generate_cancellable(
     cancelled: &AtomicBool,
 ) -> Result<Generated> {
     let started = Instant::now();
+    if !crate::app_paths::OPENCODE {
+        return Err(eyre!("text generation isn't available"));
+    }
     let lock = crate::policy::Lock::OpenCodeProcessing;
     if crate::policy::Policy::current().locks(lock) {
         return Err(eyre!(lock.refusal()));
@@ -1152,13 +1159,14 @@ mod tests {
             )
         };
         let open = build(Policy::default());
-        assert!(open.rewrites());
+        // Hexium: without OpenCode no profile rewrites.
+        assert_eq!(open.rewrites(), crate::app_paths::OPENCODE);
         assert_eq!(open.transformations, ["lowercase"]);
         let rewrite = build(Policy::default().with(Lock::OpenCodeProcessing));
         assert!(!rewrite.rewrites());
         assert_eq!(rewrite.transformations, ["lowercase"]);
         let transforms = build(Policy::default().with(Lock::Transforms));
-        assert!(transforms.rewrites());
+        assert_eq!(transforms.rewrites(), crate::app_paths::OPENCODE);
         assert!(transforms.transformations.is_empty());
     }
 

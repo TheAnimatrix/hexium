@@ -264,26 +264,30 @@ fn toolbar(p: Paint, s: &Editor, w: f32) -> El {
                     .truncate(),
             ),
     );
-    bar.child(push(
-        k,
-        Button::new(tr("Copy"))
-            .variant(ButtonVariant::Contrast)
-            .on_press_tx(|s: &mut Editor, tx| s.deliver(Out::Copy, tx)),
-    ))
-    .child(push(
-        k,
-        Button::new(tr("Save"))
-            .variant(ButtonVariant::Ghost)
-            .on_press_tx(|s: &mut Editor, tx| s.deliver(Out::Save, tx)),
-    ))
-    .child(push(
-        k,
-        Button::new(tr("Send to…"))
-            .variant(ButtonVariant::Ghost)
-            .expanded(s.send.is_some())
-            .on_press(|s: &mut Editor| s.open_send()),
-    ))
-    .child(
+    bar = bar
+        .child(push(
+            k,
+            Button::new(tr("Copy"))
+                .variant(ButtonVariant::Contrast)
+                .on_press_tx(|s: &mut Editor, tx| s.deliver(Out::Copy, tx)),
+        ))
+        .child(push(
+            k,
+            Button::new(tr("Save"))
+                .variant(ButtonVariant::Ghost)
+                .on_press_tx(|s: &mut Editor, tx| s.deliver(Out::Save, tx)),
+        ));
+    // Hexium: Send to… lists OpenCode's sessions, so it isn't offered.
+    if crate::app_paths::OPENCODE {
+        bar = bar.child(push(
+            k,
+            Button::new(tr("Send to…"))
+                .variant(ButtonVariant::Ghost)
+                .expanded(s.send.is_some())
+                .on_press(|s: &mut Editor| s.open_send()),
+        ));
+    }
+    bar.child(
         chip(p)
             .w(CHIP_H)
             .center()

@@ -102,6 +102,9 @@ fn writer() -> Result<Writer, String> {
             return Err(availability.description().to_string());
         }
     }
+    if !crate::app_paths::OPENCODE {
+        return Err("Meeting notes need Apple Intelligence".into());
+    }
     Err(if crate::app_settings::meeting_notes_with_opencode() {
         "OpenCode isn't running".into()
     } else {
