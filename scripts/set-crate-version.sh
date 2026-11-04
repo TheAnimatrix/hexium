@@ -11,7 +11,8 @@ root=$1
 version=$2
 current=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$root/Cargo.toml" | head -1)
 [ "$version" = "$current" ] && exit 0
-printf '%s\n' "$version" | grep -Eq "^(0\.0\.0-dev-[1-9][0-9]*|$(printf '%s' "$current" | sed 's/\./\\./g')-beta\.[0-9]+)\$" || {
+# Hexium: also its own builds, $current-hexium.N.
+printf '%s\n' "$version" | grep -Eq "^(0\.0\.0-dev-[1-9][0-9]*|$(printf '%s' "$current" | sed 's/\./\\./g')-(beta|hexium)\.[0-9]+)\$" || {
   echo "Can only stamp 0.0.0-dev-<run> or a $current-beta.N prerelease, not $version." >&2
   exit 1
 }

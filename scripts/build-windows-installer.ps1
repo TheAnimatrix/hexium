@@ -41,7 +41,8 @@ $InnoVersion = '6.7.1'
 if ($ExtractSignedEngine -and $SignedEngineDir) { throw 'Pass -ExtractSignedEngine or -SignedEngineDir, not both.' }
 $engineSigning = $ExtractSignedEngine -or [bool]$SignedEngineDir
 
-if ($Version -notmatch '^(\d+\.\d+\.\d+(-beta\.\d+)?|0\.0\.0-dev-\d+)$') { throw "Expected a release version, not $Version." }
+# Hexium: its builds add the release's number to Hex's version (3.3.0-hexium.12).
+if ($Version -notmatch '^(\d+\.\d+\.\d+(-beta\.\d+|-hexium\.\d+)?|0\.0\.0-dev-\d+)$') { throw "Expected a release version, not $Version." }
 $Executable = (Resolve-Path $Executable).Path
 $consoleDefine = @()
 if ($Console) { $consoleDefine = @("/DConsole=$((Resolve-Path $Console).Path)") }
