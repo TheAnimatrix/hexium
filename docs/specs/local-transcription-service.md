@@ -302,7 +302,6 @@ cold model because model residency is transient.
 - No service-owned microphone capture, levels, hotkeys, paste, or clipboard.
 - No partial transcripts.
 - No compressed audio codecs.
-- No OpenCode rewrite profiles.
 - No non-localhost access.
 - No ordinary browser bootstrap.
 - No cross-host warm-runtime sharing or service election.

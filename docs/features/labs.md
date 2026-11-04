@@ -60,11 +60,6 @@ Feature             Pane  Toggle (settings.json, hex settings)   On: what it doe
 ├── Hide menu bar icon no labs.hide_menu_bar_icon      (macOS) the menu-bar icon hides while no meeting is under way; shortcuts keep working, reopening Hex shows Settings (#1064)
 ├── Notch indicator no    labs.notch_indicator         (macOS) with the indicator at Top, the notch widens sideways in the Dynamic Island's compact style: an orange mic and level bars, the macOS spinner, a green checkmark; flat screens keep it below the menu bar
 ├── Movable meeting capsules no labs.movable_meeting_capsules (macOS) panel capsules (Meeting transcript ready, Recording automatically, offers, reminders) drag to another corner and show in the last one, shared with the recording capsule (#1093)
-├── Choose meeting summary model no labs.meeting_summary_model + meetings.opencode_model (every OS with Meetings)
-│                                        OpenCode meeting notes use exactly that provider/model, no fallback; Meetings › Settings › Advanced shows a
-│                                        searchable picker of OpenCode's models, "Hex picks a fast model" first (clears it), Retry / Check again
-│                                        while OpenCode is missing, the saved ID kept and shown (#1107, #1301)
-│                                        // check: the_meeting_summary_model_is_picked_from_opencode_s_models (tests/panes.rs);
 │                                        // scenes and light/dark goldens meetings-summary-model, meetings-summary-model-not-running;
 │                                        // a meetings-folder error opening Advanced with the fold closed still shows the picker
 ├── Vocabulary in meeting notes no labs.meeting_notes_vocabulary (every OS with Meetings)
@@ -249,87 +244,6 @@ exactly as before. Checks:
 `contributed_options_are_labs_toggles_off_by_default` in
 [panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
 dictation on a Mac with the toggle on.
-
-Spoken formatting (`spoken-formatting`, issue 630, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::spoken_formatting()` as each dictation's processing starts and runs
-`dictation::spoken_formatting::apply` before the mode's corrections, OpenCode
-rewriting, and transformations (on Windows and Linux, after the Global
-replacements). Whole phrases, ignoring case and Spanish accents, are
-replaced: "new line", "line break", "nueva línea", and "salto de línea" by
-one line break, "new paragraph" and "nuevo párrafo" by two, "open quote",
-"abrir comillas", and "abre comillas" by an opening `"`, and "close quote",
-"cerrar comillas", and "cierra comillas" by a closing one. A whole-word
-"quote" with a later "unquote" in the same dictation and words between them
-becomes the same pair of marks ("He said quote hello unquote." becomes
-`He said "hello".`, #1167); "quote" with no "unquote" after it, a lone
-"unquote", "quotes"/"quoted"/"unquoted", and "quote unquote" said back to
-back stay as they are. The commas,
-periods, and spaces the model puts around a command go with it ("Hello. New
-line. Next" becomes "Hello.\nNext"). Words such as "newline", "new liner",
-"lineal", or "comillas" alone stay as they are. English and Spanish phrases
-are recognized whatever the Language setting is (#1040); other languages
-are not covered yet. Dictate without processing, meetings, and live text are
-unchanged, and with the toggle off processing is exactly as before. Checks:
-the tests in [dictation/spoken_formatting.rs](../../src/dictation/spoken_formatting.rs);
-`spoken_formatting_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
-
-Spoken symbols (`spoken-symbols`, issue 678, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::spoken_symbols()` as each dictation's processing starts and runs
-`dictation::spoken_symbols::apply` right after spoken formatting and before filler
-words, the mode's corrections, OpenCode rewriting, and transformations.
-Whole English or Spanish words, ignoring case and Spanish accents, become
-symbols joined to their neighbours: "hashtag" and "hash sign" become `#` and
-"at sign" and "arroba" `@`, joined to the next word ("hashtag release" →
-"#release"); "underscore" and "guion bajo" `_`, "hyphen" and "guion" `-`,
-and "slash" `/` join both words ("my underscore variable" → "my_variable");
-"comma" and "coma" `,`, "colon" and "dos puntos" `:`, and "semicolon" and
-"punto y coma" `;` join the previous word and leave one space before the
-next ("done comma thanks" → "done, thanks"). The longer Spanish phrase wins
-("punto y coma" is `;`, not "punto y" + `,`). The commas, periods, and
-spaces the model puts around a spoken symbol go with it. Words such as
-"commas", "comas", "guiones", "hashtags", "slashed", or "colonel" stay as
-they are. Other languages are not covered yet (#1040), and the word list is fixed (no per-user symbol
-sets yet). Dictate without processing, meetings, and live text are
-unchanged, and with the toggle off processing is exactly as before. Checks:
-the tests in [dictation/spoken_symbols.rs](../../src/dictation/spoken_symbols.rs);
-`spoken_symbols_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
-
-Remove filler words (`filler-words`, issue 631, every OS): while on,
-`Profiles::process_cancellable` in
-[dictation/processor.rs](../../src/dictation/processor.rs) reads
-`labs::filler_words()` as each dictation's processing starts and runs
-`dictation::filler_words::apply` right after spoken formatting and before the mode's
-corrections, OpenCode rewriting, and transformations. It is rule-based, with
-no model and no added latency. The English fillers "um", "umm", "uh", "uhh",
-"erm", "er", and "ah" are removed as whole words, lowercase or capitalised
-only, so "umbrella", "ahead", "error", "Uhura", "uh-huh", and "ER" stay. The
-comma or ellipsis that comes with a filler goes too, the spaces around it
-close up, no space is left before punctuation, a capitalised filler that
-started a sentence passes its capital to the next word ("Um, so I think"
-becomes "So I think"), and line breaks stay. Dictate without processing,
-meetings, and live text are unchanged, and with the toggle off processing is
-exactly as before. Checks: the tests in
-[dictation/filler_words.rs](../../src/dictation/filler_words.rs);
-`filler_words_is_its_own_bit_and_off_by_default` in
-[labs.rs](../../src/labs.rs);
-`contributed_options_are_labs_toggles_off_by_default` in
-[panes.rs](../../src/rune_ui/tests/panes.rs). Not yet observed: a real
-dictation with the toggle on; the Labs page goldens need regenerating on
-Linux with the new row.
 
 Subtitle export (`subtitle-export`, issue 633, macOS like Meetings; its row
 shows wherever Meetings does): while on, `hex meetings show <id> --srt` or
@@ -970,7 +884,6 @@ editor
 ├── ⌘Z            -> the text being typed, else the last mark, else the crop
 ├── Copy (⌘C)     -> the edited PNG on the clipboard
 ├── Save (⌘S)     -> a new file in screenshots.folder; the first shot is never changed
-├── Send to…      -> a list of open OpenCode sessions (typing searches title, folder, id,
 │                    as Annotate's; ↑↓ Enter); the PNG goes to the session as an image
 ├── a drag on the panel's edge or the toolbar's gap -> moves it, kept on the display
 └── Escape        -> ends the text, else closes the list, else closes the editor
@@ -1084,40 +997,13 @@ through the panel outside its buttons. Checks:
 [labs.rs](../../src/labs.rs). Not yet observed: a drag on a real Mac; the
 row renders only in macOS builds, so no golden changes.
 
-Choose meeting summary model (`meeting-summary-model`, issue 1107; macOS,
-Linux, and Windows since issue 1160; its row shows wherever Meetings does):
-for choosing which OpenCode provider and subscription writes meeting notes.
-
 ```ts
-Meetings › Settings › Advanced, Summarize with OpenCode on   // labs.meeting-summary-model
 ├── Toggle off -> no field; notes try Hex's ranked fast models, as before
 └── Toggle on -> "Summary model" field, placeholder provider/model, saved on Return or Save
-    ├── meetings.opencode_model, only for meeting notes (titles, summaries, live
-    │   chapters written by OpenCode); left out of settings.json while empty
     ├── Set, e.g. openai/gpt-5.4-mini -> "Summaries use openai/gpt-5.4-mini. If it isn't
     │   available, the meeting shows the error instead of trying another model"
-    ├── Empty -> "Empty: Hex tries its list of fast models in order and uses the first one OpenCode has"
     └── No provider/ part -> says how to write it; the ranked models run until then
 ```
-
-The gate is `labs::meeting_summary_model()`, read at each OpenCode
-generation in `meeting::generator::opencode`: with it on and a valid
-`provider/model` saved (`generator::parse_model`), the request goes to
-`processor::generate_text_with`, which asks that model alone (one retry when
-OpenCode is still starting it, as for a mode's model) and never the ranked
-list, so a failure is recorded as the meeting's `notes_error`
-("Notes could not be written.", prefixed with the model). Apple
-Intelligence, when it writes the notes, is unchanged. Off, notes are exactly
-as before. `hex settings set meetings.opencode_model openai/gpt-5.4-mini`
-sets it (`none` clears it). Not built: picking from the OpenCode catalog or
-a thinking variant. Checks: `a_summary_model_needs_a_provider_and_a_model`
-and `without_its_labs_toggle_no_summary_model_is_used` in
-[meeting/generator.rs](../../src/meeting/generator.rs);
-`a_chosen_model_is_asked_alone_and_never_falls_back` in
-[dictation/processor.rs](../../src/dictation/processor.rs). Not yet
-observed: a real meeting summarized with a chosen model, on any OS. The
-`mac-labs` scene shows its card; the Meetings Advanced field shows
-only with the toggle on, so its goldens are unchanged.
 
 Vocabulary in meeting notes (`meeting-notes-vocabulary`, issue 1154; every
 OS with Meetings; its row shows wherever Meetings does): for names and terms
