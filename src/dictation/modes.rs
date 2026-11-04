@@ -277,6 +277,10 @@ mod tests {
 
     #[test]
     fn saved_post_processing_enables_the_global_rewrite() {
+        // Hexium: needs OpenCode.
+        if !crate::app_paths::OPENCODE {
+            return;
+        }
         let path = std::env::temp_dir().join(format!("hex-970-{}.json", std::process::id()));
         std::fs::write(
             &path,

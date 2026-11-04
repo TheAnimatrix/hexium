@@ -738,8 +738,24 @@ fn managed(name: &str, lock: crate::policy::Lock) -> ControlError {
 
 /// Every key, in registry order.
 fn keys() -> impl Iterator<Item = &'static Key> {
+    all_keys().filter(|key| crate::app_paths::OPENCODE || !OPENCODE_KEYS.contains(&key.key))
+}
+
+/// Every key, those a build without OpenCode hides included.
+fn all_keys() -> impl Iterator<Item = &'static Key> {
     KEYS.iter().chain(CAPTURE_KEYS)
 }
+
+/// Hexium: settings only OpenCode features read (meeting notes with
+/// OpenCode, and where captures are sent among its sessions). A build
+/// without OpenCode keeps their saved values but never lists or sets them.
+const OPENCODE_KEYS: &[&str] = &[
+    "meetings.summarize_with_opencode",
+    "meetings.opencode_model",
+    "labs.meeting_summary_model",
+    "capture.capsule_flow",
+    "capture.routing",
+];
 
 /// Settings `hex settings` never shows: Hex's own bookkeeping.
 #[cfg(test)]
@@ -1474,7 +1490,7 @@ mod tests {
         let mut paths = Vec::new();
         leaves(&json, String::new(), &mut paths);
         for path in &paths {
-            let covered = keys()
+            let covered = all_keys()
                 .map(|key| key.key)
                 .chain(INTERNAL.iter().copied())
                 .chain(OWN_COMMAND.iter().copied())
@@ -1518,7 +1534,7 @@ mod tests {
                 "`{prefix}` needs `{capability}`, which is no capability"
             );
             assert!(
-                keys().any(|key| key.key == *prefix || key.key.starts_with(prefix)),
+                all_keys().any(|key| key.key == *prefix || key.key.starts_with(prefix)),
                 "`{prefix}` names no setting"
             );
         }
@@ -1527,6 +1543,10 @@ mod tests {
     #[cfg(hex_capture)]
     #[test]
     fn capture_routing_is_set_as_one_object_without_a_jev_key() {
+        if !crate::app_paths::OPENCODE {
+            assert!(get(&AppSettings::default(), "capture.routing").is_err());
+            return;
+        }
         let settings = AppSettings::default();
         let value = concat!(
             r#"{"smartRouting": true, "sites": {"https://example.com": "ses_a"}, "#,
@@ -1678,34 +1698,44 @@ mod tests {
         assert_eq!(change.settings.meetings.calendar.lead_minutes, 5);
         let change = apply(&settings, "ui_language", "none", &rules()).unwrap();
         assert_eq!(change.settings.ui_language, None);
-        let change = apply(
-            &settings,
-            "meetings.opencode_model",
-            "anthropic/claude-haiku",
-            &rules(),
-        )
-        .unwrap();
-        assert_eq!(
-            change.settings.meetings.opencode_model.as_deref(),
-            Some("anthropic/claude-haiku")
-        );
-        assert_eq!(
-            get(&change.settings, "meetings.opencode_model").unwrap()[0].value,
-            "anthropic/claude-haiku"
-        );
-        let cleared = apply(
-            &change.settings,
-            "meetings.opencode_model",
-            "none",
-            &rules(),
-        )
-        .unwrap();
-        assert_eq!(cleared.settings.meetings.opencode_model, None);
-        assert!(
-            get(&cleared.settings, "meetings.opencode_model").unwrap()[0]
-                .value
-                .is_null()
-        );
+        // Hexium: no OpenCode, so no setting for its meeting model.
+        if !crate::app_paths::OPENCODE {
+            assert_eq!(
+                apply(&settings, "meetings.opencode_model", "a/b", &rules())
+                    .unwrap_err()
+                    .code,
+                "unknown-setting"
+            );
+        } else {
+            let change = apply(
+                &settings,
+                "meetings.opencode_model",
+                "anthropic/claude-haiku",
+                &rules(),
+            )
+            .unwrap();
+            assert_eq!(
+                change.settings.meetings.opencode_model.as_deref(),
+                Some("anthropic/claude-haiku")
+            );
+            assert_eq!(
+                get(&change.settings, "meetings.opencode_model").unwrap()[0].value,
+                "anthropic/claude-haiku"
+            );
+            let cleared = apply(
+                &change.settings,
+                "meetings.opencode_model",
+                "none",
+                &rules(),
+            )
+            .unwrap();
+            assert_eq!(cleared.settings.meetings.opencode_model, None);
+            assert!(
+                get(&cleared.settings, "meetings.opencode_model").unwrap()[0]
+                    .value
+                    .is_null()
+            );
+        }
         let mut saved = settings.clone();
         saved.microphone = Some("USB Mic".into());
         let change = apply(&saved, "microphone", "system-default", &rules()).unwrap();

@@ -397,34 +397,38 @@ pub(super) fn meetings_settings(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<E
                 },
             ));
         }
-        more.push(if opencode_managed() {
-            super::controls::managed_row(
+        // Hexium: no OpenCode, so no OpenCode notes.
+        if crate::app_paths::OPENCODE {
+            more.push(if opencode_managed() {
+                super::controls::managed_row(
+                    p,
+                    "meeting-notes-opencode",
+                    Some(&icons::SPARKLES),
+                    tr("Summarize with OpenCode"),
+                )
+            } else {
+                icon_toggle_row(
                 p,
                 "meeting-notes-opencode",
-                Some(&icons::SPARKLES),
+                &icons::SPARKLES,
                 tr("Summarize with OpenCode"),
+                if ui.platform.caps.os == Os::Macos {
+                    tr("When Apple Intelligence is off or unavailable. Sends the transcript to your OpenCode model")
+                } else {
+                    tr("Meeting titles and short summaries. Sends the transcript to your OpenCode model")
+                },
+                meetings.summarize_with_opencode,
+                |ui: &mut Ui| {
+                    let enabled = !ui.settings.meetings.summarize_with_opencode;
+                    ui.update(|settings| settings.meetings.summarize_with_opencode = enabled);
+                },
             )
-        } else {
-            icon_toggle_row(
-            p,
-            "meeting-notes-opencode",
-            &icons::SPARKLES,
-            tr("Summarize with OpenCode"),
-            if ui.platform.caps.os == Os::Macos {
-                tr("When Apple Intelligence is off or unavailable. Sends the transcript to your OpenCode model")
-            } else {
-                tr("Meeting titles and short summaries. Sends the transcript to your OpenCode model")
-            },
-            meetings.summarize_with_opencode,
-            |ui: &mut Ui| {
-                let enabled = !ui.settings.meetings.summarize_with_opencode;
-                ui.update(|settings| settings.meetings.summarize_with_opencode = enabled);
-            },
-        )
-        });
+            });
+        }
         // Labs › Choose meeting summary model, for OpenCode's notes only.
         let summary_model = crate::labs::Feature::MeetingSummaryModel;
-        if meetings.summarize_with_opencode
+        if crate::app_paths::OPENCODE
+            && meetings.summarize_with_opencode
             && !opencode_managed()
             && summary_model.managed().is_none()
             && summary_model.shipped()

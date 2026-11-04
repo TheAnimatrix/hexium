@@ -415,7 +415,7 @@ pub(super) fn fixture(ui: &mut Ui, filled: bool) {
         let mut entries = Vec::new();
         for (term, sounds_like) in [
             ("cappuccino", "capuchin, cap a chino"),
-            ("OpenCode", "open code"),
+            ("Scrawl", "scroll"),
             ("Rune", "roon"),
             ("Parakeet", ""),
             ("Dax", "Dex, Docs"),

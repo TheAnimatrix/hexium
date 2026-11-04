@@ -1248,9 +1248,9 @@ fn poll(ui: &mut Ui, clock: f64, tx: &mut Tx) -> bool {
     let now = Instant::now();
     let mut changed = ui.save_drafts(now);
     changed |= paste_access::poll(ui);
-    // The OpenCode catalog is read only while the pane that uses it shows.
     changed |= ui.models.poll(
-        ui.live()
+        crate::app_paths::OPENCODE
+            && ui.live()
             && ui.pane == Pane::Modes
             && ui.window.as_ref().is_some_and(rune::AppHandle::is_visible),
     );

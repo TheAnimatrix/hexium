@@ -133,7 +133,7 @@ fn steps(ui: &Ui, mode: &DictationMode) -> Vec<Step> {
             runner: Runner::BuiltIn,
         });
     }
-    if mode.post_processing.enabled {
+    if crate::app_paths::OPENCODE && mode.post_processing.enabled {
         steps.push(Step {
             title: tr("Rewrite with OpenCode").into(),
             detail: mode.post_processing.model.clone(),
@@ -716,32 +716,46 @@ fn agent_prompt(fix: Option<(&str, &str)>) -> String {
         |_| "Hex's settings.json".into(),
         |path| path.display().to_string(),
     );
+    // Hexium: without OpenCode there is no rewrite step to describe.
+    let (rewrite_step, mode_steps, rewrite) = if crate::app_paths::OPENCODE {
+        (
+            "then `post_processing` (an optional AI rewrite), ",
+            "`replacements`, `post_processing`, and `transformations`",
+            "`post_processing` rewrites the text with a model through OpenCode: \
+             {\"enabled\": true, \"prompt\": \"<how to rewrite>\", \"model\": \
+             \"<provider/model>\", \"deadline_seconds\": 30}. Leave `model` out and Hex \
+             picks a fast one you have connected; set it only if I ask for a particular \
+             model (`opencode2 models` lists them). \
+             If the rewrite fails or runs past the deadline, Hex pastes the text without it.\n\
+             \n",
+        )
+    } else {
+        ("", "`replacements` and `transformations`", "")
+    };
+    let spelled = if crate::app_paths::OPENCODE {
+        " Hex hears them better and the AI rewrite spells them right."
+    } else {
+        " Hex hears them better."
+    };
     format!(
         "I use Hex for dictation. Change what it does to my words before it pastes them.\n\
          \n\
          The steps live in {path} under `dictation_processing`:\n\
          - `default_mode` runs on every dictation, in this order: `replacements` (a \
-         list of {{\"matched_phrase\", \"output\"}}), then `post_processing` (an \
-         optional AI rewrite), then `transformations` (ids, in order).\n\
+         list of {{\"matched_phrase\", \"output\"}}), {rewrite_step}then \
+         `transformations` (ids, in order).\n\
          - `modes` are rules for some apps: each names `applications` (app names) or \
          `browser_hosts` (sites). There, `default_mode`'s replacements run first, then \
-         the mode's own `replacements`, `post_processing`, and `transformations` \
-         instead of `default_mode`'s.\n\
+         the mode's own {mode_steps} instead of `default_mode`'s.\n\
          \n\
-         `post_processing` rewrites the text with a model through OpenCode: \
-         {{\"enabled\": true, \"prompt\": \"<how to rewrite>\", \"model\": \
-         \"<provider/model>\", \"deadline_seconds\": 30}}. Leave `model` out and Hex \
-         picks a fast one you have connected; set it only if I ask for a particular \
-         model (`opencode2 models` lists them). \
-         If the rewrite fails or runs past the deadline, Hex pastes the text without it.\n\
-         \n\
+         {rewrite}\
          Built-in transformations: \"lowercase\", \"no-trailing-punctuation\", \
          \"spongebob-case\". Others are functions in ~/.config/hex/hex.config.ts \
          (run `hex commands init` for its typings; the API, including fetch and \
          node:child_process, is documented at {TRANSFORMS_DOCS}).\n\
          \n\
          Names Hex should know (people, products, projects) go in a vocabulary, not in \
-         replacements. Hex hears them better and the AI rewrite spells them right. The \
+         replacements.{spelled} The \
          shared list covers every app: `hex vocabulary add <term> --sounds-like a,b` \
          (and `list`, `remove`). A mode can add its own in `vocabulary`, a list of \
          terms (\"Rune\") or {{\"term\", \"sounds_like\": [...]}} for words it's often \
@@ -772,7 +786,7 @@ pub(super) fn fixture(ui: &mut Ui) {
     };
     let global = &mut ui.settings.dictation_processing.default_mode;
     global.replacements = vec![
-        pair("open code", "OpenCode"),
+        pair("rune kit", "Rune Kit"),
         pair("hex app", "Hex"),
         pair("um", ""),
     ];
@@ -791,7 +805,7 @@ pub(super) fn fixture(ui: &mut Ui) {
     modes[0].transformations = vec!["smart-punctuation".into()];
     modes[1].applications = vec!["WezTerm".into(), "Zed".into()];
     modes[1].replacements = vec![pair("dash dash", "--")];
-    ui.output.trial = TextEdit::new("Um, open code shipped the hex app today.".to_string());
+    ui.output.trial = TextEdit::new("Um, rune kit shipped the hex app today.".to_string());
 }
 
 /// The fixture with a config asking to fetch and run programs.
