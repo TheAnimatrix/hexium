@@ -38,7 +38,7 @@ pub const AUTHENTICODE_SIGNER: &str = "Anomaly Innovations, Inc https://anoma.ly
 /// `HKLM` (or `HKCU`) `\SOFTWARE\Policies\Anomaly\Hex`, value `DisableUpdates`.
 const POLICY_KEY: &str = r"SOFTWARE\Policies\Anomaly\Hex";
 /// The Apps & Features entry that packaging/windows/hex.iss registers.
-const UNINSTALL_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\{6ED48C92-5177-41F4-B8D6-37B7B02CFDF4}_is1";
+const UNINSTALL_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\{3F0B7C2E-8A4D-4E19-9B61-5C2D7E8A1F43}_is1";
 
 /// The activated `hex.exe`.
 #[derive(Clone, Debug)]

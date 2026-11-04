@@ -93,7 +93,7 @@ pub(crate) struct WindowsDesktopHost {
 }
 
 /// Names the event that marks the running Hex app in this login session.
-const APP_INSTANCE_EVENT: &str = r"Local\anomaly.hex.app";
+const APP_INSTANCE_EVENT: &str = r"Local\avarnic.hexium.app";
 
 /// The data root `HEX_APPLICATION_SUPPORT_DIR` names, unless it is the
 /// default one, which keeps the default event.
@@ -796,7 +796,7 @@ mod tests {
     fn an_isolated_data_root_has_its_own_instance_event() {
         assert_eq!(instance_event_name(None), APP_INSTANCE_EVENT);
         let isolated = instance_event_name(Some(std::path::Path::new(r"C:\bench\home\hex")));
-        assert!(isolated.starts_with(r"Local\anomaly.hex.app."));
+        assert!(isolated.starts_with(&format!("{APP_INSTANCE_EVENT}.")));
         assert_eq!(isolated.len(), APP_INSTANCE_EVENT.len() + 17);
         assert_eq!(
             isolated,

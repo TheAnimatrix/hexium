@@ -15,8 +15,8 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 if [ "${HEX_RELEASE_UNSIGNED:-}" = 1 ]; then
   team_id=
   identity=-
-  app_name=Hex
-  bundle_id=anomaly.hex
+  app_name=Hexium
+  bundle_id=com.avarnic.hexium
 elif [ "${HEX_TEST_BUILD:-}" = 1 ]; then
   team_id=
   identity=-
@@ -85,7 +85,7 @@ plutil -replace CFBundleName -string "$app_name" "$bundle/Contents/Info.plist"
 plutil -replace CFBundleDisplayName -string "$app_name" "$bundle/Contents/Info.plist"
 # Links into the playground (src/rune_ui/story_link.rs); a test build's own
 # scheme never opens the installed Hex.
-url_scheme=hex
+url_scheme=hexium
 [ "${HEX_TEST_BUILD:-}" = 1 ] && url_scheme=hex-test
 /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLName $bundle_id" "$bundle/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 $url_scheme" "$bundle/Contents/Info.plist"
