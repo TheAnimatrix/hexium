@@ -94,6 +94,25 @@ pub(super) const QWENCLEO_ARTIFACT: GgufArtifact = GgufArtifact {
 // (`ivrit.ai Whisper Large v3 Turbo`; author and repository come from the
 // source), and quantized to Q8_0; rebuilding it that way reproduces this
 // file byte for byte.
+// Hexium: Bodhan AI's Indic-Transcribe-Flex (a canary-1b-v2 fine-tune for 27
+// Indian languages), converted from the published .nemo with
+// transcribe.cpp's scripts/convert-indic-canary.py --default-mode mixed and
+// quantized to Q8_0. Mixed mode writes Indian-language words in their script
+// and English words and digits in Latin. Indic Open Model License v1.0:
+// "Built with Indic-Transcribe-Flex from Bodhan AI / AI4Bharat."
+pub(super) const INDIC_TRANSCRIBE_FLEX_ARTIFACT: GgufArtifact = GgufArtifact {
+    filename: "indic-transcribe-flex-Q8_0.gguf",
+    revision: "a8a7200a683d54b29a894499f2110ced870906bb",
+    repository: "TheAnimatrix/indic-transcribe-flex-gguf",
+    bytes: 1_410_457_312,
+    sha256: "807af7f8fe04cfa623fa5edb77e422f1db6ef7052ccd3be6064a43ae02dd3282",
+    architecture: "canary",
+    variant: "indic-transcribe-flex",
+};
+/// The languages Hex names that Indic-Transcribe-Flex was trained on.
+pub(super) const INDIC_TRANSCRIBE_LANGUAGES: &[&str] = &[
+    "te", "hi", "ta", "kn", "ml", "mr", "gu", "pa", "ur", "bn", "en",
+];
 pub(super) const IVRIT_WHISPER_ARTIFACT: GgufArtifact = GgufArtifact {
     filename: "ivrit-whisper-large-v3-turbo-Q8_0.gguf",
     revision: "a12befaff80add995ac6a8fe10cbb7f38438c7b5",

@@ -1375,6 +1375,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Thu", "Чт"),
     ("Fri", "Пт"),
     ("Sat", "Сб"),
+    ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
 ];
 
 #[cfg(test)]
