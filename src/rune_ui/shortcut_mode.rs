@@ -8,9 +8,9 @@
 use rune::El;
 
 use super::Ui;
+use super::controls::value_button;
 use super::controls::{Paint, copy_row};
 use super::explainer::{self, Script};
-use super::controls::value_button;
 use super::icons::HAND;
 use crate::app_settings::{AppSettings, HotkeyKey};
 use crate::desktop::i18n::{tr, tr_fill};

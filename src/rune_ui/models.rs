@@ -294,11 +294,13 @@ pub(super) fn rows(ui: &Ui, p: Paint, target: Target, layer: &mut Vec<El>) -> Ve
                 .grow(1.0),
         ),
     };
-    field = field.child(
-        rune::icon(p.k.glyph.chevron_down, 16.0)
-            .key("chevron")
-            .color(c.icon_muted),
-    );
+    field = field
+        .child(
+            rune::icon(p.k.glyph.chevron_down, 16.0)
+                .key("chevron")
+                .color(c.icon_muted),
+        )
+        .label(tr("OpenCode model"));
     let picker = model_picker(ui, p, target, field, layer);
     let refresh = ui.models.available().then(|| {
         button(

@@ -454,23 +454,25 @@ pub(super) fn pane(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> (Vec<El>, El) {
                     meta.push_str(" · ");
                     meta.push_str(application);
                 }
-                list = list.child(ld::item(
-                    p,
-                    Item {
-                        key: format!("history-entry{id}"),
-                        title: entry.final_text.replace('\n', " "),
-                        meta,
-                        meta_ink: None,
-                        time: event_age(entry.timestamp_ms),
-                        hover: vec![copy_action(ui, p, id, true)],
-                        selected: pane.selected == Some(id),
-                    },
-                    move |ui: &mut Ui| {
-                        ui.history.selected = Some(id);
-                        ui.history.clear_armed = false;
-                    },
-                )
-                .position_in_set(index + 1, count));
+                list = list.child(
+                    ld::item(
+                        p,
+                        Item {
+                            key: format!("history-entry{id}"),
+                            title: entry.final_text.replace('\n', " "),
+                            meta,
+                            meta_ink: None,
+                            time: event_age(entry.timestamp_ms),
+                            hover: vec![copy_action(ui, p, id, true)],
+                            selected: pane.selected == Some(id),
+                        },
+                        move |ui: &mut Ui| {
+                            ui.history.selected = Some(id);
+                            ui.history.clear_armed = false;
+                        },
+                    )
+                    .position_in_set(index + 1, count),
+                );
             }
             let search = TextInput::new(&pane.search)
                 .placeholder(tr("Search history"))

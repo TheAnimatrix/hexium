@@ -129,9 +129,8 @@ fn group(
                     .a11y_hidden(),
             );
         }
-        group = group.child(
-            model_row(ui, p, entry, language).position_in_set(index + 1, entries.len()),
-        );
+        group = group
+            .child(model_row(ui, p, entry, language).position_in_set(index + 1, entries.len()));
     }
     group
 }

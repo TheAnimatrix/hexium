@@ -515,9 +515,17 @@ mod tests {
         assert_eq!(model.status(), None);
         model.handle(DictationIndicatorEvent::Started, start, false);
         assert_eq!(model.status(), Some("Recording"));
-        model.handle(DictationIndicatorEvent::Submitted { job_id: 1 }, start, false);
+        model.handle(
+            DictationIndicatorEvent::Submitted { job_id: 1 },
+            start,
+            false,
+        );
         assert_eq!(model.status(), Some("Transcribing"));
-        model.handle(DictationIndicatorEvent::JobFailed { job_id: 1 }, start, false);
+        model.handle(
+            DictationIndicatorEvent::JobFailed { job_id: 1 },
+            start,
+            false,
+        );
         assert_eq!(model.status(), Some("Failed"));
         model.handle(DictationIndicatorEvent::Started, start, false);
         model.handle(DictationIndicatorEvent::Discarded, start, false);

@@ -1099,7 +1099,8 @@ fn processing(
             update_mode(ui, |mode| mode.post_processing.enabled = enabled);
         })
         .build(p.k)
-        .key("processing-toggle");
+        .key("processing-toggle")
+        .label(tr("OpenCode transformation"));
     let reason = (!can_toggle)
         .then(|| models::unavailable_reason(ui, OpenCodeFeature::Transformation))
         .flatten();

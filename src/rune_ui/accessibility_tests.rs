@@ -44,9 +44,10 @@ fn settle(rt: &mut Runtime<Ui>) {
 /// Every node of `tree` with the path of keys and roles above it.
 fn nodes(tree: &Value) -> Vec<(String, &Value)> {
     fn walk<'a>(node: &'a Value, path: String, out: &mut Vec<(String, &'a Value)>) {
-        let step = node["key"]
-            .as_str()
-            .map_or_else(|| node["role"].as_str().unwrap_or("?").to_owned(), str::to_owned);
+        let step = node["key"].as_str().map_or_else(
+            || node["role"].as_str().unwrap_or("?").to_owned(),
+            str::to_owned,
+        );
         let path = if path.is_empty() {
             step
         } else {

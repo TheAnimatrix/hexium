@@ -750,23 +750,25 @@ fn recordings(ui: &Ui, p: Paint, layer: &mut Vec<El>, action: El) -> (Vec<El>, E
             let (meta, meta_ink) = row_meta(pane, meeting, p);
             let completed = meeting.status == Status::Complete && !meeting.turns().is_empty();
             let id = meeting.id.clone();
-            list = list.child(ld::item(
-                p,
-                Item {
-                    key: format!("meeting-{}", meeting.id),
-                    title: meeting.title.clone(),
-                    meta,
-                    meta_ink,
-                    time: meeting.clock.clone(),
-                    hover: completed
-                        .then(|| copy_action(p, pane, meeting, "row"))
-                        .into_iter()
-                        .collect(),
-                    selected: pane.selected.as_deref() == Some(meeting.id.as_str()),
-                },
-                move |ui: &mut Ui| ui.meetings.select(id.clone()),
-            )
-            .position_in_set(index + 1, count));
+            list = list.child(
+                ld::item(
+                    p,
+                    Item {
+                        key: format!("meeting-{}", meeting.id),
+                        title: meeting.title.clone(),
+                        meta,
+                        meta_ink,
+                        time: meeting.clock.clone(),
+                        hover: completed
+                            .then(|| copy_action(p, pane, meeting, "row"))
+                            .into_iter()
+                            .collect(),
+                        selected: pane.selected.as_deref() == Some(meeting.id.as_str()),
+                    },
+                    move |ui: &mut Ui| ui.meetings.select(id.clone()),
+                )
+                .position_in_set(index + 1, count),
+            );
         }
         let detail = match pane.selected.as_deref().and_then(|id| pane.meeting(id)) {
             Some(meeting) => detail(ui, p, meeting, layer),
