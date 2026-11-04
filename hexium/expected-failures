@@ -1,0 +1,38 @@
+# Tests Hexium changes on purpose; hexium/check-tests.sh allows these to
+# differ from upstream. Keep each one explained.
+
+# The modes pane's model picker and its "OpenCode not running" setup are
+# OpenCode's, which Hexium hides (crate::app_paths::OPENCODE).
+rune_ui::tests::a_long_model_list_fits_the_window_and_follows_the_highlight
+rune_ui::tests::arrow_keys_move_the_search_highlight_and_enter_picks_it
+rune_ui::tests::choosing_an_opencode_model_saves_it
+rune_ui::tests::opencode_missing_offers_setup_instead_of_models
+rune_ui::tests::unavailable_opencode_is_explained_beside_each_switch
+rune_ui::tests::panes::the_meeting_summary_model_lab_is_on_every_os_with_meetings
+rune_ui::tests::panes::the_meeting_summary_model_is_picked_from_opencode_s_models
+
+# Screens without OpenCode rows, and the model picker with Indic-Transcribe-Flex.
+golden:linux-labs-light
+golden:mac-labs-link-dark
+golden:mac-labs-link-light
+golden:modes-dark
+golden:modes-light
+golden:modes-opencode-not-running-light
+golden:modes-picker-dark
+golden:modes-picker-light
+golden:output-dark
+golden:output-light
+golden:output-trust-light
+golden:picker-custom-models-light
+
+# Meetings › Advanced without the summary model picker (OpenCode's models).
+golden:meetings-summary-model-dark
+golden:meetings-summary-model-light
+golden:meetings-summary-model-not-running-dark
+golden:meetings-summary-model-not-running-light
+
+# The screenshot editor without Send to… (OpenCode's sessions).
+golden:screenshot-editor-marks-dark
+golden:screenshot-editor-marks-light
+golden:screenshot-editor-send-dark
+golden:screenshot-editor-send-light
