@@ -62,6 +62,11 @@ impl Missing {
 /// The running service, or why there is none. Reads only registration files
 /// and asks each registered service for `/api/info`.
 pub(crate) fn find() -> Result<Service, Missing> {
+    // Hexium: without OpenCode, nothing reads its registration or asks a
+    // service for `/api/info`.
+    if !crate::app_paths::OPENCODE {
+        return Err(Missing::NotRunning);
+    }
     find_in(&state_dir().ok_or(Missing::NotRunning)?)
 }
 
@@ -661,6 +666,16 @@ pub(crate) mod tests {
         }
     }
 
+    /// Hexium: without OpenCode no registration is read, even one that
+    /// would answer.
+    #[test]
+    fn nothing_is_found_without_opencode() {
+        if crate::app_paths::OPENCODE {
+            return;
+        }
+        assert_eq!(find(), Err(Missing::NotRunning));
+        assert!(!running());
+    }
     #[test]
     fn a_registered_service_is_confirmed_by_its_pid() {
         let state = state_root("confirm");

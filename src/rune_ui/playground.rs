@@ -335,8 +335,14 @@ fn playground() -> Playground<Ui> {
     let playground = super::live_notes::add(playground);
     #[cfg(target_os = "macos")]
     let playground = super::hud_stories::add(playground);
+    // Hexium: the capsule's prototypes are about sending captures to
+    // OpenCode sessions.
     #[cfg(all(hex_capture, target_os = "macos"))]
-    let playground = super::capture_capsule::playground::stories(playground);
+    let playground = if crate::app_paths::OPENCODE {
+        super::capture_capsule::playground::stories(playground)
+    } else {
+        playground
+    };
     playground
 }
 
@@ -351,6 +357,8 @@ fn scenes() -> &'static [Scene] {
         let mut listed: Vec<Scene> = SCENES
             .iter()
             .filter(|(name, _)| *name != "live")
+            // Hexium: no OpenCode, so no story about it missing.
+            .filter(|(name, _)| crate::app_paths::OPENCODE || *name != "modes-opencode-not-running")
             .copied()
             .collect();
         listed.sort_by_key(|(name, _)| {
@@ -459,7 +467,9 @@ mod tests {
             assert_eq!(paths, 1, "{path} lists twice");
         }
         let names: Vec<&str> = scenes().iter().map(|(name, _)| *name).collect();
-        assert_eq!(names.len(), SCENES.len() - 1);
+        // Hexium: without OpenCode its "not running" scene isn't listed.
+        let hidden = if crate::app_paths::OPENCODE { 1 } else { 2 };
+        assert_eq!(names.len(), SCENES.len() - hidden);
         assert_eq!(names.first(), Some(&"Window/General/Settings"));
         assert!(
             names
@@ -578,6 +588,10 @@ mod tests {
     #[cfg(all(hex_capture, target_os = "macos"))]
     #[test]
     fn every_capsule_story_and_flow_opens_from_its_link() {
+        // Hexium: the capsule's prototypes are listed only with OpenCode.
+        if !crate::app_paths::OPENCODE {
+            return;
+        }
         let app = attach(App::new(spec(super::super::spec())));
         let mut rt = app.headless_runtime(WINDOW_SIZE, rune::Env::new(false, 1.0));
         rt.frame(0.0);
