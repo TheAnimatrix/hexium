@@ -89,7 +89,7 @@ pub(crate) struct WindowsDesktopHost {
 }
 
 /// Names the event that marks the running Hex app in this login session.
-const APP_INSTANCE_EVENT: &str = r"Local\anomaly.hex.app";
+const APP_INSTANCE_EVENT: &str = r"Local\avarnic.hexium.app";
 
 /// The data root `HEX_APPLICATION_SUPPORT_DIR` names, unless it is the
 /// default one, which keeps the default event.

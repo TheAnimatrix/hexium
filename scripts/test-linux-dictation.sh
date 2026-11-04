@@ -84,7 +84,7 @@ grep -q 'Hex dictation is ready' "$work/listener.log"
 # A second launch forwards to the running Hex, which opens its window; the
 # complete dictation below runs beside it in the same process.
 "$binary" app >"$work/app.log" 2>&1
-xdotool search --sync --onlyvisible --all --pid "$listener" --name '^Hex$' >/dev/null
+xdotool search --sync --onlyvisible --all --pid "$listener" --name '^Hexium$' >/dev/null
 kill -0 "$listener"
 # Holds the shortcut over the speech, then waits until the target holds
 # `$1` transcripts of it.

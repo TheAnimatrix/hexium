@@ -253,7 +253,10 @@ pub struct Updater {
 impl Updater {
     pub fn start() -> Self {
         let method = platform::method();
-        let disabled = if option_env!("HEX_TEST_BUILD") == Some("1") || updates_off_by_env() {
+        let disabled = if crate::app_paths::HEXIUM
+            || option_env!("HEX_TEST_BUILD") == Some("1")
+            || updates_off_by_env()
+        {
             Some(DesktopUpdateStatus::Unavailable)
         } else if crate::app_paths::is_local_build() {
             Some(DesktopUpdateStatus::SourceBuild)
