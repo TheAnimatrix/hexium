@@ -35,13 +35,14 @@ const DIGITS: usize = 16;
 const MAX_NAME_CHARS: usize = 64;
 
 /// The model families Hex's runtime handles, with the names people know.
-const ARCHITECTURES: [(&str, &str); 6] = [
+const ARCHITECTURES: [(&str, &str); 7] = [
     ("parakeet", "Parakeet"),
     ("whisper", "Whisper"),
     ("qwen3_asr", "Qwen3-ASR"),
     ("cohere_asr", "Cohere Transcribe"),
     ("sensevoice", "SenseVoice"),
     ("gigaam", "GigaAM"),
+    ("canary", "Canary"),
 ];
 
 /// Whether a family takes a language prompt: Parakeet and GigaAM heads
@@ -509,8 +510,8 @@ fn profile(header: &GgufHeader, file_name: &str) -> Result<Profile> {
         bail!(
             "its architecture is {architecture}, so it was made for another program. Hex runs \
              only GGUF files converted with transcribe.cpp (Parakeet, Whisper, Qwen3-ASR, \
-             Cohere Transcribe, SenseVoice, or GigaAM); for a model in Hex's list, download \
-             it from the list instead"
+             Cohere Transcribe, SenseVoice, GigaAM, or Canary); for a model in Hex's list, \
+             download it from the list instead"
         );
     }
     let Some(variant) = header.string("stt.variant") else {
