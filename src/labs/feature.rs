@@ -285,6 +285,13 @@ impl Feature {
     /// [`Self::oses`], unless this session or build leaves it out.
     pub fn on_this_os(self) -> bool {
         match self {
+            // Hexium: no OpenCode, so no OpenCode service to look for in WSL,
+            // and no rewrite for a voice prompt or the text near the cursor.
+            Self::OpenCodeInWsl | Self::VoicePrompt | Self::CursorContext
+                if !crate::app_paths::OPENCODE =>
+            {
+                false
+            }
             Self::KeyboardModelSwitching => crate::keyboard_input_sources::available(),
             Self::AnnotateReplay => {
                 #[cfg(hex_capture)]

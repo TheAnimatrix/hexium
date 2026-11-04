@@ -34,7 +34,7 @@ fn uses_scripts(settings: &DictationProcessingSettings) -> bool {
 fn uses_browser(settings: &DictationProcessingSettings, voice_prompt: bool) -> bool {
     // Labs › Rewrite by voice's request carries the browser host, so its lab
     // asks for the page too.
-    crate::dictation::modes::uses_page(settings) || voice_prompt
+    crate::dictation::modes::uses_page(settings) || (crate::app_paths::OPENCODE && voice_prompt)
 }
 
 pub fn dictation_profiles() -> Profiles {
@@ -226,7 +226,11 @@ mod tests {
             &DictationProcessingSettings::default(),
             false
         ));
-        assert!(uses_browser(&DictationProcessingSettings::default(), true));
+        // Hexium: Voice prompt is OpenCode's, so it reads nothing without it.
+        assert_eq!(
+            uses_browser(&DictationProcessingSettings::default(), true),
+            crate::app_paths::OPENCODE
+        );
         assert!(!uses_browser(
             &with(DictationMode {
                 applications: vec!["Slack".into()],
@@ -257,7 +261,8 @@ mod tests {
             },
             ..DictationMode::default()
         });
-        assert!(uses_browser(&rewrite, false));
+        // Hexium: a saved rewrite reads nothing without OpenCode.
+        assert_eq!(uses_browser(&rewrite, false), crate::app_paths::OPENCODE);
         assert!(!uses_scripts(&rewrite));
 
         let global = |transformation: &str| DictationProcessingSettings {

@@ -95,7 +95,31 @@ fn managed(name: &str, lock: crate::policy::Lock) -> ControlError {
 
 /// Every key, in registry order.
 fn keys() -> impl Iterator<Item = &'static Key> {
+    all_keys().filter(|key| crate::app_paths::OPENCODE || !hidden_without_opencode(key.key))
+}
+
+/// Every key, those a build without OpenCode hides included.
+fn all_keys() -> impl Iterator<Item = &'static Key> {
     KEYS.iter().chain(CAPTURE_KEYS)
+}
+
+/// Hexium: settings only OpenCode features read (meeting notes with
+/// OpenCode, and where captures are sent among its sessions). A build
+/// without OpenCode keeps their saved values but never lists or sets them.
+const OPENCODE_KEYS: &[&str] = &[
+    "meetings.opencode_model",
+    "labs.opencode_in_wsl",
+    "capture.capsule_flow",
+    "capture.routing",
+    "labs.voice_prompt",
+    "labs.voice_prompt_phrase",
+    "labs.cursor_context",
+];
+
+/// Whether a build without OpenCode hides `key`: an OpenCode-only setting,
+/// or Summaries off a Mac, where OpenCode was its only writer.
+fn hidden_without_opencode(key: &str) -> bool {
+    OPENCODE_KEYS.contains(&key) || (!cfg!(target_os = "macos") && key == "meetings.summaries")
 }
 
 /// Settings `hex settings` never shows: Hex's own bookkeeping.
@@ -190,7 +214,10 @@ fn unknown(name: &str) -> ControlError {
             "Settings search no longer needs a lab. Use Cmd+K (Ctrl+K off macOS) in the Hex window.",
         );
     }
-    if let Some((_, replacement)) = RETIRED.iter().find(|(retired, _)| *retired == name) {
+    // Hexium: a retired key whose replacement is OpenCode's is just unknown.
+    if let Some((_, replacement)) = RETIRED.iter().find(|(retired, replacement)| {
+        *retired == name && (crate::app_paths::OPENCODE || !replacement.contains("opencode"))
+    }) {
         return ControlError::new(
             "unknown-setting",
             format!("`{name}` was replaced: use `hex settings set {replacement}`"),
@@ -821,7 +848,7 @@ mod tests {
         let mut paths = Vec::new();
         leaves(&json, String::new(), &mut paths);
         for path in &paths {
-            let covered = keys()
+            let covered = all_keys()
                 .map(|key| key.key)
                 .chain(INTERNAL.iter().copied())
                 .chain(OWN_COMMAND.iter().copied())
@@ -851,6 +878,10 @@ mod tests {
     fn every_labs_feature_has_a_matching_bool_cli_key() {
         for feature in crate::labs::Feature::ALL {
             let name = feature.settings_key();
+            // Hexium: OpenCode's labs have no key without OpenCode.
+            if !crate::app_paths::OPENCODE && hidden_without_opencode(name) {
+                continue;
+            }
             let key = keys().find(|key| key.key == name).unwrap_or_else(|| {
                 panic!(
                     "Labs feature `{}` names no `hex settings` key `{name}`",
@@ -1015,6 +1046,16 @@ mod tests {
 
     #[test]
     fn a_voice_prompt_phrase_needs_two_words_and_six_letters() {
+        // Hexium: Voice prompt hands the words to OpenCode, so it has no key.
+        if !crate::app_paths::OPENCODE {
+            assert_eq!(
+                apply(&AppSettings::default(), "labs.voice_prompt", "on", &rules())
+                    .unwrap_err()
+                    .code,
+                "unknown-setting"
+            );
+            return;
+        }
         let change = apply(&AppSettings::default(), "labs.voice_prompt", "on", &rules()).unwrap();
         assert!(change.settings.labs.voice_prompt);
         assert_eq!(
@@ -1139,7 +1180,7 @@ mod tests {
                 "`{prefix}` needs `{capability}`, which is no capability"
             );
             assert!(
-                keys().any(|key| key.key == *prefix || key.key.starts_with(prefix)),
+                all_keys().any(|key| key.key == *prefix || key.key.starts_with(prefix)),
                 "`{prefix}` names no setting"
             );
         }
@@ -1148,6 +1189,10 @@ mod tests {
     #[cfg(hex_capture)]
     #[test]
     fn capture_routing_is_set_as_one_object_without_a_jev_key() {
+        if !crate::app_paths::OPENCODE {
+            assert!(get(&AppSettings::default(), "capture.routing").is_err());
+            return;
+        }
         let settings = AppSettings::default();
         let value = concat!(
             r#"{"smartRouting": true, "sites": {"https://example.com": "ses_a"}, "#,
@@ -1380,51 +1425,83 @@ mod tests {
         );
         let change = apply(&settings, "ui_language", "none", &rules()).unwrap();
         assert_eq!(change.settings.ui_language, None);
-        let change = apply(
-            &settings,
-            "meetings.opencode_model",
-            "anthropic/claude-haiku",
-            &rules(),
-        )
-        .unwrap();
-        assert_eq!(
-            change.settings.meetings.opencode_model.as_deref(),
-            Some("anthropic/claude-haiku")
-        );
-        assert_eq!(
-            get(&change.settings, "meetings.opencode_model").unwrap()[0].value,
-            "anthropic/claude-haiku"
-        );
-        let cleared = apply(
-            &change.settings,
-            "meetings.opencode_model",
-            "none",
-            &rules(),
-        )
-        .unwrap();
-        assert_eq!(cleared.settings.meetings.opencode_model, None);
-        assert!(
-            get(&cleared.settings, "meetings.opencode_model").unwrap()[0]
-                .value
-                .is_null()
-        );
-        let change = apply(&settings, "meetings.summaries", "opencode", &rules()).unwrap();
-        assert_eq!(
-            change.settings.meetings.summaries,
-            crate::app_settings::MeetingSummaries::OpenCode
-        );
-        assert_eq!(
-            get(&change.settings, "meetings.summaries").unwrap()[0].value,
-            "opencode"
-        );
-        let retired = apply(
-            &settings,
-            "meetings.summarize_with_opencode",
-            "on",
-            &rules(),
-        )
-        .unwrap_err();
-        assert!(retired.message.contains("meetings.summaries opencode"));
+        // Hexium: no OpenCode, so no setting for its meeting model, no
+        // OpenCode Summaries, and the retired switch points nowhere.
+        if !crate::app_paths::OPENCODE {
+            assert_eq!(
+                apply(&settings, "meetings.opencode_model", "a/b", &rules())
+                    .unwrap_err()
+                    .code,
+                "unknown-setting"
+            );
+            #[cfg(target_os = "macos")]
+            assert_eq!(
+                apply(&settings, "meetings.summaries", "opencode", &rules())
+                    .unwrap_err()
+                    .code,
+                "invalid-value"
+            );
+            #[cfg(not(target_os = "macos"))]
+            assert!(get(&settings, "meetings.summaries").is_err());
+            let retired = apply(
+                &settings,
+                "meetings.summarize_with_opencode",
+                "on",
+                &rules(),
+            )
+            .unwrap_err();
+            assert!(
+                !retired.message.contains("was replaced"),
+                "{}",
+                retired.message
+            );
+        } else {
+            let change = apply(
+                &settings,
+                "meetings.opencode_model",
+                "anthropic/claude-haiku",
+                &rules(),
+            )
+            .unwrap();
+            assert_eq!(
+                change.settings.meetings.opencode_model.as_deref(),
+                Some("anthropic/claude-haiku")
+            );
+            assert_eq!(
+                get(&change.settings, "meetings.opencode_model").unwrap()[0].value,
+                "anthropic/claude-haiku"
+            );
+            let cleared = apply(
+                &change.settings,
+                "meetings.opencode_model",
+                "none",
+                &rules(),
+            )
+            .unwrap();
+            assert_eq!(cleared.settings.meetings.opencode_model, None);
+            assert!(
+                get(&cleared.settings, "meetings.opencode_model").unwrap()[0]
+                    .value
+                    .is_null()
+            );
+            let change = apply(&settings, "meetings.summaries", "opencode", &rules()).unwrap();
+            assert_eq!(
+                change.settings.meetings.summaries,
+                crate::app_settings::MeetingSummaries::OpenCode
+            );
+            assert_eq!(
+                get(&change.settings, "meetings.summaries").unwrap()[0].value,
+                "opencode"
+            );
+            let retired = apply(
+                &settings,
+                "meetings.summarize_with_opencode",
+                "on",
+                &rules(),
+            )
+            .unwrap_err();
+            assert!(retired.message.contains("meetings.summaries opencode"));
+        }
         let mut saved = settings.clone();
         saved.microphone = Some("USB Mic".into());
         let change = apply(&saved, "microphone", "system-default", &rules()).unwrap();

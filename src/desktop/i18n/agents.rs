@@ -23,6 +23,8 @@ pub(super) const TRANSLATIONS: &[(&str, [&str; 6])] = &[
     ("Couldn't link the command-line tool: {}", ["Nie udało się dodać narzędzia wiersza poleceń: {}", "无法链接命令行工具：{}", "コマンドラインツールをリンクできませんでした: {}", "Das Befehlszeilenwerkzeug konnte nicht verlinkt werden: {}", "No se pudo enlazar la herramienta de línea de comandos: {}", "Не вдалося додати інструмент командного рядка: {}"]),
     ("Install agent skill from Annotate", ["Zainstaluj umiejętność agenta z Annotate", "从 Annotate 安装助手技能", "Annotate からエージェントスキルをインストール", "Agenten-Skill aus Annotate installieren", "Instalar la habilidad de agente desde Annotate", "Встановлення навички агента з Annotate"]),
     ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, OpenCode, or Pi, and on macOS links hex onto PATH", ["Dodaje sekcję Agenci w panelu Annotate, która zapisuje umiejętność hex-annotate w Claude Code, Codex, OpenCode lub Pi, a w macOS dodaje hex do PATH", "在 Annotate 面板中加入“助手”部分，把 hex-annotate 技能写入 Claude Code、Codex、OpenCode 或 Pi，并在 macOS 上把 hex 加入 PATH", "Annotate パネルに「エージェント」セクションを追加し、hex-annotate スキルを Claude Code、Codex、OpenCode、Pi に書き込み、macOS では hex を PATH にリンクします", "Fügt dem Annotate-Bereich einen Abschnitt „Agenten“ hinzu, der den hex-annotate-Skill in Claude Code, Codex, OpenCode oder Pi schreibt und unter macOS hex in den PATH verlinkt", "Añade una sección Agentes al panel Annotate que escribe la habilidad hex-annotate en Claude Code, Codex, OpenCode o Pi, y en macOS enlaza hex en el PATH", "Додає розділ «Агенти» до панелі Annotate, який записує навичку hex-annotate у Claude Code, Codex, OpenCode або Pi, а на macOS додає hex до PATH"]),
+    // Hexium: the same without OpenCode.
+    ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, or Pi, and on macOS links hex onto PATH", ["Dodaje sekcję Agenci w panelu Annotate, która zapisuje umiejętność hex-annotate w Claude Code, Codex lub Pi, a w macOS dodaje hex do PATH", "在 Annotate 面板中加入“助手”部分，把 hex-annotate 技能写入 Claude Code、Codex 或 Pi，并在 macOS 上把 hex 加入 PATH", "Annotate パネルに「エージェント」セクションを追加し、hex-annotate スキルを Claude Code、Codex、Pi に書き込み、macOS では hex を PATH にリンクします", "Fügt dem Annotate-Bereich einen Abschnitt „Agenten“ hinzu, der den hex-annotate-Skill in Claude Code, Codex oder Pi schreibt und unter macOS hex in den PATH verlinkt", "Añade una sección Agentes al panel Annotate que escribe la habilidad hex-annotate en Claude Code, Codex o Pi, y en macOS enlaza hex en el PATH", "Додає розділ «Агенти» до панелі Annotate, який записує навичку hex-annotate у Claude Code, Codex або Pi, а на macOS додає hex до PATH"]),
 ];
 
 /// Brazilian Portuguese, for the strings above.
@@ -46,6 +48,8 @@ pub(super) const PORTUGUESE: &[(&str, &str)] = &[
     ("Couldn't link the command-line tool: {}", "Não foi possível vincular a ferramenta de linha de comando: {}"),
     ("Install agent skill from Annotate", "Instalar a habilidade de agente do Annotate"),
     ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, OpenCode, or Pi, and on macOS links hex onto PATH", "Adiciona uma seção Agentes ao painel Annotate que escreve a habilidade hex-annotate no Claude Code, Codex, OpenCode ou Pi e, no macOS, vincula o hex ao PATH"),
+    // Hexium: the same without OpenCode.
+    ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, or Pi, and on macOS links hex onto PATH", "Adiciona uma seção Agentes ao painel Annotate que escreve a habilidade hex-annotate no Claude Code, Codex ou Pi e, no macOS, vincula o hex ao PATH"),
 ];
 
 /// French, for the strings above.
@@ -69,6 +73,8 @@ pub(super) const FRENCH: &[(&str, &str)] = &[
     ("Couldn't link the command-line tool: {}", "Impossible de lier l'outil en ligne de commande : {}"),
     ("Install agent skill from Annotate", "Installer la compétence d'agent depuis Annotate"),
     ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, OpenCode, or Pi, and on macOS links hex onto PATH", "Ajoute une section Agents au panneau Annotate qui écrit la compétence hex-annotate dans Claude Code, Codex, OpenCode ou Pi, et sous macOS lie hex au PATH"),
+    // Hexium: the same without OpenCode.
+    ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, or Pi, and on macOS links hex onto PATH", "Ajoute une section Agents au panneau Annotate qui écrit la compétence hex-annotate dans Claude Code, Codex ou Pi, et sous macOS lie hex au PATH"),
 ];
 
 /// Russian, for the strings above.
@@ -92,4 +98,6 @@ pub(super) const RUSSIAN: &[(&str, &str)] = &[
     ("Couldn't link the command-line tool: {}", "Не удалось связать инструмент командной строки: {}"),
     ("Install agent skill from Annotate", "Установка навыка агента из Annotate"),
     ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, OpenCode, or Pi, and on macOS links hex onto PATH", "Добавляет раздел «Агенты» на панель Annotate, который записывает навык hex-annotate в Claude Code, Codex, OpenCode или Pi, а на macOS добавляет hex в PATH"),
+    // Hexium: the same without OpenCode.
+    ("Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, or Pi, and on macOS links hex onto PATH", "Добавляет раздел «Агенты» на панель Annotate, который записывает навык hex-annotate в Claude Code, Codex или Pi, а на macOS добавляет hex в PATH"),
 ];

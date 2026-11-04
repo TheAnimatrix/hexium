@@ -301,6 +301,10 @@ impl Feature {
             Self::HoldThroughKeys => {
                 "If a shortcut is made only of Option, Command, Shift, Control, or Globe, with no letter or number key, pressing another key or clicking after the first second no longer ends the dictation; let go to finish"
             }
+            // Hexium: no OpenCode, so a mode has no rewrite to edit.
+            Self::ModesEditor if !crate::app_paths::OPENCODE => {
+                "Edit each mode's apps and corrections in a Modes pane"
+            }
             Self::ModesEditor => {
                 "Edit each mode's apps, corrections and OpenCode rewrite in a Modes pane"
             }
@@ -315,6 +319,10 @@ impl Feature {
             }
             Self::AnnotateAgentTools => {
                 "Adds hex annotate zoom, inspect, frames, and skill so coding agents can read a capture closely"
+            }
+            // Hexium: no OpenCode, so the section lists the other agents.
+            Self::AnnotateAgentInstall if !crate::app_paths::OPENCODE => {
+                "Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, or Pi, and on macOS links hex onto PATH"
             }
             Self::AnnotateAgentInstall => {
                 "Adds an Agents section to the Annotate pane that writes the hex-annotate skill into Claude Code, Codex, OpenCode, or Pi, and on macOS links hex onto PATH"

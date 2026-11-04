@@ -1467,6 +1467,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("If a shortcut is made only of Ctrl, Alt, Shift, or the Windows key, with no letter or number key, pressing another key or clicking after the first second no longer ends the dictation; let go to finish", "Se um atalho é feito só de Ctrl, Alt, Shift ou da tecla Windows, sem tecla de letra ou número, pressionar outra tecla ou clicar depois do primeiro segundo não termina mais o ditado; solte para terminar"),
     ("Modes editor", "Editor de modos"),
     ("Edit each mode's apps, corrections and OpenCode rewrite in a Modes pane", "Edite os apps, as correções e a reescrita do OpenCode de cada modo em um painel Modos"),
+    ("Edit each mode's apps and corrections in a Modes pane", "Edite os apps e as correções de cada modo em um painel Modos"),
     ("Transcribe dropped audio", "Transcrever áudio arrastado"),
     ("Transcribe a file", "Transcrever um arquivo"),
     ("Transcribe a file…", "Transcrever um arquivo…"),

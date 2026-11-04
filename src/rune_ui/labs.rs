@@ -774,9 +774,12 @@ fn rows(ui: &Ui) -> Vec<Row> {
     rows.push(row(Feature::OutputFixes, Some(&BOOK)));
     // The Modes editor's card carries its pane.
     rows.push(row(Feature::ModesEditor, Some(Pane::Modes.icon())));
-    rows.push(row(Feature::VoicePrompt, None));
+    // Hexium: both hand text to OpenCode, so neither row shows without it.
+    if crate::app_paths::OPENCODE {
+        rows.push(row(Feature::VoicePrompt, None));
+    }
     // macOS's Accessibility reads the text element's caret and nearby text.
-    if caps.os == super::platform::Os::Macos {
+    if crate::app_paths::OPENCODE && caps.os == super::platform::Os::Macos {
         rows.push(Row {
             note: Some(
                 tr("That text goes to the mode's OpenCode model, which may be a cloud provider. Password fields are never read.")
@@ -836,7 +839,10 @@ fn rows(ui: &Ui) -> Vec<Row> {
     }
     if caps.os == super::platform::Os::Windows {
         rows.push(row(Feature::TerminalPaste, Some(&TERMINAL)));
-        rows.push(row(Feature::OpenCodeInWsl, Some(&TERMINAL)));
+        // Hexium: no OpenCode, so the row stays hidden.
+        if crate::app_paths::OPENCODE {
+            rows.push(row(Feature::OpenCodeInWsl, Some(&TERMINAL)));
+        }
         // Windows's keyboard hook holds a modifier-only shortcut through a
         // joining key.
         rows.push(row(Feature::HoldThroughKeys, Some(&KEYBOARD)));

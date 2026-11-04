@@ -121,7 +121,7 @@ fn how_it_works(ui: &Ui, p: Paint) -> Vec<El> {
     } else {
         tr("While it records, hold the shortcut and move the pointer; no click needed")
     };
-    vec![
+    let mut rows = vec![
         step_row(
             p,
             "how-start",
@@ -164,7 +164,12 @@ fn how_it_works(ui: &Ui, p: Paint) -> Vec<El> {
             None,
             tr("Paste it anywhere, or click Send to… on the capsule to pick a session"),
         ),
-    ]
+    ];
+    // Hexium: sessions are OpenCode's, so the last step is Stop's paste.
+    if !crate::app_paths::OPENCODE {
+        rows.pop();
+    }
+    rows
 }
 
 fn scrawl_request(ui: &mut Ui, request: ScrawlRequest) {
@@ -473,7 +478,12 @@ impl Agents {
         self.selected = self
             .statuses
             .iter()
-            .map(|status| status.found && !status.linked && status.skill != SkillState::Current)
+            .map(|status| {
+                shown(status.agent)
+                    && status.found
+                    && !status.linked
+                    && status.skill != SkillState::Current
+            })
             .collect();
     }
 
@@ -495,6 +505,7 @@ impl Agents {
             .statuses
             .iter()
             .position(|status| status.agent == agent && status.found && !status.linked)
+            .filter(|_| shown(agent))
         else {
             return;
         };
@@ -615,6 +626,11 @@ fn agent_row(ui: &Ui, p: Paint, status: &AgentStatus) -> El {
         .on_press(move |ui: &mut Ui| ui.agents.toggle(agent))
 }
 
+/// Hexium: no OpenCode, so its row is never shown, checked or installed.
+fn shown(agent: Agent) -> bool {
+    crate::app_paths::OPENCODE || agent != Agent::OpenCode
+}
+
 /// The command people who manage skills themselves run, with its copy.
 fn agent_command_row(p: Paint) -> El {
     let command = row()
@@ -711,7 +727,12 @@ fn agents_section(ui: &Ui, p: Paint) -> El {
         tr("Let coding agents read your captures with the hex-annotate skill"),
         p.muted(),
     )];
-    for status in &ui.agents.statuses {
+    for status in ui
+        .agents
+        .statuses
+        .iter()
+        .filter(|status| shown(status.agent))
+    {
         rows.push(agent_row(ui, p, status));
     }
     if let Some(error) = &ui.agents.error {
@@ -1092,6 +1113,11 @@ mod tests {
         assert!(on.find("agents-install").is_some());
         assert!(on.find("agents-skill-copy").is_some());
         for agent in Agent::ALL {
+            // Hexium: no OpenCode row without OpenCode.
+            if agent == Agent::OpenCode && !crate::app_paths::OPENCODE {
+                assert!(on.find(&format!("agent-{}", agent.key())).is_none());
+                continue;
+            }
             assert!(
                 on.find(&format!("agent-{}", agent.key())).is_some(),
                 "{} has no row",
@@ -1105,6 +1131,10 @@ mod tests {
             "Installed",
             "Not found",
         ] {
+            // Hexium: the fixture's Installed row is OpenCode's, hidden here.
+            if status == "Installed" && !crate::app_paths::OPENCODE {
+                continue;
+            }
             assert!(shown.iter().any(|text| text == status), "{status}");
         }
         // The skill's agent commands are their own lab, named here while off.
@@ -1183,8 +1213,11 @@ mod tests {
         // has no switch and tapping it does nothing.
         tap(&mut rt, "agent-pi");
         assert_eq!(rt.state.agents.selected, vec![true, false, false, false]);
-        tap(&mut rt, "agent-opencode");
-        assert_eq!(rt.state.agents.selected, vec![true, false, false, false]);
+        // Hexium: no OpenCode row without OpenCode.
+        if crate::app_paths::OPENCODE {
+            tap(&mut rt, "agent-opencode");
+            assert_eq!(rt.state.agents.selected, vec![true, false, false, false]);
+        }
     }
 
     /// A skill someone else manages through a symlink is read by content but
