@@ -24,7 +24,7 @@ fn uses_browser(settings: &DictationProcessingSettings) -> bool {
         || std::iter::once(&settings.default_mode)
             .chain(&settings.modes)
             .any(|mode| {
-                mode.post_processing.enabled
+                (crate::app_paths::OPENCODE && mode.post_processing.enabled)
                     || mode
                         .transformations
                         .iter()
@@ -185,13 +185,17 @@ mod tests {
             transformations: vec!["my-script".into()],
             ..DictationMode::default()
         })));
-        assert!(uses_browser(&with(DictationMode {
-            applications: vec!["Slack".into()],
-            post_processing: DictationPostProcessing {
-                enabled: true,
-                ..DictationPostProcessing::default()
-            },
-            ..DictationMode::default()
-        })));
+        // Hexium: a saved rewrite reads nothing without OpenCode.
+        assert_eq!(
+            uses_browser(&with(DictationMode {
+                applications: vec!["Slack".into()],
+                post_processing: DictationPostProcessing {
+                    enabled: true,
+                    ..DictationPostProcessing::default()
+                },
+                ..DictationMode::default()
+            })),
+            crate::app_paths::OPENCODE
+        );
     }
 }

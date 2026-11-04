@@ -145,7 +145,7 @@ pub(super) fn available(ui: &Ui) -> bool {
 /// Mac that has it, or OpenCode once turned on.
 fn notes_available(ui: &Ui) -> bool {
     (ui.platform.caps.os == super::platform::Os::Macos && ui.platform.notes.is_available())
-        || ui.settings.meetings.summarize_with_opencode
+        || (crate::app_paths::OPENCODE && ui.settings.meetings.summarize_with_opencode)
 }
 
 /// What writes the notes now, as the generator picks it: Apple Intelligence
