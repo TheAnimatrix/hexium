@@ -1252,7 +1252,7 @@ fn poll(ui: &mut Ui, clock: f64, tx: &mut Tx) -> bool {
     }
     let now = Instant::now();
     let mut changed = ui.save_drafts(now);
-    changed |= paste_access::poll(ui);
+    changed |= paste_access::poll(ui) | crate::hexium_updates::take_changed();
     // The OpenCode catalog is read only while a pane that uses it shows:
     // Modes, or Meetings › Settings while OpenCode writes the summaries.
     changed |= ui.models.poll(

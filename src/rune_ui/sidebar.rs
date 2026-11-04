@@ -255,7 +255,10 @@ fn footer(ui: &Ui, p: Paint) -> El {
                     .truncate(),
             )
     };
-    let status = ui.view.as_ref().map(|view| &view.update_status);
+    let hexium = sidebar_update::hexium_status(ui);
+    let status = hexium
+        .as_ref()
+        .or(ui.view.as_ref().map(|view| &view.update_status));
     let status = match status {
         None
         | Some(

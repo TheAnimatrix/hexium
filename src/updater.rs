@@ -252,6 +252,7 @@ pub struct Updater {
 
 impl Updater {
     pub fn start() -> Self {
+        crate::hexium_updates::start();
         let method = platform::method();
         let disabled = if crate::app_paths::HEXIUM
             || option_env!("HEX_TEST_BUILD") == Some("1")
@@ -392,7 +393,11 @@ impl Updater {
     /// [`Self::take_restart`] says when Hex must quit.
     pub fn act(&self, action: &DesktopAction) -> Result<()> {
         match action {
-            DesktopAction::CheckForUpdates => self.check_now(),
+            DesktopAction::CheckForUpdates => {
+                // Hexium: a check asked for also looks at Hexium's releases.
+                crate::hexium_updates::check_now();
+                self.check_now()
+            }
             DesktopAction::WindowFocused => self.window_focused(),
             DesktopAction::OpenUpdate => self.open_download(),
             DesktopAction::ConfirmUpdateSwitch => self.confirm_switch(),
