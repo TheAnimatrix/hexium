@@ -91,6 +91,11 @@ fn bounded_opencode_error(error: &str) -> String {
 
 pub(crate) fn start_model_catalog_load() -> Receiver<ModelCatalogState> {
     let (sender, receiver) = sync_channel(1);
+    // Hexium: no OpenCode to ask.
+    if !crate::app_paths::OPENCODE {
+        let _ = sender.send(ModelCatalogState::NotRunning);
+        return receiver;
+    }
     thread::spawn(move || {
         let state = match crate::dictation::processor::load_model_catalog() {
             Ok(Some(catalog)) => ModelCatalogState::Loaded(catalog),
@@ -123,6 +128,10 @@ pub(crate) fn open_url(url: &str) -> color_eyre::eyre::Result<()> {
 }
 
 pub(crate) fn open_opencode_docs() {
+    // Hexium: never sends anyone to install OpenCode.
+    if !crate::app_paths::OPENCODE {
+        return;
+    }
     if let Err(error) = open_url(OPENCODE_DOCS_URL) {
         tracing::error!(%error, "could not open the OpenCode documentation");
     }

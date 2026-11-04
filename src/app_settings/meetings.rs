@@ -280,7 +280,7 @@ pub fn meeting_notes_enabled() -> bool {
 
 /// The OpenCode model may write meeting notes.
 pub fn meeting_notes_with_opencode() -> bool {
-    MEETING_NOTES_OPENCODE.load(Ordering::Acquire)
+    crate::app_paths::OPENCODE && MEETING_NOTES_OPENCODE.load(Ordering::Acquire)
 }
 
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]

@@ -69,7 +69,7 @@ pub(crate) const DAX: Notice = Notice {
     key: "dax",
     app: App::Slack,
     from: "Dax",
-    place: Some("#opencode"),
+    place: Some("#dev"),
     body: "can you look at the effect PR before 5",
     field: "Reply in thread",
 };

@@ -359,13 +359,16 @@ fn rows(ui: &Ui) -> Vec<Row> {
                 tr("Drag meeting capsules out of the way; they come back in the corner you left them"),
             ));
         }
-        // Every OS's meeting controller writes notes with OpenCode.
-        rows.push(row(
-            Feature::MeetingSummaryModel,
-            Some(&SPARKLES),
-            tr("Choose meeting summary model"),
-            tr("Pick the OpenCode provider and model that write meeting titles and summaries, in Meetings › Settings › Advanced"),
-        ));
+        // Every OS's meeting controller writes notes with OpenCode; Hexium
+        // ships without it, so the row stays hidden.
+        if crate::app_paths::OPENCODE {
+            rows.push(row(
+                Feature::MeetingSummaryModel,
+                Some(&SPARKLES),
+                tr("Choose meeting summary model"),
+                tr("Pick the OpenCode provider and model that write meeting titles and summaries, in Meetings › Settings › Advanced"),
+            ));
+        }
         rows.push(row(
             Feature::MeetingNotesVocabulary,
             Some(&BOOK),
