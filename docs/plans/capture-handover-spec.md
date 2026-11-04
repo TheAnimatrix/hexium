@@ -61,7 +61,7 @@ The ink overlay is a transparent, click-through (`ignoresMouseEvents = true`), n
 
 ---
 
-## 3. Paste, Auto-Routing & Delivery of a Finished Capture
+## 3. Paste of a Finished Capture
 
 When a capture finishes (`SealedCapture::finish` → `Finished`), the app decides how to hand it off:
 
@@ -72,27 +72,9 @@ When a capture finishes (`SealedCapture::finish` → `Finished`), the app decide
   2. Activate the target external app (or, if the user dragged the Paste chip onto a specific window/input, post a synthetic click at that coordinate and wait `65 ms` for focus).
   3. **Step 1 (Image):**
      - If the frontmost app is a terminal (`Ghostty`, `iTerm2`, `Terminal`, `kitty`, `WezTerm`, `Alacritty`, `Warp`), copy the absolute path of `contact-sheet.png` as text and post `⌘V` (terminals attach `[Image 1]` from file paths).
-     - If the frontmost app is a GUI app (OpenCode Desktop, Slack, Linear, browsers), copy `contact-sheet.png` as `NSPasteboardTypePNG` bytes and post `⌘V`.
+     - If the frontmost app is a GUI app (Slack, Linear, browsers), copy `contact-sheet.png` as `NSPasteboardTypePNG` bytes and post `⌘V`.
   4. Wait `160 ms` for the target composer to ingest the image attachment.
   5. **Step 2 (Text):** Copy `summary.md` as `NSPasteboardTypeString`, wait `20 ms`, and post a second `⌘V`.
-
-### 3.2 Session Routing, Countdown, Chips & Undo
-- **Routing decision (`scrawl-router`):** Runs alongside or immediately after bundle assembly (`Router::decide`), combining deterministic clues (spoken session name at start, `routing.sites`, `routing.apps`, dev-build binary in a git checkout, `/sdk.js` signed page, `.opencode-session` publisher marker, localhost port) with Jev (`jevRouting`).
-- **Four outcomes (`decision` band + `autoSend` policy):**
-  - **Immediate send:** Deterministic rule/address (under `autoSend: "rules"` or `"confident"`). Delivers immediately (`Router::deliver`) and shows the sent toast with an **Undo** button.
-  - **Countdown send:** Weighed or Jev-confident pick under `autoSend: "confident"`. Shows a short countdown pill naming the target session (`Sending to <Title>…`) with runner-up session chips, **Paste**, and **Cancel (`Esc` / `✕`)**.
-    - *Edge case:* Hovering the capsule pauses the countdown; moving the pointer off resumes it.
-    - *Correction logging:* Pressing `Esc`/`✕` logs `Action::Cancel`; clicking `Paste` logs `Action::Paste`; clicking a runner-up chip delivers there and logs `Action::Redirect` (`Router::correct`).
-  - **Suggested / Ask (`Decision::Offer`):** Under `autoSend: "rules"`, a Jev/weighed send becomes a suggestion (`suggested: true`) with the top pick pre-selected first, followed by up to 3 runner-up chips (Jev's second pick, smart routing's best, `HOME`) plus **Paste**.
-  - **Keep on clipboard (`Band::Keep`):** Stays on the clipboard with a **Paste** button (draggable onto a target window to click-and-paste).
-- **Rule learning offer (`OfferRule`):** When the user manually picks the same session twice for the same site origin or non-general app (`router/learned.json`), the capsule offers a one-click prompt: *"Always send <site/app> to <session>?"* with **Always** (`policy::add_rule`) and **Not now** (`policy::refuse_rule`, which adds the key to `routing.refusedRules` so it is never offered again).
-- **Taking a send back (`Router::undo`):** Clicking **Undo** on a sent capture calls `Router::undo(delivery_id, deadline)` and displays the outcome (`Report::text()`):
-  - `withdrawn`: cancelled from the session's inbox before it was read.
-  - `reverted`: interrupted the turn it started and reverted the session to before the message (file changes too, only if the turn's edit tools made them): staged, then committed, so the message and its turn are deleted.
-  - `disowned`: session was already mid-turn or had newer messages, so sent a steering follow-up telling the agent to ignore the previous message. Input arriving while the revert is staged, or a commit that fails, clears the staged revert first, since any prompt commits it.
-  - `unfinished`: the staged revert could be neither committed nor cleared; nothing more is said to the session, and the capsule shows it as too late.
-  - Also calls `Recents::taken_back` so a mistaken send is never fed to Jev as precedent on the next capture.
-- **Offline queue & retry (`delivery::retry_due`):** If the OpenCode server is unreachable when delivering, a `.deliver.json` marker is written into the bundle (or `router/outbox/<key>`) and retried in the background with exponential backoff (`15 s` doubling up to `30 m`, expiring after `24 h`).
 
 ---
 
@@ -120,21 +102,13 @@ In Hex, these settings live in Hex's own config store and construct `scrawl_capt
    - **Record shortcut:** Default `⌥⇧S`. Cannot be unset (`ShortcutKind::Record.can_unset() == false`).
    - **Paste last capture shortcut:** Default `⌥⇧V`. Can be cleared/disabled (`"paste": null`).
    - *Recorder edge case:* Pause global shortcut listeners (`capture::pause_shortcuts(true)`) while the user is recording a new keybinding so pressing the existing shortcut inside the recorder field captures the keys instead of starting a recording.
-2. **Routing & Delivery (`RouterConfig`):**
-   - **Auto-send policy (`routing.autoSend`):**
-     - `Rules` (default): Only deterministic matches (spoken session name, site/app rules, dev builds, `/sdk.js`, publisher markers, localhost ports) send automatically; Jev and word-weighed picks pre-select a suggestion chip.
-     - `Confident`: Jev's confident band (`≥ 0.80` confidence, `≥ 0.50` margin, `≥ 0.65` fit) also sends automatically after the undo countdown.
-     - `Never`: Only an explicit spoken address sends; rules and Jev always show the chip picker.
-   - **Busy-session delivery (`delivery`):** `Steer` (default — joins an active turn immediately) vs `Queue` (waits until the current turn finishes).
-   - **Undo window (`routing.undoWindowSec`):** Default `600 s` (10 minutes).
-   - **Site & App rules (`routing.sites`, `routing.apps`, `routing.servers`, `routing.aliases`):** Editable list of URL prefixes and app bundle IDs mapped to project folders or `ses_…` IDs. Reject general-purpose browsers, terminals, and OpenCode (`routing::policy::is_general_app`) from `routing.apps`.
-3. **Recording & Transcription (`EngineConfig`):**
+2. **Recording & Transcription (`EngineConfig`):**
    - **Microphone (`microphone`):** Follow macOS system default (`None`) or pin a specific CoreAudio device UID (`MicChoice { id, name }`). If a pinned mic is unplugged, fall back to the system default for that recording and surface a note (`mic::Pick::note`).
    - **Transcriber (`transcriber`):** `hex` (Hex's local model server), `apple` (`SpeechAnalyzer` on macOS 26+ with locale picker `appleLocale`), or `command` (custom CLI program).
    - **Auto-crop (`autocrop`):** On by default for full-display captures; crops keyframes to the active window/region while preserving full frames in `full/`.
-4. **Storage & Retention (`retention.rs`):**
+3. **Storage & Retention (`retention.rs`):**
    - **Captures folder (`capturesDir`):** Must be an absolute or `~/…` writable directory; if a configured external drive is unplugged or read-only, log once and fall back to the built-in Application Support directory so a capture is never lost.
    - **Cleanup policy (`retention`):** Presets (`Keep all`, `Balanced` — shrink/remove heavy video after 7 days and trash bundles after 30 days, `Compact` — 2 days / 14 days). Never touch `.pinned` bundles, `.media-sending` bundles, or active recordings.
-5. **Agents & iPhone Pairing:**
+4. **Agents & iPhone Pairing:**
    - **CLI & Skill:** Install `scrawl` on `PATH` (`~/.local/bin/scrawl`) and `skills/scrawl/SKILL.md` so coding agents can run `scrawl zoom` and `scrawl inspect`.
    - **ScrawlKit pairing (`ingestToken`):** Owner-only (`0600`) bearer token and `scrawl://setup?...` deep link / QR code for pairing iOS apps built with `ScrawlKit`.

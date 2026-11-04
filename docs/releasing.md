@@ -8,7 +8,7 @@ The service's dev stage, `https://dev.anoma.ly/release`, is only for testing
 the release service itself: Hex never publishes to it or reads from it. Builds
 are tested before stable on the production service's `dev` channel.
 
-Like OpenCode's release, building is split from everything that holds a
+Building is split from everything that holds a
 secret. `.github/workflows/` (Release, Site deploy, Legacy appcast) and
 `.github/release/` are the security boundary:
 
@@ -98,7 +98,7 @@ release  refs/heads/production                   channels stable, beta
 release  refs/heads/dev                            channel  dev
 ```
 
-Like OpenCode, every run uses one environment, `release`, with no required
+Every run uses one environment, `release`, with no required
 reviewer (every push to `dev` publishes); its deployment policy admits `dev`
 and `production`. The registry ties channels to refs, so a
 build of `dev` can never publish to `stable`. No key or secret publishes:
@@ -146,7 +146,7 @@ secrets; the `homebrew` job pushes that verified file with the tap deploy key
   `https://anoma.ly/hex/files/dev-notes.json`, which the changelog at
   `https://anoma.ly/hex/dev` (the dev release's `notes_url`) and the app's
   Restart to update read. The
-  version is `0.0.0-dev-<run number>`, as OpenCode numbers its dev builds.
+  version is `0.0.0-dev-<run number>`.
   Versions are display text that nothing compares: each channel has one
   current release and installs follow it, so a dev build below 2.3.1 is fine,
   and a rollback is making an earlier release current (the service's
@@ -333,7 +333,7 @@ app (new updater, and on macOS a new bundle ID), so:
   (docs/plans/swift-app-handoff.md, "Legacy Update"). Keep `SUPublicEDKey` in
   `app/Info.plist`.
 - **Windows signer:** the updater accepts only a Valid Authenticode signature
-  whose signer is `AUTHENTICODE_SIGNER` in `src/updater/windows.rs` (OpenCode's
+  whose signer is `AUTHENTICODE_SIGNER` in `src/updater/windows.rs` (Anomaly's
   Artifact Signing subject). Check the first Azure-signed Hex build's subject
   against it before a stable release; unsigned builds never update.
 - **Linux and Windows:** the feeds stay at 2.3.1; the site and README tell
