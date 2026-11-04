@@ -263,9 +263,17 @@ fn on_this_mac_detail(availability: NotesAvailability) -> &'static str {
 /// switch turns OpenCode on. Nothing falls back: an unavailable choice stays
 /// chosen and says how to fix it.
 fn summaries_rows(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<CardRow> {
-    let chosen = ui.settings.meetings.summaries;
+    // Hexium: no OpenCode, so a Mac picks Off or On this Mac (a saved
+    // OpenCode choice reads as Off) and elsewhere there's nothing to pick.
+    let chosen = match ui.settings.meetings.summaries {
+        MeetingSummaries::OpenCode if !crate::app_paths::OPENCODE => MeetingSummaries::Off,
+        chosen => chosen,
+    };
     let managed = opencode_managed();
     let mut rows: Vec<CardRow> = Vec::new();
+    if !crate::app_paths::OPENCODE && ui.platform.caps.os != Os::Macos {
+        return rows;
+    }
     if ui.platform.caps.os == Os::Macos {
         let notes = ui.platform.notes;
         let (description, color) = match chosen {
@@ -281,7 +289,7 @@ fn summaries_rows(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<CardRow> {
             MeetingSummaries::Mac => tr("On this Mac"),
             MeetingSummaries::OpenCode => "OpenCode",
         };
-        let options = [
+        let mut options = vec![
             SummariesOption {
                 choice: MeetingSummaries::Off,
                 detail: None,
@@ -302,6 +310,9 @@ fn summaries_rows(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> Vec<CardRow> {
                 disabled: managed,
             },
         ];
+        options.retain(|option| {
+            crate::app_paths::OPENCODE || option.choice != MeetingSummaries::OpenCode
+        });
         let menu = Menu::Pick("meeting-summaries");
         let labels: Vec<&str> = options.iter().map(|option| label(option.choice)).collect();
         let trigger = rune_kit::Select::new("meeting-summaries-control", &labels)
@@ -658,7 +669,9 @@ fn audio_retention_row(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> El {
 /// Summaries set to OpenCode. The window reads the OpenCode catalog only
 /// while it does.
 pub(super) fn summary_model_shown(ui: &Ui) -> bool {
-    ui.pane == Pane::Meetings
+    // Hexium: the picker lists OpenCode's models, so it never shows without it.
+    crate::app_paths::OPENCODE
+        && ui.pane == Pane::Meetings
         && !ui.labs_open
         && super::meetings::available(ui)
         && ui.meetings.view == super::meetings::View::Settings

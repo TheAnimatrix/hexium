@@ -133,7 +133,7 @@ fn how_it_works(ui: &Ui, p: Paint) -> Vec<El> {
     } else {
         tr("While it records, hold the shortcut and move the pointer; no click needed")
     };
-    vec![
+    let mut rows = vec![
         step_row(
             p,
             "how-start",
@@ -176,7 +176,12 @@ fn how_it_works(ui: &Ui, p: Paint) -> Vec<El> {
             None,
             tr("Paste it anywhere, or click Send to… on the capsule to pick a session"),
         ),
-    ]
+    ];
+    // Hexium: sessions are OpenCode's, so the last step is Stop's paste.
+    if !crate::app_paths::OPENCODE {
+        rows.pop();
+    }
+    rows
 }
 
 fn scrawl_request(ui: &mut Ui, request: ScrawlRequest) {

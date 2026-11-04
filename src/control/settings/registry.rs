@@ -643,11 +643,7 @@ pub(super) const KEYS: &[Key] = &[
         Kind::Path,
         "Folder for meeting Markdown; none uses ~/Documents/Hex Meetings",
     ),
-    key(
-        "meetings.summaries",
-        SUMMARIES,
-        "Who titles and summarizes meetings: off, mac (Apple Intelligence, nothing leaves this Mac), or opencode (sends the transcript to the OpenCode model)",
-    ),
+    key("meetings.summaries", SUMMARIES, SUMMARIES_ABOUT),
     optional(
         "meetings.opencode_model",
         Kind::Text,
@@ -833,10 +829,21 @@ pub(super) const CAPTURE_KEYS: &[Key] = &[];
 #[cfg(hex_capture)]
 const RETENTION_DAYS: Kind = Kind::Integer { min: 1, max: 3650 };
 
+// Hexium: without OpenCode a Mac picks off or mac, and elsewhere the key is
+// hidden (see `hidden_without_opencode`).
 #[cfg(target_os = "macos")]
-const SUMMARIES: Kind = Kind::Choice(&["off", "mac", "opencode"]);
+const SUMMARIES: Kind = if crate::app_paths::OPENCODE {
+    Kind::Choice(&["off", "mac", "opencode"])
+} else {
+    Kind::Choice(&["off", "mac"])
+};
 #[cfg(not(target_os = "macos"))]
 const SUMMARIES: Kind = Kind::Choice(&["off", "opencode"]);
+const SUMMARIES_ABOUT: &str = if crate::app_paths::OPENCODE {
+    "Who titles and summarizes meetings: off, mac (Apple Intelligence, nothing leaves this Mac), or opencode (sends the transcript to the OpenCode model)"
+} else {
+    "Who titles and summarizes meetings: off, or mac (Apple Intelligence, nothing leaves this Mac)"
+};
 
 /// Keys that were replaced, and what replaced them.
 pub(super) const RETIRED: &[(&str, &str)] = &[

@@ -844,12 +844,15 @@ fn rows(ui: &Ui) -> Vec<Row> {
             tr("Terminal paste"),
             tr("Paste with Ctrl+Shift+V so terminals accept it"),
         ));
-        rows.push(row(
-            Feature::OpenCodeInWsl,
-            Some(&TERMINAL),
-            tr("OpenCode in WSL"),
-            tr("Use an OpenCode service running in your default WSL distribution for Modes rewriting and the Modes model picker. Looking for it can start WSL."),
-        ));
+        // Hexium: no OpenCode, so the row stays hidden.
+        if crate::app_paths::OPENCODE {
+            rows.push(row(
+                Feature::OpenCodeInWsl,
+                Some(&TERMINAL),
+                tr("OpenCode in WSL"),
+                tr("Use an OpenCode service running in your default WSL distribution for Modes rewriting and the Modes model picker. Looking for it can start WSL."),
+            ));
+        }
     }
     // Another shortcut dictates exactly like the main one, on every OS (#627).
     rows.push(row(

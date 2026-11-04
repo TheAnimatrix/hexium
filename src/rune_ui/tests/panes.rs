@@ -490,6 +490,17 @@ fn summaries_are_one_choice_with_opencode_s_model_under_it() {
         "On this Mac has no model"
     );
     tap(&mut rt, "meeting-summaries-control-trigger");
+    // Hexium: no OpenCode, so the menu ends at On this Mac (item 1 is the
+    // separator) and no model ever shows.
+    if !crate::app_paths::OPENCODE {
+        assert!(rt.find("meeting-summaries-menu-item2").is_some());
+        assert!(rt.find("meeting-summaries-menu-item3").is_none());
+        tap(&mut rt, "meeting-summaries-menu-item0");
+        assert_eq!(rt.state.settings.meetings.summaries, MeetingSummaries::Off);
+        settle(&mut rt);
+        assert!(rt.find("meeting-summary-model").is_none());
+        return;
+    }
     tap(&mut rt, "meeting-summaries-menu-item3");
     assert_eq!(
         rt.state.settings.meetings.summaries,
@@ -570,6 +581,11 @@ fn summaries_are_a_switch_off_a_mac() {
             MeetingSummaries::Off,
             "{scene}"
         );
+        // Hexium: no OpenCode, so off a Mac there's nothing to switch on.
+        if !crate::app_paths::OPENCODE {
+            assert!(rt.find("meeting-summaries").is_none(), "{scene}");
+            continue;
+        }
         tap(&mut rt, "meeting-summaries");
         assert_eq!(
             rt.state.settings.meetings.summaries,

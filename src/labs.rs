@@ -279,6 +279,8 @@ impl Feature {
     /// Whether this OS has the feature at all, in any build.
     pub fn on_this_os(self) -> bool {
         match self {
+            // Hexium: no OpenCode, so no OpenCode service to look for in WSL.
+            Self::OpenCodeInWsl if !crate::app_paths::OPENCODE => false,
             Self::Meetings
             | Self::LiveChapters
             | Self::SubtitleExport

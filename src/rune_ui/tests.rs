@@ -3359,7 +3359,7 @@ fn output_fixes_show_only_with_their_lab_and_fix_this_copies_for_the_sentence() 
     assert!(on.state.output.prompt_copied);
     assert_eq!(
         on.state.output.fix_copied.as_deref(),
-        Some("Um, open code shipped the hex app today.")
+        Some("Um, rune kit shipped the hex app today.")
     );
     tap(&mut on, "output-vocabulary");
     assert!(on.state.vocabulary.open);

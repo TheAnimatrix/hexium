@@ -361,9 +361,13 @@ pub fn meetings_off_reason() -> &'static str {
     }
 }
 
-/// Who writes meeting notes, as last applied.
+/// Who writes meeting notes, as last applied. Hexium: never OpenCode, so a
+/// saved OpenCode choice means no notes.
 pub fn meeting_summaries() -> MeetingSummaries {
-    MeetingSummaries::decode(MEETING_SUMMARIES.load(Ordering::Acquire))
+    match MeetingSummaries::decode(MEETING_SUMMARIES.load(Ordering::Acquire)) {
+        MeetingSummaries::OpenCode if !crate::app_paths::OPENCODE => MeetingSummaries::Off,
+        summaries => summaries,
+    }
 }
 
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]

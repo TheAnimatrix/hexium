@@ -713,7 +713,10 @@ fn detail(ui: &Ui, p: Paint, layer: &mut Vec<El>) -> El {
     let mut content = page("mode-detail-content");
     content = content.child(basics(ui, p, selection, current, layer));
     content = content.child(corrections(ui, p));
-    content = content.child(processing(ui, p, selection, current, layer));
+    // Hexium: the rewrite is OpenCode's, so without it there is no section.
+    if crate::app_paths::OPENCODE {
+        content = content.child(processing(ui, p, selection, current, layer));
+    }
     content = content.child(transformations(ui, p, current, layer));
     if selection != Selection::Default {
         let action = if ui.modes.delete_armed {
@@ -1090,7 +1093,11 @@ fn corrections(ui: &Ui, p: Paint) -> El {
                 .center_y()
                 .child(
                     TextInput::new(phrase)
-                        .placeholder(tr("Spoken phrase (e.g. open code)"))
+                        .placeholder(hexium_example(
+                            tr("Spoken phrase (e.g. open code)"),
+                            "open code",
+                            "hex app",
+                        ))
                         .width(None)
                         .on_edit(edit_access(move |ui: &mut Ui| {
                             &mut ui.modes.editor.replacements[index].0
@@ -1103,7 +1110,11 @@ fn corrections(ui: &Ui, p: Paint) -> El {
                 .child(text("→").key("arrow").font(p.k.ty.ui).color(p.faint()))
                 .child(
                     TextInput::new(output)
-                        .placeholder(tr("Replacement (e.g. OpenCode)"))
+                        .placeholder(hexium_example(
+                            tr("Replacement (e.g. OpenCode)"),
+                            "OpenCode",
+                            "Hex",
+                        ))
                         .width(None)
                         .on_edit(edit_access(move |ui: &mut Ui| {
                             &mut ui.modes.editor.replacements[index].1
@@ -1121,6 +1132,17 @@ fn corrections(ui: &Ui, p: Paint) -> El {
         );
     }
     section_with(p, "corrections", tr("Corrections"), add.mr(-4.0), rows)
+}
+
+/// Hexium: a correction placeholder's translated example, with `upstream`
+/// swapped for `ours` when the build has no OpenCode. Every language keeps
+/// the example word as written, so the translations stay as they are.
+fn hexium_example(translated: &str, upstream: &str, ours: &str) -> String {
+    if crate::app_paths::OPENCODE {
+        translated.to_owned()
+    } else {
+        translated.replace(upstream, ours)
+    }
 }
 
 fn processing(
@@ -1225,8 +1247,8 @@ pub(super) fn fixture(ui: &mut Ui) {
     chat.applications = vec!["Firefox".into(), "Slack".into()];
     chat.replacements = vec![
         TextReplacement {
-            matched_phrase: "open code".into(),
-            output: "OpenCode".into(),
+            matched_phrase: "rune kit".into(),
+            output: "Rune Kit".into(),
         },
         TextReplacement {
             matched_phrase: "hex app".into(),
