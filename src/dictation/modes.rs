@@ -97,7 +97,8 @@ pub(crate) fn uses_page(settings: &DictationProcessingSettings) -> bool {
         || std::iter::once(&settings.default_mode)
             .chain(&settings.modes)
             .any(|mode| {
-                mode.post_processing.enabled
+                // Hexium: a rewrite never runs without OpenCode.
+                (crate::app_paths::OPENCODE && mode.post_processing.enabled)
                     || mode
                         .transformations
                         .iter()
@@ -271,7 +272,8 @@ mod tests {
             })
             .reads_page()
         );
-        assert!(
+        // Hexium: a rewrite never runs without OpenCode, so it reads nothing.
+        assert_eq!(
             runtime(|settings| {
                 settings
                     .dictation_processing
@@ -279,7 +281,8 @@ mod tests {
                     .post_processing
                     .enabled = true;
             })
-            .reads_page()
+            .reads_page(),
+            crate::app_paths::OPENCODE
         );
     }
 
@@ -347,6 +350,10 @@ mod tests {
 
     #[test]
     fn saved_post_processing_enables_the_global_rewrite() {
+        // Hexium: needs OpenCode.
+        if !crate::app_paths::OPENCODE {
+            return;
+        }
         let path = std::env::temp_dir().join(format!("hex-970-{}.json", std::process::id()));
         std::fs::write(
             &path,

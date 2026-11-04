@@ -102,7 +102,8 @@ impl Models {
             None => true,
             Some(at) => matches!(self.state, ModelCatalogState::NotRunning) && Instant::now() >= at,
         };
-        if wanted && due {
+        // Hexium: OpenCode's catalog is never loaded without OpenCode.
+        if crate::app_paths::OPENCODE && wanted && due {
             self.start_load();
         }
         false
