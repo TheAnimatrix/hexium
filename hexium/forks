@@ -1,0 +1,6 @@
+# Dependencies Hexium patches. One line each:
+#   name  upstream git URL (as Hex's Cargo.toml writes it)  fork URL
+# Each fork's branch `hexium` is the revision Hex pins plus Hexium's commits;
+# hexium/sync.sh replays them when Hex moves its pin and points Cargo at them.
+transcribe.cpp https://github.com/anomalyco/transcribe.cpp https://github.com/TheAnimatrix/transcribe.cpp
+rune https://github.com/anomalyco/rune.git https://github.com/TheAnimatrix/rune
