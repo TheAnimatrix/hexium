@@ -1,44 +1,46 @@
-# Hex
+# Hexium
 
-Hex is local voice dictation for Mac, Windows and Linux. Hold a key, speak, and
-it pastes.
+Local voice dictation for Mac, Windows and Linux, built for how India speaks.
+Hold a key, talk in Telugu, Hindi, Tamil or English (or all of them at once),
+let go, and it pastes.
 
-## How it works
+Hexium is a fork of [Hex](https://github.com/anomalyco/hex). It stays close
+to Hex and pulls in its changes every week, adding:
 
-- hold the shortcut, speak, then let go
-- Hex transcribes on your device and pastes into whatever app you're in
-- the first run downloads a speech model; after that nothing leaves your machine
-- experimental features live in Labs, at the bottom of the sidebar
+- **Indian languages, mixed with English.** Indic-Transcribe-Flex is built in
+  and picked for Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi, Gujarati,
+  Punjabi, Urdu and Bangla. It writes each language in its own script and the
+  English you mix in as English.
+- **No language to pick.** With Indic-Transcribe-Flex on Auto, a small
+  language identifier (VoxLingua107, 27 MB) hears which language you are
+  speaking each time, in a few tens of milliseconds, so Telugu comes out in
+  Telugu, Hindi in Hindi and English in English, mixed or not.
+- **Nothing phones home.** No telemetry and no AI-assistant add-ons. Network
+  use is the speech-model download, plus one anonymous look a day at
+  Hexium's GitHub releases so the sidebar can offer a new build
+  (`HEXIUM_NO_UPDATE_CHECK=1` turns it off).
+- **Installs beside Hex.** Its own name, icon, settings and data folder.
 
-## Downloads
+Everything still runs on your device.
 
-Stable is the current release. Dev is the newest build of `dev` and updates
-itself from the dev channel.
+## Download
 
-| Platform | Stable | Dev |
-| --- | --- | --- |
-| macOS (Apple silicon) | [DMG](https://anoma.ly/hex/download/macos-arm64-dmg) | [DMG](https://anoma.ly/hex/download/dev/macos-arm64-dmg) |
-| Windows x64 | [Installer](https://anoma.ly/hex/download/windows-x64-setup) | [Installer](https://anoma.ly/hex/download/dev/windows-x64-setup) |
-| Windows ARM64 | [Installer](https://anoma.ly/hex/download/windows-arm64-setup) | [Installer](https://anoma.ly/hex/download/dev/windows-arm64-setup) |
-| Linux x86_64 | [Executable](https://anoma.ly/hex/download/linux-x64) | [Executable](https://anoma.ly/hex/download/dev/linux-x64) |
-| Linux x86_64 (Debian, Ubuntu) | [.deb](https://anoma.ly/hex/download/linux-x64-deb) | [.deb](https://anoma.ly/hex/download/dev/linux-x64-deb) |
-| Linux x86_64 (Fedora, openSUSE) | [.rpm](https://anoma.ly/hex/download/linux-x64-rpm) | [.rpm](https://anoma.ly/hex/download/dev/linux-x64-rpm) |
-| Linux ARM64 | [Executable](https://anoma.ly/hex/download/linux-arm64) | [Executable](https://anoma.ly/hex/download/dev/linux-arm64) |
-| Linux ARM64 (Debian, Ubuntu) | [.deb](https://anoma.ly/hex/download/linux-arm64-deb) | [.deb](https://anoma.ly/hex/download/dev/linux-arm64-deb) |
-| Linux ARM64 (Fedora, openSUSE) | [.rpm](https://anoma.ly/hex/download/linux-arm64-rpm) | [.rpm](https://anoma.ly/hex/download/dev/linux-arm64-rpm) |
-
-Or install with:
-
-- Homebrew: `brew install --cask anomalyco/tap/hex`
-- AUR: `yay -S hex-bin`
-- install script (Linux): `curl -fsSL https://anoma.ly/hex/install-linux.sh | sh`
-- Nix (Linux): `nix profile add github:anomalyco/hex`
-
-More docs are in [`docs/`](docs/README.md).
+Grab the latest build from [Releases](https://github.com/TheAnimatrix/hexium/releases):
+`hexium-setup-…-windows-x64.exe` for Windows, the `.dmg` for Apple silicon
+Macs, or the Linux executable, `.deb` or `.rpm`. Builds are unsigned, so
+Windows SmartScreen and macOS Gatekeeper will ask once.
 
 ## Contributing
 
-We don't take pull requests. [Open an issue](https://github.com/anomalyco/hex/issues)
-describing the bug or idea, and our agents usually turn it around fast.
+PRs are welcome, and we keep things moving fast: small, focused changes get
+merged quickly. Open an issue if you'd rather just describe the problem.
 
-MIT licensed.
+## Credits
+
+- [Hex](https://github.com/anomalyco/hex) by Anomaly Innovations, MIT.
+- [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp), MIT.
+- Built with Indic-Transcribe-Flex from Bodhan AI / AI4Bharat, under the
+  [Indic Open Model License](https://github.com/Bodhan-AI/bodhan-model-info/blob/main/licenses/indic-open-model-license/v1/Indic_Open_Model_License.md).
+
+Hexium's code is MIT licensed. More docs are in [`docs/`](docs/README.md);
+how the fork is kept in sync is in [`hexium/`](hexium/README.md).
