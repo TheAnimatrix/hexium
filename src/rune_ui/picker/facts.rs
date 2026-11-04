@@ -248,6 +248,7 @@ pub(super) fn blurb(def: &ModelDefinition) -> &'static str {
         M::Nemotron35Asr => tr("Writes while you talk, in 27 languages"),
         M::GigaAmV3 => tr("Russian, with punctuation. A small download"),
         M::NbWhisperMedium => tr("Whisper, tuned for Norwegian by its National Library"),
+        M::IndicTranscribeFlex => tr("27 Indian languages, with English mixed in as you speak it"),
         M::AppleSpeech => tr("Apple's speech recognition, kept up to date by macOS"),
         M::Custom(_) => "",
     }
