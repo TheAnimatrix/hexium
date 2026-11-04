@@ -102,7 +102,7 @@ export default bench({
       async run(ctx) {
         await start(ctx)
         await ctx.page.wait(STOP_AFTER_MS)
-        await printed(await ctx.phase("finish", () => stop(ctx)))
+        console.log(`[${ctx.target}] ${await printed(await ctx.phase("finish", () => stop(ctx)))}`)
       },
     },
     // Discovery: a dictation after the model sat idle for 4 minutes.
