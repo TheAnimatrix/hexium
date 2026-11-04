@@ -19,7 +19,6 @@ to Hex and pulls in its changes every week, adding:
   use is the speech-model download, plus one anonymous look a day at
   Hexium's GitHub releases so the sidebar can offer a new build
   (`HEXIUM_NO_UPDATE_CHECK=1` turns it off).
-- **Installs beside Hex.** Its own name, icon, settings and data folder.
 
 Everything still runs on your device.
 
@@ -29,6 +28,10 @@ Grab the latest build from [Releases](https://github.com/TheAnimatrix/hexium/rel
 `hexium-setup-…-windows-x64.exe` for Windows, the `.dmg` for Apple silicon
 Macs, or the Linux executable, `.deb` or `.rpm`. Builds are unsigned, so
 Windows SmartScreen and macOS Gatekeeper will ask once.
+
+**Help wanted: code signing.** Hexium needs a Windows code-signing
+certificate (or a sponsor such as SignPath Foundation) and an Apple Developer
+ID to ship signed builds. If you can help, please open an issue.
 
 ## Contributing
 
