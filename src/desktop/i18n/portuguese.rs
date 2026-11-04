@@ -897,6 +897,7 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("English, with the ums and uhs taken out", "Inglês, sem os éé e hum"),
     ("Writes while you talk, in 27 languages", "Escreve enquanto você fala, em 27 idiomas"),
     ("27 Indian languages, with English mixed in as you speak it", "27 idiomas indianos, com inglês misturado do jeito que você fala"),
+    ("Download Hexium update", "Baixar a atualização do Hexium"),
     ("Russian, with punctuation. A small download", "Russo, com pontuação. Um download pequeno"),
     ("Apple's speech recognition, kept up to date by macOS", "O reconhecimento de voz da Apple, mantido atualizado pelo macOS"),
     ("Start using Hex", "Começar a usar o Hex"),
