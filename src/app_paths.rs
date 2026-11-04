@@ -6,6 +6,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use color_eyre::eyre::{Result, eyre};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 
+/// Hexium: this fork's own identity (name, data and config folders, Windows
+/// instance lock and login item), so it installs and runs beside Hex. It never
+/// updates itself from Hex's release service.
+pub const HEXIUM: bool = true;
+
 /// Whether this is a local build (`HEX_LOCAL_BUILD=1`): made from a checkout
 /// for its owner's own machine, so it never checks for or offers updates.
 pub fn is_local_build() -> bool {
@@ -24,7 +29,7 @@ pub fn app_name() -> &'static str {
     if is_macos_test_build() {
         "Hex Test"
     } else {
-        "Hex"
+        "Hexium"
     }
 }
 
@@ -37,7 +42,7 @@ pub fn support_dir() -> Result<PathBuf> {
     let folder = if is_macos_test_build() {
         "hex-test"
     } else {
-        "hex"
+        "hexium"
     };
     Ok(data.join(folder))
 }
@@ -158,7 +163,7 @@ pub fn document_dir() -> Option<PathBuf> {
 
 fn user_config_dir_in(home: &std::path::Path, test_build: bool) -> PathBuf {
     home.join(".config")
-        .join(if test_build { "hex-test" } else { "hex" })
+        .join(if test_build { "hex-test" } else { "hexium" })
 }
 
 #[cfg(test)]
@@ -170,7 +175,7 @@ mod tests {
         let home = std::path::Path::new("/Users/kit");
         assert_eq!(
             user_config_dir_in(home, false),
-            home.join(".config").join("hex")
+            home.join(".config").join("hexium")
         );
         assert_eq!(
             user_config_dir_in(home, true),
