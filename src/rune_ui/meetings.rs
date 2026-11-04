@@ -156,7 +156,8 @@ pub(super) fn available(ui: &Ui) -> bool {
 /// Whether something can write a meeting's notes when asked: OpenCode once
 /// Summaries chooses it, otherwise Apple Intelligence on a Mac that has it.
 fn notes_available(ui: &Ui) -> bool {
-    ui.settings.meetings.summaries == crate::app_settings::MeetingSummaries::OpenCode
+    (crate::app_paths::OPENCODE
+        && ui.settings.meetings.summaries == crate::app_settings::MeetingSummaries::OpenCode)
         || apple_intelligence_writes(ui)
 }
 
