@@ -86,6 +86,13 @@ export default bench({
     fixtureOpened(ctx)
     if (ctx.case === "recording") await start(ctx)
   },
+  // Discovery only: keep the copy's log.
+  async teardown(ctx: any) {
+    if (!process.env.DICTATION_KEEP_LOGS || !ctx.home) return
+    const { copyFileSync, mkdirSync } = await import("node:fs")
+    mkdirSync(process.env.DICTATION_KEEP_LOGS, { recursive: true })
+    copyFileSync(join(ctx.home, "hex-data", "logs", "process.log"), join(process.env.DICTATION_KEEP_LOGS, `${ctx.case}-${ctx.target}-${Date.now()}.log`))
+  },
   cases: {
     // Release to text: the stop's wait for the transcript (the 200 ms
     // release tail, the live stream's finish, processing, and History).
