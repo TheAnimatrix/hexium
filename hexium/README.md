@@ -36,5 +36,5 @@ Bodhan AI / AI4Bharat.
 ## Releases
 
 Unsigned. Windows: `hexium-setup-<version>-windows-<x64|arm64>.exe` installs
-per user into `%APPDATA%\hexium` beside any Hex install. macOS:
+per user into `%APPDATA%\hexium`. macOS:
 `Hexium.app` (`com.avarnic.hexium`), ad-hoc signed.
