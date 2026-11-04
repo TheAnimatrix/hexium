@@ -37,7 +37,8 @@ case "$(uname -s)" in
     exit 1
     ;;
 esac
-if ! printf '%s\n' "$version" | grep -Eq '^([0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?|0\.0\.0-dev-[0-9]+)$'; then
+# Hexium: its builds add the release's number to Hex's version (3.3.0-hexium.12).
+if ! printf '%s\n' "$version" | grep -Eq '^([0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+|-hexium\.[0-9]+)?|0\.0\.0-dev-[0-9]+)$'; then
   echo "Release builds need a version like 2.4.0, 2.5.0-beta.1, or 2.5.0-dev.3, not $version." >&2
   exit 1
 fi
