@@ -40,7 +40,7 @@ pub(crate) fn scheme() -> &'static str {
     if crate::app_paths::is_macos_test_build() {
         "hex-test"
     } else {
-        "hex"
+        "hexium"
     }
 }
 

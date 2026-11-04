@@ -1,3 +1,6 @@
+; Per-user Windows installer for Hexium, a fork of Hex with its own AppId and
+; %APPDATA%\hexium, so it installs beside Hex. Upstream notes follow.
+;
 ; Per-user Windows installer for Hex. It installs exactly the managed layout
 ; that .github/release/install-windows.ps1 creates and src/windows_updater.rs updates:
 ;
@@ -38,25 +41,25 @@
 [Setup]
 ; Keep this AppId forever: it names the Apps & Features entry that
 ; src/windows_updater.rs keeps current after self-updates.
-AppId={{6ED48C92-5177-41F4-B8D6-37B7B02CFDF4}
-AppName=Hex
+AppId={{3F0B7C2E-8A4D-4E19-9B61-5C2D7E8A1F43}
+AppName=Hexium
 AppVersion={#AppVersion}
-AppVerName=Hex {#AppVersion}
-AppPublisher=Anomaly Innovations, Inc.
+AppVerName=Hexium {#AppVersion}
+AppPublisher=Hexium (fork of Hex by Anomaly Innovations, Inc.)
 AppPublisherURL=https://anoma.ly/
-AppSupportURL=https://github.com/anomalyco/hex/issues
-AppUpdatesURL=https://github.com/anomalyco/hex/releases
+AppSupportURL=https://github.com/TheAnimatrix/hexium/issues
+AppUpdatesURL=https://github.com/TheAnimatrix/hexium/releases
 PrivilegesRequired=lowest
 ArchitecturesAllowed={#AllowedArchitectures}
 ArchitecturesInstallIn64BitMode={#AllowedArchitectures}
-DefaultDirName={userappdata}\hex
+DefaultDirName={userappdata}\hexium
 DisableDirPage=yes
 UsePreviousAppDir=no
 DisableProgramGroupPage=yes
 DisableReadyPage=yes
 DisableWelcomePage=yes
 UninstallFilesDir={app}\uninstall
-UninstallDisplayName=Hex
+UninstallDisplayName=Hexium
 UninstallDisplayIcon={app}\uninstall\hex.ico
 SetupIconFile=..\..\resources\windows\hex.ico
 WizardStyle=modern
@@ -73,10 +76,10 @@ Source: "{#Executable}"; DestDir: "{app}\versions\{#AppVersion}"; DestName: "hex
 Source: "..\..\resources\windows\hex.ico"; DestDir: "{app}\uninstall"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\Hex"; Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; WorkingDir: "{app}\versions\{#AppVersion}"; Comment: "Hex managed install"
+Name: "{userprograms}\Hexium"; Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; WorkingDir: "{app}\versions\{#AppVersion}"; Comment: "Hexium managed install"
 
 [Run]
-Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; Description: "Open Hex"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; Description: "Open Hexium"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\versions"
@@ -154,8 +157,8 @@ begin
     { Self-updates run from newer version directories this uninstaller did
       not create, so stop any Hex running from the managed layout. }
     StopManagedHex();
-    if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hex', Command) and
+    if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hexium', Command) and
        (Pos(LowerCase(ExpandConstant('{app}\versions\')), LowerCase(Command)) > 0) then
-      RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hex');
+      RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hexium');
   end;
 end;
