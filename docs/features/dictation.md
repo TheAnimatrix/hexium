@@ -22,7 +22,7 @@ The GPUI regression that injected this failure went with GPUI; no Rune test
 injects a failed shortcut save yet.
 
 **Shortcut:** Option by default, after macOS permissions and the selected local
-model are ready. Commands and OpenCode are not required. General > Dictation >
+model are ready. Commands are not required. General > Dictation >
 Shortcut accepts modifier-only, modifier-plus-key, standalone Fn/Globe, and
 standalone function-key bindings. On Windows and Linux/X11 it also accepts mouse buttons, and on
 macOS with Labs › Mouse shortcuts on (off by default; issue 209; see labs.md),
@@ -328,8 +328,8 @@ does not prove the physical dictation shortcut; see the [feature index](README.m
 
 A second, optional dictation shortcut (issue 451, suggested by @ksajan). It
 records exactly like the dictation shortcut and pastes the transcript as
-heard, skipping the Output pane's steps: replacements, corrections,
-transformations, and OpenCode rewriting.
+heard, skipping the Output pane's steps: replacements, corrections, and
+transformations.
 
 ```ts
 Output > Without processing > Dictate without processing   // raw.shortcut

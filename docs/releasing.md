@@ -8,10 +8,6 @@ The service's dev stage, `https://dev.anoma.ly/release`, is only for testing
 the release service itself: Hex never publishes to it or reads from it. Builds
 are tested before stable on the production service's `dev` channel.
 
-Like OpenCode's release, building is split from everything that holds a
-secret. `.github/workflows/` (Release, Deploy) and
-`.github/release/` are the security boundary:
-
 - **Build jobs** run repository code (cargo, build.rs, bun, makepkg, brew)
   with no environment, no secret, and no id-token, and make unsigned files.
 - **Sign and publish jobs** run in the `release` environment, and the site
@@ -98,13 +94,6 @@ release  refs/heads/production                   channels stable, beta
 release  refs/heads/dev                            channel  dev
 ```
 
-Like OpenCode, every run uses one environment, `release`, with no required
-reviewer (every push to `dev` publishes); its deployment policy admits `dev`
-and `production`. The registry ties channels to refs, so a
-build of `dev` can never publish to `stable`. No key or secret publishes:
-only the `publish`, `record-aur`, and `record-brew` jobs present an OIDC
-token, and the Windows signing jobs one for Azure.
-
 The site deploy does not use `release`: it runs in the environment of the
 site it deploys, so dev pushes never hold a token that can write the
 production site.
@@ -146,43 +135,6 @@ secrets; the `homebrew` job pushes that verified file with the tap deploy key
 - `check` (the dispatch default, run from `dev`) builds, signs, and verifies
   every platform as `0.0.0-dev-<run number>` in `release` and publishes
   nothing anywhere: a dry run of the build and packaging.
-- `dev` publishes a build of `dev` to the production service's `dev`
-  channel (`https://anoma.ly/release/hex/desktop/dev.json`), which installs
-  set to the Dev update channel follow and `https://anoma.ly/hex/download/dev`
-  links. Every push to `dev` runs it, except pushes that change only `docs/`,
-  `site/`, or Markdown; a running dev release always finishes, and only the newest push that lands meanwhile waits to run next (GitHub drops the ones between), and
-  `gh workflow run release.yml --ref dev -f channel=dev`
-  runs it by hand. It runs in `release`, which needs no approval. Each dev
-  build's notes are the titles of the PRs merged since the previous dev
-  build, without CI fixes and changes outside the app
-  (`scripts/release-dev-notes.sh`); once the build is published they replace
-  `dev-notes.json` on the one-commit `dev-notes` branch
-  (`.github/release/publish-dev-notes.sh`, GITHUB_TOKEN only), which
-  `https://anoma.ly/hex/files/dev-notes.json`, the changelog at
-  `https://anoma.ly/hex/dev` (the dev release's `notes_url`), and the app's
-  Restart to update read. A one-commit branch, not a bucket: the file changes
-  without a credential and the site Worker serves it. The
-  version is `0.0.0-dev-<run number>`, as OpenCode numbers its dev builds.
-  Versions are display text that nothing compares: each channel has one
-  current release and installs follow it, so a dev build below 2.3.1 is fine,
-  and a rollback is making an earlier release current (the service's
-  `promote` with a history `sequence`, or Make current in its admin panel).
-  Every build is stamped with its channel (`HEX_BUILD_CHANNEL`); an install
-  whose Update channel setting names another channel offers that channel's
-  current release ("Switch to Stable 2.3.1") and switches only once the user
-  confirms. Source, local (`HEX_LOCAL_BUILD=1`) and test builds never check or offer
-  a switch. The first build after this change, 2.3.2-dev.<run> on
-  2026-10-27, carried the new client to installs whose older client took only
-  higher versions; every build since is `0.0.0-dev-<run>`. It publishes only signed builds, because the
-  updater checks signatures: until `release` has the Apple secrets it has
-  no macOS targets, and until Azure Artifact Signing works there it has no
-  Windows targets (the run summary says so); Linux needs no signing. It
-  publishes only the release: no GitHub release, AUR, Homebrew, Nix record,
-  or site deploy. Publishing a dev build is not a release: it leaves
-  `production`, the stable channel, and the release freeze alone. Installs on
-  the Dev channel check every 10 minutes and when the window opens or gains
-  focus (at most once a minute), so a push reaches them within minutes of its
-  run finishing.
 - `stable`, dispatched from `production` (`gh workflow run release.yml
   --ref production -f channel=stable`), publishes the crate
   version from `Cargo.toml` to `https://anoma.ly/release`, the AUR, and
@@ -361,10 +313,6 @@ app (new updater, and on macOS a new bundle ID), so:
   key, so Install Update moves those Macs onto the new Hex
   (docs/plans/swift-app-handoff.md, "Legacy Update"). Keep `SUPublicEDKey` in
   `app/Info.plist`.
-- **Windows signer:** the updater accepts only a Valid Authenticode signature
-  whose signer is `AUTHENTICODE_SIGNER` in `src/updater/windows.rs` (OpenCode's
-  Artifact Signing subject). Check the first Azure-signed Hex build's subject
-  against it before a stable release; unsigned builds never update.
 - **Linux and Windows:** the feeds stay at 2.3.1; the site and README tell
   users to reinstall. `HEX_RELEASE_SIGNING_KEY` (the ed25519 key 2.3.1's
   feeds were signed with) now signs every Linux executable Release publishes

@@ -128,14 +128,6 @@ Transcribes what's left and answers with the final, as the `final` event:
 { "text": "…", "segments": [{ "segment": 0, "startMs": 0, "endMs": 7420, "text": "…" }], "durationMs": 31250 }
 ```
 
-`?process=global` (Labs › Process API transcripts) adds the text after Hex's
-Global-mode output processing, exactly as a paste with no matching app or
-website mode gets it: global replacements, Global mode corrections, the
-optional OpenCode rewrite, and Global's selected transformations. `true` and
-`1` are aliases for `global`; any other value, or a repeated parameter,
-answers `400 invalid-request`. Without the parameter the response is exactly
-as above.
-
 ```json
 { "text": "…", "segments": [ … ], "durationMs": 31250, "processed": "…" }
 ```
@@ -303,9 +295,7 @@ Limits:
   per meeting.
 
 Final-transcript readiness is separate from notes. The event and `complete`
-mean the transcript and Markdown are written; notes (Apple Intelligence, or
-OpenCode with Summarize with OpenCode) are written after that, may fail, and
-can be regenerated later. Read them from `notes` in `hex meetings show <id>
+mean the transcript and Markdown are written; notes (Apple Intelligence) are written after that, may fail, and can be regenerated later. Read them from `notes` in `hex meetings show <id>
 --json` (`null` until written; `generated_at_ms` changes when they're
 rewritten). Subscribing, listing, and showing are read-only: they run no
 command, upload nothing, and write nothing.

@@ -2,15 +2,15 @@
 
 Move Hex's macOS Developer ID signing and notarization from Kit's personal team
 (`QC99C9JE59`, local keychain and `HEX_NOTARY_PROFILE` on his Mac) to Anomaly's
-team in GitHub Actions, reusing the credentials OpenCode already uses.
+team in GitHub Actions, reusing the credentials Anomaly's other apps already use.
 
-## What OpenCode does
+## What Anomaly's other apps do
 
-Desktop and CLI (`anomalyco/opencode`, `.github/workflows/publish.yml` on `dev`):
+Desktop and CLI (`.github/workflows/publish.yml` on `dev`):
 
 ```ts
 team         // Anomaly Innovations, Inc. (5NZ4Q7NXJ4); confirmed from the signed
-             // opencode-darwin-arm64 npm binary, not written in the repo
+             // darwin-arm64 npm binary, not written in the repo
 runners      // macos-26 (arm64) and macos-26-intel, runner-default Xcode
 certificate  // apple-actions/import-codesign-certs@8f3fb60 (v2.0.0), keychain "build"
              // p12-file-base64: APPLE_CERTIFICATE, p12-password: APPLE_CERTIFICATE_PASSWORD
@@ -35,13 +35,13 @@ windows      // Azure Trusted Signing (AZURE_* secrets), separate from Apple
 The repo also has `APPLE_ID` and `APPLE_PASSWORD` secrets, but no workflow
 reads them: Apple ID plus app-specific password is not the current method.
 
-iOS (`anomalyco/opencode-ios`, private): Xcode Cloud archives and ships to
+iOS (private repository): Xcode Cloud archives and ships to
 TestFlight on every push to `main`; signing is automatic (`project.yml`:
 `DEVELOPMENT_TEAM: 5NZ4Q7NXJ4`, `CODE_SIGN_STYLE: Automatic`), no fastlane or
 match. Manual fallbacks use the `asc` CLI and `scripts/testflight-upload.sh` with
 an App Store Connect key from 1Password (`docs/releasing.md`). Reusable for Hex:
 the team, and an App Store Connect API key. A team key with the Developer role
-can notarize Mac apps, so Hex can use the same key as OpenCode desktop.
+can notarize Mac apps, so Hex can use the same key as the desktop app.
 
 ## What Hex does
 
@@ -74,7 +74,7 @@ service and, before swapping it in, requires `app/update-requirement.txt`:
 `anchor apple generic`, identifier `anomaly.hex`, a Developer ID leaf from team
 `5NZ4Q7NXJ4`, and `notarized`. Manifests are unsigned, so this code signature
 is the integrity check beyond HTTPS and the manifest's SHA-256; there is no
-separate update-signing key (as with OpenCode's electron-updater).
+separate update-signing key (as with the electron-updater feed above).
 
 Next: once the `APPLE_*` secrets exist, run a staging Release and check the
 signed build against the updater's requirement (verify-macos does); then
@@ -85,13 +85,13 @@ permissions once (needs `build-app.sh` to accept a team with
 ## Secrets for `anomalyco/hex`
 
 Add to the `release` environment (limited to `dev` and `production`).
-Names mirror OpenCode; GitHub cannot copy secret values, so an admin
+Names mirror the existing ones; GitHub cannot copy secret values, so an admin
 re-enters them from the source (1Password):
 
 ```ts
 APPLE_CERTIFICATE           // base64 .p12 of the Anomaly "Developer ID Application" cert + key
 APPLE_CERTIFICATE_PASSWORD  // the .p12 password
-APPLE_API_KEY_PATH          // App Store Connect API key .p8 contents (OpenCode's naming)
+APPLE_API_KEY_PATH          // App Store Connect API key .p8 contents (existing naming)
 APPLE_API_KEY               // that key's ID
 APPLE_API_ISSUER            // the App Store Connect issuer ID
 ```

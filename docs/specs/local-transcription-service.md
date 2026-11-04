@@ -119,24 +119,6 @@ transcription accept an optional `language` query parameter, defaulting to `en`.
 the returned catalog. Transcription requires `Content-Length`; chunked transfer
 encoding is not supported.
 
-`POST /transcriptions` accepts an optional `process=global` query parameter on
-the running desktop app's authenticated API (Labs › Process API transcripts,
-off by default; `true` and `1` are aliases). When present, the response keeps
-`transcript` and `durationMs` and adds `processed`: the same text a paste with
-no matching app or website mode would use, after global replacements, Global
-mode corrections, the optional OpenCode rewrite, and Global's selected
-transformations. Processing is best-effort and deadline-bounded like a paste,
-so a failed stage keeps its input and the request still succeeds. It never
-pastes, records History, updates the last dictation, or touches the clipboard.
-Any other value, or a repeated parameter, answers `400 invalid-request`.
-`hex service` and `--embedded` install no processor and answer `409
-processing-unavailable`, even while the lab is off; with a processor installed
-and the lab off the answer is `403 processing-disabled`. Processing runs one at
-a time across the local API, so while another holds it the answer is `429
-queue-full`; all three are decided before the audio body is read.
-`GET /capabilities` always includes `outputProcessing`, true only when a
-processor is installed and the lab is on.
-
 `POST /transcriptions` also accepts an optional `timestamps` query parameter:
 `none`, `segment`, or `word` (Labs › Timestamps in API transcripts, off by
 default). The running desktop app reads the lab live, so its next request sees
@@ -381,7 +363,6 @@ cold model because model residency is transient.
 - No service-owned microphone capture, levels, hotkeys, paste, or clipboard.
 - No partial transcripts.
 - No compressed audio codecs.
-- No OpenCode rewrite profiles.
 - No non-localhost access.
 - No ordinary browser bootstrap.
 - No cross-host warm-runtime sharing or service election.

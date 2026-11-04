@@ -610,15 +610,6 @@ shortcut held past the hold threshold, or a `hex dictation start` capture
      └── the next press still records; the old loss arrives stale
 ```
 
-The copied text is processed exactly like a normal dictation, including mode
-corrections, OpenCode rewriting, and transformations, unless it came from
-Dictate without processing, which is copied as heard and recorded as raw
-history. The copy is forced for this job whether or not Labs › Copy dictation
-only is on. The shortcut machine is suspended, so the eventual key release does
-nothing, and the microphone reopens with the usual bounded recovery. A
-microphone gap over 250 ms still fails the capture as a discontinuity, and a
-near-silent clip saves its diagnostics but keeps the previous failure.
-
 Checks in [dictation/audio.rs](../../src/dictation/audio.rs):
 `microphone_loss_keeps_a_recording_captures_delivered_audio` (a recording
 shortcut keeps its clip; a gap still keeps only a programmatic capture's),
@@ -707,12 +698,11 @@ still establish lossless dictation and stale-command rejection together.
 `recover.optional-processing`: ordinary dictation falls back to usable text.
 
 ```ts
-ordinary dictation -> corrections -> optional rewrite -> transformations -> paste
-                                      │                  │
-                                      v                  v
-                             rewrite fails       chain fails
-                             -> corrected text   -> chain's input // discard partial results
-                             // the log says why: rewrite off for the mode, or the failure reason
+ordinary dictation -> corrections -> transformations -> paste
+                                         │
+                                         v
+                                    chain fails
+                                    -> chain's input // discard partial results
 
 later request -> expected output                       // recovery still needs observation
 ```
