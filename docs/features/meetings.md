@@ -28,11 +28,7 @@ Labs > Meetings switch (macOS)                       // meetings.opt-in; off by 
 │   │   └── Granted -> the Allow pill morphs into a green Allowed; moves to Advanced
 │   ├── Advanced -> Show recording indicator (on by default; corner-snapping capsule),
 │   │   Transcript folder (~/Documents/Hex Meetings; Reveal / choose; an error opens
-│   │   Advanced), Summarize with Apple Intelligence (on by default), Summarize
-│   │   with OpenCode (off by default; when Apple Intelligence is off or missing),
-│   │   then with Labs › Choose meeting summary model on, Summary model: the
-│   │   provider/model OpenCode notes use, no fallback; empty -> the ranked fast
-│   │   models (meetings.opencode_model; see labs.md, #1107)
+│   │   Advanced), Summarize with Apple Intelligence (on by default)
 │   ├── Calendar -> Connect calendar; reminders before meetings // meetings.calendar
 │   └── Detected calls -> Ask / Always record / Never offer per provider // meetings.policy
 │       ├── Slack huddles, Zoom, Google Meet, Microsoft Teams, FaceTime, WhatsApp,
@@ -47,10 +43,6 @@ Subtitles -> hex meetings show <id> --srt | --vtt   // Labs › Subtitle export,
              one cue per transcript entry (You / Them), timed by entry offsets,
              not word timings; off -> refused naming hex labs on subtitle-export
              (docs/transcript-cli.md; no export button in the window yet)
-Apps -> GET /meetings/events on the local API      // Labs › Meeting finished event, off by default (#964)
-        one SSE event per meeting once its final transcript is written:
-        {"type":"meeting.finished","id":"<id>"}, nothing else; one subscriber;
-        off -> 404 labs-off (docs/streams.md, labs.md)
 ```
 
 Requires the selected local dictation model, Microphone, and System Audio
@@ -64,8 +56,8 @@ refuses to start without either grant and asks macOS for System Audio Recording.
 
 ## Linux and Windows
 
-The same controller, recorder, transcript pipeline, store, pane, capsules,
-and notes run on Linux and Windows (beta, in Labs, off by default). Only these
+The same controller, recorder, transcript pipeline, store, pane, and
+capsules run on Linux and Windows (beta, in Labs, off by default). Only these
 adapters differ ([meeting/linux.rs](../../src/meeting/linux.rs),
 [meeting/windows.rs](../../src/meeting/windows.rs),
 [microphone_activity/linux.rs](../../src/microphone_activity/linux.rs),
@@ -77,12 +69,8 @@ System audio                                      // meetings.system-audio
 ├── Linux -> pw-record of the default output's monitor (stream.capture.sink);
 │   the session manager follows a changed default; no pw-record -> recording
 │   refuses with "Install PipeWire's pw-record"
-└── Windows -> WASAPI loopback of every active output (cpal), mixed into the
-    one system track, so a call playing on a headset that isn't the default
-    output is recorded (#1221; audio_on_any_output_reaches_the_system_track,
-    unverified on a real call); silence while nothing plays is padded on
-    resume; a change in the list of outputs reopens it; an output whose
-    loopback fails is dropped while the others keep recording
+└── Windows -> WASAPI loopback of the default output (cpal); silence while
+    nothing plays is padded on resume; a changed default reopens it
 Call detection                                    // meetings.detect
 ├── Linux -> one pw-dump --monitor: running Stream/Input/Audio nodes that are
 │   not monitor captures, by application.process.binary (node or client)
@@ -99,15 +87,7 @@ Browser calls -> offered as "Call in <browser>": no site is read yet, so a
         process); others are not detected (#1105)
 Permissions -> none asked; the System Audio Recording row is macOS-only
 Calendar -> none (no Connect calendar row)
-Notes and live chapters -> Summarize with OpenCode (off by default); it sends
-    the transcript excerpt to the OpenCode model
-    ├── Summarize -> "Writing a title and summary with OpenCode…" (never
-    │   Apple Intelligence off a Mac that has it)
-    ├── Labs › Choose meeting summary model (off by default; #1160) -> Advanced
-    │   shows Summary model while Summarize with OpenCode is on; a saved
-    │   provider/model is used alone, as on macOS (labs.md)
-    └── No writer (OpenCode not running) -> "Notes could not be written." with
-        the reason, recorded as notes_error (#1151: it was dropped silently)
+Notes and live chapters -> none
 Idle sleep -> systemd-inhibit idle:sleep (Linux),
     SetThreadExecutionState (Windows) while recording
 Tray -> Record meeting, Stop & transcribe, Copy last meeting transcript
@@ -995,10 +975,6 @@ While recording, setting on, model available           // meetings.title.provisi
 Final publication complete                               // meetings.notes
   -> meeting-notes thread, utility QoS; waits (≤30 s) while dictation is busy
   -> ONE call over a bounded excerpt, no map-reduce
-     ├── Labs › Vocabulary in meeting notes on (off by default; #1154) ->
-     │   "Names and terms that may appear: …" (≤30 vocabulary terms, read at
-     │   each generation, Regenerate included) ahead of the calendar context;
-     │   its length comes out of the budget. Off -> prompt unchanged
      ├── Lines "[mm:ss] You|Them: text" (long turns split at 600 chars)
      ├── Whole transcript when it fits; otherwise opening 30 %, up to six
      │   evenly spaced middle passages, ending 20 %, "[…]" between them
@@ -1007,24 +983,18 @@ Final publication complete                               // meetings.notes
   -> 90 s total deadline; the call ≤60 s
   -> Manifest: notes { title ≤8 words, summary ≤2 sentences / 400 chars,
      excerpt_chars, transcript_chars, written_by }
-     └── written_by: {"writer": "apple_intelligence"} or {"writer": "opencode",
-         "model": "provider/model"} (no model when OpenCode's default answered);
+     └── written_by: {"writer": "apple_intelligence"};
          absent on notes written before #1125
   -> Markdown copy, same file name, atomic replace
      ├── Heading -> final title, only while it still reads Hex's last title
      ├── <!-- hex:notes --> ## Summary (one paragraph) above ## Transcript
      │   └── Footer names the writer: "Written on this Mac by Apple
-     │       Intelligence", "Written by <provider/model> through OpenCode", or,
+     │       Intelligence" or,
      │       for older notes without written_by, no writer at all (#1125;
      │       check: the_notes_footer_names_the_writer_that_wrote_them)
      ├── Text outside the block is preserved; changed mid-write -> not written
      └── Missing file -> manifest only
   -> Failure / timeout -> notes_error; Markdown untouched; recording stays Complete
-  -> OpenCode without a chosen model: the ranked models are cached per service;
-     any one failing drops the cache (the next call reads OpenCode's catalog
-     again), and all failing asks OpenCode's own default model, so a list read
-     while OpenCode was still loading no longer fails every call until a
-     restart (#1123; check: stale_ranked_models_fall_back_to_the_default_model)
 
 Unavailable (not eligible / Apple Intelligence off / model not ready / macOS < 26)
   -> Settings row says why; nothing runs
@@ -1054,7 +1024,6 @@ FoundationModels bridge [apple_intelligence.swift](../../src/apple_intelligence.
 model): `a_short_transcript_is_sent_whole_in_one_call`,
 `long_meetings_are_excerpted_from_the_opening_middle_and_ending`,
 `context_overflow_halves_the_excerpt_once_and_failures_stop`,
-`vocabulary_terms_lead_the_notes_prompt_and_share_its_budget`,
 `titles_are_requested_after_the_opening_then_once_at_ten_minutes`,
 `provisional_titles_use_the_title_prompt_over_the_transcript_so_far`,
 `generated_and_provisional_titles_replace_only_default_titles`,
@@ -1286,7 +1255,7 @@ meetings without WAVs): first launch of a freshly signed binary 440 ms to
 
 ```ts
 Don't: MCP client config runs `ssh pro hex mcp`         // one SSH per client
-  -> 41 OpenCode instances = 41 SSH sessions -> the Pro's sshd reset connections
+  -> 41 MCP client instances = 41 SSH sessions -> the Pro's sshd reset connections
 
 Do: one periodic pull, then local servers               // meetings.mcp.mirror
 scripts/sync-meetings-mirror.sh (LaunchAgent template, every 120 s,

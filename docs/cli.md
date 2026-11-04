@@ -68,9 +68,7 @@ hex
 ├── annotate (alias capture)       Annotate (features/capture.md)
 │   ├── start|stop|cancel|status   record a capture, end or discard it, or report
 │   ├── list [--limit N]           the newest captures in the captures folder
-│   ├── show <capture>             one capture's words, files, and where it went
-│   ├── send <capture> [--to <session>] [--always]  send it to an OpenCode session
-│   └── route <capture> [--ask-jev]  what routing sees and decides; sends nothing
+│   └── show <capture>             one capture's words and files
 ├── labs [on|off <feature>]       list Labs features or turn one on/off; edits settings.json (features/labs.md)
 │   └── link <feature>             macOS: print hex://labs/<feature>, the link that opens that lab's drawer in Hex's Labs page
 ├── check-for-updates              check for an update now
@@ -92,7 +90,7 @@ shows as transcribing.
 does, so a following `start` isn't blocked; only this command then waits, up
 to 60 s, for the transcript and writes it to stdout instead of pasting it. The
 text gets the same processing as a paste (global replacements, the mode's
-corrections, OpenCode rewriting, and transformations). History keeps it as
+corrections, and transformations). History keeps it as
 `printed`, and Paste Last skips it. No speech (nothing recorded yet, a silent
 clip, or an empty transcript) exits 4 with code `no-speech` and prints
 nothing; with nothing recording it refuses with `not-recording`. A failure,
@@ -187,17 +185,8 @@ and `missing_transcript`, why it has no words). A start while two captures
 are still writing is refused with `busy`. Every action is idempotent.
 
 `<capture>` is a bundle name (`1792933491953.scrawl`, the extension
-optional), a path, or `latest`. `list`, `show`, and `route` read the captures
-folder and need only the experiment; `send` needs captures on and a listening
-Hex. `send` with `--to` takes a session ID; for the newest capture it also
-takes a name its route lists, and it acts as the capsule's pick, so the
-capsule's Undo follows it. Without `--to` it goes where the capture's route
-(its rule, or its first guess) or its last send says. `--always`, for the
-newest capture only, also saves a rule sending its site or app there, as the
-capsule's ⇧⏎ does. Its reply says what became of it (`Sent to …`,
-`Queued for …` when OpenCode didn't answer, which Hex retries). `route` is
-Scrawl's `route --explain` (`--explain` is accepted); `--ask-jev` asks Jev
-again, one network call. An unknown capture is refused with `not-found`.
+optional), a path, or `latest`. `list` and `show` read the captures
+folder and need only the experiment. An unknown capture is refused with `not-found`.
 
 A CLI-started meeting is the same recording the menu bar starts: the menu-bar
 state, the recording capsule, and Stop & Transcribe all apply to it.
@@ -262,7 +251,6 @@ history-clear | check-for-updates | launch-at-login {enabled?}
 vocabulary-list | vocabulary-add {term, sounds_like} | vocabulary-remove {term}
 scrawl-capture {action}                          action: start | stop | cancel | status; `capture` experiment
 scrawl-capture-list {limit?} | scrawl-capture-show {capture}
-scrawl-capture-send {capture, to?, always?} | scrawl-capture-route {capture, ask_jev}
 ```
 
 Optional fields may be left out. `hex start` and `hex logs` are local and have
@@ -279,8 +267,7 @@ Replies are tagged by `status`:
 {"version": 4, "status": "models", "models": [{"id": "parakeet_v3", "name": "…",
   "languages": ["en", "…"], "size": "…", "installed": true, "selected": true,
   "streams": true, "vocabulary": "bias", "supports_recognition_hints": false}]}
-{"version": 4, "status": "vocabulary", "entries": [{"term": "OpenCode",
-  "sounds_like": ["open code"]}, {"term": "Rune"}]}
+{"version": 4, "status": "vocabulary", "entries": [{"term": "Rune"}]}
 {"version": 4, "status": "scrawl-capture", "changed": true, "state": "idle",
   "bundle": "…/captures/1792933491953.scrawl", "elapsed_ms": null,
   "finishing": ["…/captures/1792933491953.scrawl"], "last": null}
@@ -434,11 +421,9 @@ observe input-source changes or show these controls.
   `capture.enabled`, `capture.hotkey` (default `option+shift+s`),
   `capture.list_hotkey` (the capsule's send-to list, default
   `option+shift+v`), `capture.transcriber`, `capture.folder`,
-  `capture.media_days`, `capture.bundle_days`, `capture.routing`,
+  `capture.media_days`, `capture.bundle_days`, and
   `capture.show_overlays_in_recordings` (default off; on lets screen
-  recordings, Hex's captures included, show its overlays), and
-  `capture.capsule_flow` (`list`, the default, `toast`, `menu_bar`, `cursor`
-  or `notch`: the capsule's flow after a capture, prototypes to compare). Both
+  recordings, Hex's captures included, show its overlays). Both
   capture shortcuts need a key, and `capture.enabled on` needs both free; on
   a Mac whose Paste Last is still ⌥⇧V, rebind one of the two first.
 - `meetings.retention` is `day`, `week`, `month`, `forever`, or `none` (the
@@ -463,7 +448,6 @@ Writable keys: `release_microphone_while_idle`,
 `dictation_processing.default_mode`, `dictation_processing.modes`,
 `history_retention`, `meetings.enabled`,
 `meetings.output_folder`, `meetings.summarize_with_apple_intelligence`,
-`meetings.summarize_with_opencode`,
 `meetings.show_recording_indicator`, `meetings.recording_indicator_corner`,
 `meetings.retention`, `meetings.providers`, `meetings.calendar.excluded_calendars`,
 `meetings.calendar.remind`, `meetings.calendar.lead_minutes`,

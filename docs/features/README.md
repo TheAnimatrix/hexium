@@ -54,7 +54,7 @@ The other capabilities stay here until they need their own verification recipe.
 Install the signed macOS app with `brew install --cask anomalyco/tap/hex` or the
 [manual DMG](../../README.md#downloads). The cask uses a versioned, checksum-pinned
 DMG, requires Apple silicon/macOS 15+, and leaves updates to Hex's own updater. It does
-not require OpenCode, launch the app automatically, migrate the legacy
+not launch the app automatically, migrate the legacy
 Swift app's data, or forcibly replace an existing app destination. Homebrew uninstall
 leaves runtime settings, models, and retained data intact.
 
@@ -95,7 +95,7 @@ feeds, appcast, and the legacy `r2.dev` endpoint stay frozen for installed
 clients. Hosting does not guarantee access through every corporate policy.
 
 The site's hero is an animated, optional show: an idle head and an ⌥ keycap until
-the visitor presses it, then a voiced demo of messages, OpenCode prompts and fixes
+the visitor presses it, then a voiced demo of messages, prompts and fixes
 (WebGPU, with a Canvas 2D fallback). Audio loads only after that press; the website
 has no microphone button or microphone access. Reduced motion keeps a still until
 the press and then plays only the calm stage. See [site authoring](../../site/README.md).
@@ -1004,12 +1004,12 @@ Windows PC.
 ```ts
 Output (main sidebar, replaces the Modes editor) // rune_ui/output.rs; scenes output*
 ├── Trust prompt -> Allow a config that uses fetch or programs (only when one asks)
-├── Edit with agent -> Copy a prompt naming the steps' keys (the AI rewrite too), `hex settings`,
+├── Edit with agent -> Copy a prompt naming the steps' keys, `hex settings`,
 │   `hex vocabulary` for names, and the transforms docs
 ├── Open file -> settings.json in the default editor
 ├── Every dictation -> Global's steps, numbered, read-only
 ├── Try -> Global's corrections and built-ins on a typed sentence
-│   ├── Scripts and rewriting run only when dictating
+│   ├── Scripts run only when dictating
 │   └── Labs > Fix results in Output (off, #989) -> Vocabulary (the shared sheet) and,
 │       with a sentence typed, Fix this: copies Edit with agent's prompt ending
 │       `When I say "<sentence>", Hex pastes "<result>". It should paste: ` (labs.md)
@@ -1021,32 +1021,19 @@ Foreground context -> Select processing
 ├── Otherwise matching application
 └── Otherwise Global
 
-Selected mode                            // replaces Global's rewrite and transformations
+Selected mode                            // replaces Global's transformations
   -> Its vocabulary, then the shared one   // features/vocabulary.md (vocabulary.modes)
   -> Global's corrections, then the mode's  // every OS
-  -> OpenCode transformation             // optional provider-backed rewrite
   -> Transformations                     // ordered text chain
   -> Paste or Send
 
 Stage fails -> Preserve its input        // failed chain discards partial results
 ```
 
-**Fixed November 1, 2026 (issue 949):** every OpenCode rewrite's fixed
-instructions (`PROTOCOL_PROMPT`) now say to keep every number as said (no
-dropped, merged, or reformatted numbers, no added thousands separators) and,
-unless the mode's prompt says otherwise, to write a spoken enumeration
-("point one … point two …") as a numbered list, one item per line. A
-transcript of numbers alone (digits or English number words) skips the
-rewrite and pastes after corrections as heard; transformations still run.
-Check: `numbers_only_transcripts_skip_the_rewrite` in
-[dictation/processor.rs](../../src/dictation/processor.rs). The prompt rules
-were not run against a live model.
-
 Built-in text transformations run natively. Custom transformations come from
 `~/.config/hex/hex.config.ts` and run in Hex's embedded script engine, each
 under its own `timeout` (1 s by default, 30 s when the config uses host APIs,
-60 s cap). OpenCode rewriting sends documented
-context to the configured provider; speech transcription stays local.
+60 s cap). Speech transcription stays local.
 
 ```ts
 Transform host APIs                      // personal_commands/{io,fetch,process,trust}.rs
@@ -1087,11 +1074,11 @@ real scripts. None is a live target-app paste.
 Selection and stage checks start in
 [dictation/processor.rs](../../src/dictation/processor.rs),
 [dictation/text_replacements.rs](../../src/dictation/text_replacements.rs), and
-[personal_commands.rs](../../src/personal_commands.rs). They do not prove live
-provider availability or real application/browser context changes.
+[personal_commands.rs](../../src/personal_commands.rs). They do not prove real
+application/browser context changes.
 
 Website context per OS: macOS reads no page at all until something uses it: a
-mode chosen by website, an OpenCode rewrite (its prompt names the site), or a
+mode chosen by website or a
 script transformation (it receives the address)
 (`dictation::config::reads_browser`), so dictation's page reads never prompt
 without one (Meetings and media pause still ask browsers when on). Otherwise
@@ -1107,20 +1094,10 @@ document's `DocURL` (Firefox) or `URI` (Chromium, only with
 under headless Sway and `chrome` with the page under its XWayland, and `hex`
 on niri (Oct 30); the macOS adapters are compiled on CI only and not run.
 
-OpenCode transformation talks only to an already running OpenCode service,
-found through its registration file ([desktop/opencode_service.rs](../../src/desktop/opencode_service.rs));
-Hex runs no OpenCode executable and starts nothing. The catalog loads only while
-the Modes pane shows. Without a service, "OpenCode isn't running" shows beside
-the switch and the setup/retry notice below;
-`unavailable_opencode_is_explained_beside_each_switch` covers it headlessly, and
-the `desktop/opencode_service` tests cover registration, stale-PID, loopback, chunked,
-deadline, and cancellation handling against a local fixture, not a live
-provider.
-
 `ordinary_processing_snapshots_modes_before_stage_and_keeps_transformations` in
 [parakeet.rs](../../src/parakeet.rs) checks processing-time profile acquisition,
 conditional Processing-stage emission, and retained transformation selection.
-It uses controlled profiles, not a live provider or custom transformation host.
+It uses controlled profiles, not a custom transformation host.
 
 `modes_add_select_and_delete`, `mode_corrections_and_names_save_from_their_fields`,
 and `mode_transformations_add_reorder_and_remove` in
@@ -1441,7 +1418,6 @@ Configuration profile forces a key in anomaly.hex     // maintain.managed-locks
 ├── DisableMeetings -> no detection, recording, transcription, or notes;
 │   hex meetings and hex mcp still read existing meetings
 ├── DisableAnnotate -> Annotate off
-├── DisableOpenCodeProcessing -> no mode rewrites, meeting notes, or capture sends
 ├── DisableTransforms -> no transforms; the hex.config.ts host never starts
 ├── RestrictTransformsToLoopback -> transforms on; fetch reaches loopback only
 │   (resolved addresses, every redirect, no proxy); exec/execFile refused
@@ -1456,8 +1432,7 @@ none of these keys. [policy.rs](../../src/policy.rs) owns the keys:
 `AppSettings` turns locked switches off as it loads and writes the saved values
 back on save, so the person's own settings return when the profile goes away.
 Work that follows a list rather than a switch checks the policy where it
-starts: `Profile::configured` (rewrites, transformations), OpenCode generation
-in `dictation/processor.rs`, `capture_host/routing.rs` sends,
+starts: `Profile::configured` (transformations),
 `PersonalCommands::start`, and `personal_commands/script.rs` with
 `net::loopback_agent`. Admin docs: `site/public/docs/admin.md`
 (https://anoma.ly/hex/docs/admin).
@@ -2130,7 +2105,7 @@ macOS `hex app` -> one menu-bar process, Rune window // dev.rune-ui-macos
 │   dragged to any corner)
 └── Modes app icons: Finder's icon (NSWorkspace) in the picker, chips, and mode rows
 Windows `hex app` -> one tray process, Rune window // dev.rune-ui-windows
-├── Runtime thread owns WindowsDesktopHost (listener, model preparation, OpenCode, transformations, updater)
+├── Runtime thread owns WindowsDesktopHost (listener, model preparation, transformations, updater)
 ├── Named event: a second launch shows the window; tray Show / Enable-Disable / Quit
 ├── rune::App: --hidden starts windowless, close hides (keep_running); Quit or no tray ends it
 ├── General adds Launch at login; no terminal paste; chord capture polls

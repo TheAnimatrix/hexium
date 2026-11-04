@@ -8,7 +8,7 @@ Git dependency:
 rune = { git = "https://github.com/anomalyco/rune.git", rev = "<sha>" }
 ```
 
-`rune-kit` and `rune-theme-opencode` use the same URL and rev.
+`rune-kit` and Rune's theme crate use the same URL and rev.
 
 Rune was published with a clean history: its `main` was replaced by one root
 commit (`7eea3a3`) holding the tree of the last private `main` plus the
@@ -46,5 +46,5 @@ alternatives were rejected:
   `lib.fakeHash` and run `nix build .#hex.cargoDeps`; the error prints the
   hash to use.
 - A pin bump changes the `rev` on all three crates together, followed by
-  `cargo update -p rune -p rune-kit -p rune-theme-opencode`. Keep `windows`
+  a `cargo update -p` of each. Keep `windows`
   0.62.2 for `gpu-allocator` in `Cargo.lock` so Windows DX12 builds stay green.
