@@ -42,8 +42,8 @@ strip = true
 # hex/metal-idle-residency). Drop this once a transcribe.cpp release carries
 # them.
 [patch.crates-io]
-transcribe-cpp = { git = "https://github.com/anomalyco/transcribe.cpp", rev = "2778ae4bf5ca5f394d129a39467f4ad9552dc34f" }
-transcribe-cpp-sys = { git = "https://github.com/anomalyco/transcribe.cpp", rev = "2778ae4bf5ca5f394d129a39467f4ad9552dc34f" }
+transcribe-cpp = { git = "https://github.com/TheAnimatrix/transcribe.cpp", rev = "4b2f376e225d84d4a84daf7600885ec68e311b39" }
+transcribe-cpp-sys = { git = "https://github.com/TheAnimatrix/transcribe.cpp", rev = "4b2f376e225d84d4a84daf7600885ec68e311b39" }
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
@@ -195,3 +195,14 @@ unwrap_used = "allow"
 
 [lints]
 workspace = true
+
+# hexium-forks begin (hexium/sync.sh writes this block from hexium/forks)
+[patch."https://github.com/anomalyco/rune.git"]
+procwatch = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune-kit = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune-motion = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune-staging = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune-taffy = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+rune-theme-opencode = { git = "https://github.com/TheAnimatrix/rune", rev = "01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e" }
+# hexium-forks end

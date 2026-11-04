@@ -4540,7 +4540,7 @@ dependencies = [
 [[package]]
 name = "procwatch"
 version = "0.1.0"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "libc",
 ]
@@ -5011,7 +5011,7 @@ dependencies = [
 [[package]]
 name = "rune"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "accesskit",
  "accesskit_macos",
@@ -5087,7 +5087,7 @@ dependencies = [
 [[package]]
 name = "rune-kit"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "rune",
  "rune-motion",
@@ -5097,12 +5097,12 @@ dependencies = [
 [[package]]
 name = "rune-motion"
 version = "0.1.0"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 
 [[package]]
 name = "rune-staging"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "wgpu",
 ]
@@ -5110,7 +5110,7 @@ dependencies = [
 [[package]]
 name = "rune-taffy"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "taffy",
 ]
@@ -5118,7 +5118,7 @@ dependencies = [
 [[package]]
 name = "rune-theme-opencode"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=31dbcad21a61ebfdd9d23520aac2640bf44db5c3#31dbcad21a61ebfdd9d23520aac2640bf44db5c3"
+source = "git+https://github.com/TheAnimatrix/rune?rev=01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e#01eb7e4e9acea08011ee1a4ed88c9d2a8e71872e"
 dependencies = [
  "rune",
  "rune-kit",
@@ -6326,7 +6326,7 @@ dependencies = [
 [[package]]
 name = "transcribe-cpp"
 version = "0.4.1"
-source = "git+https://github.com/anomalyco/transcribe.cpp?rev=2778ae4bf5ca5f394d129a39467f4ad9552dc34f#2778ae4bf5ca5f394d129a39467f4ad9552dc34f"
+source = "git+https://github.com/TheAnimatrix/transcribe.cpp?rev=4b2f376e225d84d4a84daf7600885ec68e311b39#4b2f376e225d84d4a84daf7600885ec68e311b39"
 dependencies = [
  "log",
  "thiserror 2.0.21",
@@ -6336,7 +6336,7 @@ dependencies = [
 [[package]]
 name = "transcribe-cpp-sys"
 version = "0.4.1"
-source = "git+https://github.com/anomalyco/transcribe.cpp?rev=2778ae4bf5ca5f394d129a39467f4ad9552dc34f#2778ae4bf5ca5f394d129a39467f4ad9552dc34f"
+source = "git+https://github.com/TheAnimatrix/transcribe.cpp?rev=4b2f376e225d84d4a84daf7600885ec68e311b39#4b2f376e225d84d4a84daf7600885ec68e311b39"
 dependencies = [
  "cmake",
  "serde_json",
