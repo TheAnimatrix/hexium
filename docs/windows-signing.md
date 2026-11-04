@@ -8,7 +8,7 @@ installing an update.
 
 ## Pipeline
 
-`.github/workflows/release.yml`, split like OpenCode's release:
+`.github/workflows/release.yml`, split into these jobs:
 
 ```ts
 build (build-desktop.yml; x64 and ARM64 runners)   // compiles; no environment or secrets
@@ -89,7 +89,7 @@ Setup.exe (signed after compile)
 
 ## Configuration
 
-The workflow uses OpenCode's names. In anomalyco/hex, these are `release`
+In anomalyco/hex, these are `release`
 environment secrets:
 
 - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`: the Entra app

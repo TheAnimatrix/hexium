@@ -49,23 +49,15 @@ Labs > Meetings switch (macOS)                       // meetings.opt-in; off by 
 │   │       ├── Off -> "No titles or summaries"
 │   │       ├── On this Mac (default) -> Apple Intelligence only; "Titles and
 │   │       │   short summaries, written on this Mac"; never sends anything to
-│   │       │   OpenCode, so the old OpenCode fallback is gone
 │   │       │   └── Apple Intelligence unavailable -> the option stays chosen
 │   │       │       but disabled ("Turn on Apple Intelligence in System
 │   │       │       Settings"); the row's line turns amber "Turn on Apple
 │   │       │       Intelligence in System Settings to write them on this Mac";
 │   │       │       a meeting records notes_error as before
-│   │       └── OpenCode -> "Sends the transcript to your OpenCode model";
 │   │           Model nests under it: a searchable picker of the running
-│   │           OpenCode's models (refreshed each time it opens; no Refresh),
-│   │           "OpenCode's default model" first (clears
-│   │           meetings.opencode_model, so every title and summary is one
-│   │           request that names no model: OpenCode's own default answers,
 │   │           and the transcript never reaches another provider); a pick is
 │   │           used alone, no fallback.
-│   │           OpenCode missing or failing -> a notice with Check again /
 │   │           Retry, the saved model kept and shown by its ID (#1107, #1301)
-│   │       // checks: summaries_are_one_choice_with_opencode_s_model_under_it,
 │   │       // on_this_mac_without_apple_intelligence_stays_chosen_with_the_fix
 │   │       // (tests/panes.rs); scenes meetings-summaries,
 │   │       // meetings-summaries-unavailable, meetings-summary-model
@@ -278,13 +270,8 @@ Browser calls -> a browser holding the microphone is a browser call after 20 s
 Permissions -> none asked; the System Audio Recording row is macOS-only
 Calendar -> none (no Connect calendar row)
 Notes and live chapters -> After a meeting › Summaries is a switch (off by
-    default; on = OpenCode): "Titles and short summaries. Sends the transcript
-    to your OpenCode model"; Model nests under it while on, as on macOS
-    (migrated from Summarize with OpenCode)
     // check: summaries_are_a_switch_off_a_mac (tests/panes.rs)
-    ├── Summarize -> "Writing a title and summary with OpenCode…" (never
     │   Apple Intelligence off a Mac that has it)
-    └── No writer (OpenCode not running) -> "Notes could not be written." with
         the reason, recorded as notes_error (#1151: it was dropped silently)
 Idle sleep -> systemd-inhibit idle:sleep (Linux),
     SetThreadExecutionState (Windows) while recording
@@ -1235,7 +1222,6 @@ Meetings > Import audio… (macOS; Labs › Import audio, off by default) // mee
 │   └── CLI/MCP query output, chapter prompts, notes input, the internal
 │       transcript.md, and Copy Last Transcript still say You/Them
 ├── Notes/summary follow exactly as after a recording (the meetings Summaries
-│   setting; Apple Intelligence or OpenCode)
 ├── A request while recording or importing is refused; the failure shows in
 │   Meetings as Audio could not be imported
 └── Quitting mid-import
@@ -1772,7 +1758,6 @@ Final publication                                   // meetings.output
 Finished meeting panel (15 s, kept open while the pointer is over it; it
     closes when the pointer leaves after that) -> title · length, the
     summary while notes are on (or "Writing a title and summary with Apple
-    Intelligence…" when it writes, "…with OpenCode…" otherwise, or
     "Markdown not saved: …"), then the recording's copies
     ├── Dark in either appearance, at the recording pill’s last outer corner
     │   (the saved corner if there was no pill for this meeting)
@@ -2002,8 +1987,6 @@ Final publication complete                               // meetings.notes
   -> 90 s total deadline; the call ≤60 s
   -> Manifest: notes { title ≤8 words, summary ≤2 sentences / 400 chars,
      excerpt_chars, transcript_chars, written_by }
-     └── written_by: {"writer": "apple_intelligence"} or {"writer": "opencode",
-         "model": "provider/model"} (no model when OpenCode's default answered);
          absent on notes written before #1125
   -> Markdown copy, same file name by default, atomic replace
      ├── Export › Descriptive meeting file names on (off by default) -> after
@@ -2012,8 +1995,6 @@ Final publication complete                               // meetings.notes
      ├── Heading -> final title, only while it still reads Hex's last title
      ├── <!-- hex:notes --> ## Summary (one paragraph) above ## Transcript
      │   └── Footer names the writer: "Written on this Mac by Apple
-     │       Intelligence", "Written by <provider/model> through OpenCode",
-     │       "Written by OpenCode's default model", or, for older notes
      │       without written_by, no writer at all (#1125;
      │       check: the_notes_footer_names_the_writer_that_wrote_them)
      ├── Export › Separate notes file on (off by default) -> <base>.notes.md
@@ -2025,7 +2006,6 @@ Final publication complete                               // meetings.notes
      ├── Text outside the block is preserved; changed mid-write -> not written
      └── Missing file -> manifest only
   -> Failure / timeout -> notes_error; Markdown untouched; recording stays Complete
-  -> OpenCode without a chosen model: every generation asks OpenCode's own
      default model, with no model field, so the transcript never reaches
      another provider; the ranked fast models stay for dictation rewrites and
      voice prompts. With a chosen model, a failure is the notes error
@@ -2326,7 +2306,6 @@ meetings without WAVs): first launch of a freshly signed binary 440 ms to
 
 ```ts
 Don't: MCP client config runs `ssh pro hex mcp`         // one SSH per client
-  -> 41 OpenCode instances = 41 SSH sessions -> the Pro's sshd reset connections
 
 Do: one periodic pull, then local servers               // meetings.mcp.mirror
 scripts/sync-meetings-mirror.sh (LaunchAgent template, every 120 s,
@@ -2389,11 +2368,6 @@ Granola import: see [granola-import.md](../plans/granola-import.md).
 - Titles and summaries have not run after a real recording in the app; the CLI
   path exercised the real model, and the provisional-title thread, its manifest
   write, and the menu/pane refresh are unexercised in a live recording.
-- The transcript-language rule in the notes and chapter prompts is prompt-level
-  only: it has not run on a real Mac against a non-English meeting, so whether
-  Apple Intelligence and a given OpenCode model honour it, and how they word a
-  title or summary whose script has no spaces or `.`/`!`/`?` sentence ends
-  (`clean_title`, `clean_summary`), are unmeasured.
 - Live chapters (Labs) have not run in a real recording: the worker,
   manifest writes, title updates, menu bar Copy Section, and the boundary pass
   after publication ran only in unit tests and the debug CLI over one synthetic

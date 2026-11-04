@@ -1,7 +1,7 @@
 # Roadmap
 
 Hex ships the macOS product loop: configurable hold-to-talk local dictation,
-optional context-aware OpenCode post-processing, a Metal HUD, bounded paste
+a Metal HUD, bounded paste
 workers, settings, and a signed app bundle. Meetings (beta) is a
 persisted opt-in (`meetings.enabled`, default off). Windows (x64 and ARM64) and
 x86_64 Linux (i3/X11 and compatible wlroots Wayland compositors) betas provide
@@ -56,7 +56,7 @@ settings file. A persistent menu-bar item keeps Settings, Paste Last, updates,
 and Quit reachable when the Dock icon is hidden. Settings now surfaces revoked
 Microphone or Accessibility access after onboarding, and
 supported transcription runtimes expose automatic language detection. Modes own
-corrections, optional OpenCode rewriting, and ordered text transformations;
+corrections, and ordered text transformations;
 stage failures preserve the preceding pipeline output. Do not add a generalized
 processor framework without a concrete need beyond this shipped sequence.
 

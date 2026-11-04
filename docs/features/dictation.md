@@ -23,31 +23,6 @@ write fails, capture remains active with an error; retry or cancel it explicitly
 The GPUI regression that injected this failure went with GPUI; no Rune test
 injects a failed shortcut save yet.
 
-**Shortcut:** Option by default, after macOS permissions and the selected local
-model are ready. Commands and OpenCode are not required. General > Dictation >
-Shortcut accepts modifier-only, modifier-plus-key, standalone Fn/Globe, and
-standalone function-key bindings. On Windows and Linux/X11 it also accepts mouse buttons, and on
-macOS with Labs › Mouse shortcuts on (off by default; issue 209; see labs.md),
-alone or with modifiers: click Record, then press the desired mouse button.
-Mouse 1/2/3 are left/right/middle; Mouse 4 and higher are auxiliary buttons.
-Mouse 1 (left click) needs a modifier: alone it would swallow every click,
-Settings' own included, so the recorder answers "Add a modifier", the CLI
-refuses `mouse1`, and a saved bare left-click shortcut goes back to its
-default when settings load (issue 411; checks
-`a_saved_bare_left_click_shortcut_returns_to_the_default_on_load` and
-`a_bare_left_click_is_refused_but_other_mouse_buttons_are_not`, constructed
-settings only, no physical mouse run).
-Escape cancels recording a binding. Mouse bindings use the same hold, toggle,
-and double-tap rules and conflict checks as keyboard bindings. A consumed
-mouse press, drag and release do not reach the foreground app; ordinary clicks
-retain their existing behavior. Capturing a replacement suspends global matching.
-The CLI accepts the same bindings, for example `mouse4` or `option+mouse4`.
-Windows supports the five mouse buttons exposed by its low-level mouse hook.
-Linux/X11 maps Mouse 4/5 to native buttons 8/9, skipping wheel events; the
-recorder temporarily grabs the pointer while its window has focus and releases
-it on save, cancellation, focus loss or window close. Windows waits for the
-click that opened the recorder to be released before accepting a mouse button.
-
 macOS with Labs › Caps Lock dictation on (`labs.caps_lock_dictation`, off by
 default): a physical Caps Lock press toggles a hands-free dictation instead of
 typing. From idle it starts a capture that stays recording without a hold; the
@@ -530,11 +505,6 @@ does not prove the physical dictation shortcut; see the [feature index](README.m
 
 ### Dictate Without Processing
 
-A second, optional dictation shortcut (issue 451, suggested by @ksajan). It
-records exactly like the dictation shortcut and pastes the transcript as
-heard, skipping the Output pane's steps: replacements, corrections,
-transformations, and OpenCode rewriting.
-
 ```ts
 Output > Without processing > Dictate without processing   // raw.shortcut
 ├── Unbound by default -> nothing registered, grabbed, or reserved
@@ -649,53 +619,6 @@ shortcut press against a real target application was run; the flow is covered
 by unit tests only.
 
 ### Rewrite With Nearby Text (Labs, macOS)
-
-While Labs › Rewrite reads nearby text is on (`labs.cursor_context`, off by
-default), each dictation reads the focused text element's text around the
-caret once, on a background thread, as its capture becomes real, and the
-mode's OpenCode rewrite carries it ahead of the raw transcript as context for
-names, terms, references, and where the result lands. Up to 1,000 UTF-16 units
-before the selection, the selection itself (a selection over 2,000 units skips
-the read), and up to 1,000 after it join that capture's context
-(`ContextSnapshot::caret_text`); empty parts are omitted. The read uses
-`AXFocusedUIElement` through the 0.25 s messaging timeout and never reads Hex
-or an `AXSecureTextField`, so a password field returns nothing. Output's
-typed-text path, the Rewrite by voice request, meetings, the local API, History,
-logs, and events never see it, and the text is never saved. Off, no
-Accessibility read or thread starts, and the rewrite prompt is byte for byte
-what it was. A cancelled capture discards a late read. See [labs.md](labs.md)
-for the prompt wording, bounds, and checks. Not observed: a real Mac reading a
-real text field, or a rewritten word corrected by the text around the cursor.
-
-### OpenCode Rewrite Models
-
-A dictation's OpenCode rewrite or voice prompt with no chosen model walks Hex's
-ranked fast models: the list is cached per service, any one failing drops the
-cache (the next request reads OpenCode's catalog again), and when every ranked
-model fails OpenCode's own default model answers, so a list read while OpenCode
-was still loading no longer fails every request until a restart (#1123).
-Providers that run a model through a local agent harness, like Claude Agent,
-are never picked automatically because each request pays the harness's startup,
-and they stay explicitly selectable (#1954). While
-that list has a model, the mode's model row and the picker's unset entry say
-Automatic (the entry keeps the model's name); only with no ranked model listed
-do they say Default and Use OpenCode default, because then OpenCode's own
-default answers. `live.ndjson` and History's processing observation record the
-rewrite model as `provider/id` in a `model` field, omitted when no model was
-named (OpenCode's own default answered, Hex's automatic choice failed before any
-model answered, or the on-device Apple Intelligence cleanup or Neutral voice
-pass ran). The "dictation
-post-processing" and "voice prompt" completed and failed log lines name it too:
-`provider/id` for the named model that answered, or on failure the one the
-request asked for; `opencode default` when no model was named and OpenCode's
-default answered; `automatic` when no model was named and none answered. Checks:
-`stale_ranked_models_fall_back_to_the_default_model`,
-`agent_harness_models_never_rank_and_fall_back_to_the_default_model`,
-`a_processing_observation_names_the_model_that_answered`,
-`a_processing_log_line_names_the_model_or_its_automatic_choice`, and
-`an_unset_model_on_a_ranked_catalog_is_automatic` in
-[dictation/processor.rs](../../src/dictation/processor.rs) and
-[desktop/opencode_catalog.rs](../../src/desktop/opencode_catalog.rs).
 
 ### Terminal Paste Shortcut (Labs, Windows and Linux)
 

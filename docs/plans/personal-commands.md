@@ -63,7 +63,7 @@ script/data URLs remain unsupported; use `openPath` for filesystem paths.
 
 The config may register named string transformations. Select them in a mode's
 Transformations section to run them in displayed order after that mode's
-corrections and optional OpenCode rewrite. This pipeline applies to Paste and
+corrections. This pipeline applies to Paste and
 Send, not Voice Action or meetings. If the transformation stage fails, Hex
 keeps the text from before that stage, not partially transformed output.
 Each transformation receives the focused app's context and `source`:

@@ -81,7 +81,6 @@ Transcription (Parakeet: RNN-T and TDT, Underdog Bark and Nemotron 3.5 ASR too) 
 │       spelling of the same term inside it; ordinary candidates overlapping
 │       one are skipped), and the pass runs even when a stream kept no frames
 ├── Left alone: case-only differences, inflections ("Cappuccinos"), addresses
-│   and paths ("opencode.ai"), and "sounds like" spellings under 2 characters
 │   (Unicode code points, counted after lowercasing and dropping ASCII spaces
 │   and punctuation), which are ignored entirely; rescoring also skips terms
 │   under 5 letters without a spelling, which the RNN-T decoder can still write
@@ -124,12 +123,10 @@ Context prompt (Whisper incl. ivrit.ai, NB-Whisper and KB-Whisper, Qwen3-ASR, Qw
 ├── Every entry's term is protected, including a term with no spellings, so
 │   another entry's spelling cannot rewrite it: "Next.js" with no spellings
 │   survives "Nest" [next]. A spelling inside its own term keeps the term,
-│   other occurrences keep their original casing ("next.js" and "Open Code
 │   Hub" stay as written), and an entry with an empty term is skipped
 ├── A longer word ("JetHubber") and a differently split one ("Jet Hub") are
 │   left alone
 ├── Text and segments get every spelling; the timed words get only
-│   single-word spellings, so a multi-word spelling ("open code") fixes the
 │   text and segments but leaves each timed word as the model wrote it
 └── Word times stay put
 
@@ -153,7 +150,6 @@ Words on screen (Labs › Words on screen, macOS)  // vocabulary.screen
 ├── A capture with terms for a model that reads them uses its whole-clip run
 │   rather than a live stream's text: a stream fixes its vocabulary when it
 │   starts, so the text arrives after release with a little more latency
-├── Only that capture: meetings, the local API, and OpenCode rewriting never
 │   see the terms, and only the term count and read time are logged, at debug
 ├── One reader runs at a time; an intend with no pending capture reads nothing
 └── Password fields and their subtrees are skipped; Hex's own window is never
@@ -224,7 +220,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
 │   agent's prompt explains it)
 ├── Its terms come first, then the shared list's, each term once (any case),
 │   so the 64-term cap keeps them
-├── OpenCode rewriting -> every OS, the mode chosen for the dictation
 └── Transcription -> macOS dictation only: the mode of the app and page the
     context monitor last saw when the stream or whole-clip run starts. The app
     is polled every 0.5 s; a scriptable browser's page is read when the browser
@@ -235,7 +230,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
     finished text. Meetings, captures, the local API, Linux, and Windows hear with the
     shared list
 
-OpenCode rewriting (Modes)               // vocabulary.prompt
 └── Prompt gains "Vocabulary (spell these exactly when the speaker means them):
     term (may be transcribed as a, b); …" before the foreground application
 

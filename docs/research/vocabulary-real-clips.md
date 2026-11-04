@@ -25,7 +25,7 @@ clips**. Don't switch dictation to Qwen for vocabulary on this evidence.
   to Oct 23 14:46), converted to 16 kHz mono PCM16 copies. The filename is the
   save time, and its history entry follows 140–400 ms later, one to one. 49
   matched a history entry. One 1.1 s clip had no entry and is unscored. 219.9 s
-  of scored audio, 733 reference words. Every clip went to OpenCode Beta.
+  of scored audio, 733 reference words.
 - **References.** Each started from the history text (raw = final, since Kit
   has no replacements, transformations or post-processing configured). Before
   any model ran, I made contextual fixes: grow→grill (the grilling skill),
@@ -41,7 +41,7 @@ clips**. Don't switch dictation to Qwen for vocabulary on this evidence.
   HiveMind, dotfiles, grill, Adam. Names are matched case-sensitively, so
   "hex" counts as a miss. Every arm gets Hex if casing is ignored.
 - **Hints.** `hints17` is the boost spike's frozen list (Hex, Cappuccino,
-  OpenCode, Rune, Scrawl, Effect, Anomaly, Dax, Aiden, Kit, Parakeet, Moonshine,
+  Rune, Scrawl, Effect, Anomaly, Dax, Aiden, Kit, Parakeet, Moonshine,
   GPUI, Sparkle, Argon, Astra, HiveMind). It was fixed before these clips
   existed. `hints27` adds Psychopomp, dotfiles, Qwen, Claude, Opus, Sonnet,
   Gemini, skulk, Zen and "grill me". `dotfiles` and "grill me" come from these
