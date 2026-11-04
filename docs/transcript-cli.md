@@ -5,7 +5,7 @@ while Hex runs. Use `/Applications/Hex.app/Contents/MacOS/hex` if `hex` is not
 on your PATH.
 
 ```sh
-hex history --since 3d --app 'OpenCode Beta' --grep problems --json
+hex history --since 3d --app 'Ghostty' --grep problems --json
 hex history --since 2026-10-20 --until 2026-10-21 --raw --oldest-first --limit 500
 hex history --since 7d --search 'problems board' --json
 hex history stats --since 7d --json   # Labs › Dictation stats

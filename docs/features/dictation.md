@@ -24,7 +24,7 @@ The GPUI regression that injected this failure went with GPUI; no Rune test
 injects a failed shortcut save yet.
 
 **Shortcut:** Option by default, after macOS permissions and the selected local
-model are ready. Commands and OpenCode are not required. General > Dictation >
+model are ready. Commands are not required. General > Dictation >
 Shortcut accepts modifier-only, modifier-plus-key, standalone Fn/Globe, and
 standalone function-key bindings. On Windows and Linux/X11 it also accepts mouse buttons, and on
 macOS with Labs › Mouse shortcuts on (off by default; issue 209; see labs.md),
@@ -388,8 +388,8 @@ does not prove the physical dictation shortcut; see the [feature index](README.m
 
 A second, optional dictation shortcut (issue 451, suggested by @ksajan). It
 records exactly like the dictation shortcut and pastes the transcript as
-heard, skipping the Output pane's steps: replacements, corrections,
-transformations, and OpenCode rewriting.
+heard, skipping the Output pane's steps: replacements, corrections, and
+transformations.
 
 ```ts
 Output > Without processing > Dictate without processing   // raw.shortcut
@@ -505,33 +505,6 @@ shortcut press against a real target application was run; the flow is covered
 by unit tests only.
 
 ### Rewrite With Nearby Text (Labs, macOS)
-
-While Labs › Rewrite reads nearby text is on (`labs.cursor_context`, off by
-default), each dictation reads the focused text element's text around the
-caret once, on a background thread, as its capture becomes real, and the
-mode's OpenCode rewrite carries it ahead of the raw transcript as context for
-names, terms, references, and where the result lands. Up to 1,000 UTF-16 units
-before the selection, the selection itself (a selection over 2,000 units skips
-the read), and up to 1,000 after it join that capture's context
-(`ContextSnapshot::caret_text`); empty parts are omitted. The read uses
-`AXFocusedUIElement` through the 0.25 s messaging timeout and never reads Hex
-or an `AXSecureTextField`, so a password field returns nothing. Output's
-typed-text path, the Voice prompt request, meetings, the local API, History,
-logs, and events never see it, and the text is never saved. Off, no
-Accessibility read or thread starts, and the rewrite prompt is byte for byte
-what it was. A cancelled capture discards a late read. See [labs.md](labs.md)
-for the prompt wording, bounds, and checks. Not observed: a real Mac reading a
-real text field, or a rewritten word corrected by the text around the cursor.
-
-### OpenCode Rewrite Models
-
-A dictation's OpenCode rewrite or voice prompt with no chosen model walks Hex's
-ranked fast models: the list is cached per service, any one failing drops the
-cache (the next request reads OpenCode's catalog again), and when every ranked
-model fails OpenCode's own default model answers, so a list read while OpenCode
-was still loading no longer fails every request until a restart (#1123). Check:
-`stale_ranked_models_fall_back_to_the_default_model` in
-[dictation/processor.rs](../../src/dictation/processor.rs).
 
 ### Terminal Paste Shortcut (Labs, Windows and Linux)
 

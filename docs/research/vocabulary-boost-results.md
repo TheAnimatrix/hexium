@@ -7,7 +7,7 @@ on by default (no experiment) on 2026-10-29. Follows [`custom-vocabulary.md`](cu
 `spike/parakeet-boost` branch.
 
 **Question:** Can Parakeet write the user's Vocabulary terms ("Cappuccino",
-"OpenCode", "Scrawl") when it mishears them, without writing them where they
+"Scrawl") when it mishears them, without writing them where they
 weren't said?
 
 **Answer:** Yes, at the default strength (Normal, 2.5 nats per piece). With
@@ -70,13 +70,13 @@ stays a plain value per piece.
   contain no term.
 - **tc** (transcription-corpus): 274 clips: 51 synthesized term clips, 18
   synthesized look-alikes, 200 ordinary synthesized sentences, 5 private.
-- **Vocabulary:** Hex, Cappuccino, OpenCode, Rune, Scrawl, Effect, Anomaly, Dax,
+- **Vocabulary:** Hex, Cappuccino, Rune, Scrawl, Effect, Anomaly, Dax,
   Aiden, Kit, Parakeet, Moonshine, GPUI, Sparkle, Argon, Astra, HiveMind.
 - **Model:** `parakeet-unified-en-0.6b-Q8_0`, Metal, on the MacBook Pro. Each
   clip runs offline and streaming, with and without the list.
-- **WER** is normalized, and "term-normalized" also joins "open code",
+- **WER** is normalized, and "term-normalized" also joins
   "GP UI", "hive mind" and "moon shine" on both sides. Without that, a correct
-  "OpenCode" against a reference "open code" counts as two errors, which made
+  "HiveMind" against a reference "hive mind" counts as two errors, which made
   raw WER rise even though every change was a fix.
 - **False insertions:** a term written where the reference has none. Each one
   was checked by hand.

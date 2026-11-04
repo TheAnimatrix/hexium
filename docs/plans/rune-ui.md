@@ -7,7 +7,7 @@ every pane (General, Modes, Voice Action, History, Commands, Meetings, Voice
 Filter, Activity, HUD Lab), the onboarding tour, and the transcription picker. The
 macOS dictation HUD stays a native Metal `NSPanel` (`dictation_indicator.rs`,
 with `rune_hud/spring.rs` for its springs). Rune, `rune-kit`, and
-`rune-theme-opencode` are pinned to a commit on Rune's public MIT `main`
+Rune's theme crate are pinned to a commit on Rune's public MIT `main`
 (`https://github.com/anomalyco/rune.git`; see
 [`rune-dependency.md`](rune-dependency.md) and
 [`single-process.md`](single-process.md)). Do not merge to `main` until a
@@ -17,15 +17,15 @@ over SSH, and Windows was cross-compiled.
 
 ## Design Direction
 
-The Rune front end uses **OpenCode's design language through Rune's component
+The Rune front end uses **Rune's theme through Rune's component
 library** ([`../design-system.md`](../design-system.md)):
 
 - Controls come from `rune-kit` (`Button`, `IconButton`, `Switch`,
   `SegmentedControl`, `Select`, `Menu`, `Popover`, `TextInput`, `TextArea`,
   `Badge`, `Progress`, …).
 - Every colour, elevation, radius, type style, and motion token comes from
-  `rune_theme_opencode::kit(dark)`.
-- The window follows OpenCode Desktop's layout: a deep-background sidebar and a
+  the theme crate's `kit(dark)`.
+- The window has a deep-background sidebar and a
   raised, rounded content panel, following the system light/dark appearance.
 - `desktop_i18n::tests::every_translated_string_has_every_language` scans
   `src/rune_ui.rs` and every pane and host module so all user-facing copy ships
@@ -44,9 +44,8 @@ src/rune_ui/platform.rs          Capabilities, PlatformState, PlatformRequest,
                                  NativeHost / Fixture seam
 src/rune_ui/platform_settings.rs macOS and Windows General rows; Meetings settings
 src/rune_ui/settings.rs          General pane and shortcut recorder
-src/rune_ui/modes.rs             Modes pane (rules, corrections, OpenCode, transformations)
+src/rune_ui/modes.rs             Modes pane (rules, corrections, transformations)
 src/rune_ui/voice_action.rs      Voice Action pane
-src/rune_ui/models.rs            OpenCode catalog, model and thinking pickers
 src/rune_ui/history.rs           History pane
 src/rune_ui/picker.rs            Transcription language/model picker modal
 src/rune_ui/onboarding.rs        First-run setup tour across all platforms
@@ -68,9 +67,9 @@ src/rune_ui/tests/panes.rs       macOS and Windows surface tests and goldens
 | Surface | Status | Goldens (`tests/golden/rune-*.png`) |
 | --- | --- | --- |
 | Shell & General (Linux) | Sidebar navigation, status card, desktop shortcuts (X11 / portal / commands), dictation, behavior, application rows, Quit Hex, Update button when ready | `rune-portal-{light,dark}`, `rune-commands-dark`, `rune-disabled-light`, `rune-capturing-dark`, `rune-chinese-dark`, `rune-menus-light` |
-| Voice Action | Opt-in with shortcut conflict check, recorder, searchable OpenCode model and thinking pickers, missing/unavailable OpenCode notice | `rune-voice-action-{light,dark}`, `rune-voice-action-off-light`, `rune-voice-action-unavailable-{light,dark}`, `rune-voice-action-models-dark` |
+| Voice Action | Opt-in with shortcut conflict check, recorder | `rune-voice-action-{light,dark}`, `rune-voice-action-off-light`, `rune-voice-action-unavailable-{light,dark}`, `rune-voice-action-models-dark` |
 | History | Search, retention select, two-step Clear all, detail with Copy and Delete, latency and processing facts | `rune-history-{light,dark}`, `rune-history-empty-light` |
-| Modes | Global + custom modes, searchable application picker, native file dialog ("Choose a file…": FileChooser portal, `NSOpenPanel`, `IFileOpenDialog`), website rules, corrections, OpenCode rewriting, drag-reordered transformations, two-step delete | `rune-modes-{light,dark}`, `rune-modes-global-light`, `rune-modes-picker-{light,dark}` |
+| Modes | Global + custom modes, searchable application picker, native file dialog ("Choose a file…": FileChooser portal, `NSOpenPanel`, `IFileOpenDialog`), website rules, corrections, drag-reordered transformations, two-step delete | `rune-modes-{light,dark}`, `rune-modes-global-light`, `rune-modes-picker-{light,dark}` |
 | Transcription picker | Modal over scrim: languages, model cards with recommendation and `Streams` tags, Use/Download/Cancel/Delete (two-step), live progress | `rune-picker-{light,dark}`, `rune-picker-downloading-{light,dark}` |
 | Onboarding tour | `desktop::onboarding::Flow`: Linux/Windows Welcome → Model setup → Done; macOS adds Microphone/Accessibility rows, System Settings guides, Give it a try practice field, and relaunch recovery | `rune-onboarding-dark`, `rune-onboarding-setup-{light,dark}`, `rune-mac-onboarding*` (10 states) |
 | General (macOS & Windows) | Dictation, Output, and Application cards with a collapsed Advanced disclosure (fits 980×760 on macOS), macOS permissions, Launch at login, Show Dock icon, shortcut sides; Windows listener card, Launch at login, Enable on launch; Check for updates under the sidebar version | `rune-mac-settings-{light,dark}`, `rune-mac-settings-advanced-light`, `rune-mac-settings-permissions-dark`, `rune-mac-settings-sides-dark`, `rune-windows-settings-light` |

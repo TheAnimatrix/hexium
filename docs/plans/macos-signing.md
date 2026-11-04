@@ -1,48 +1,5 @@
 # macOS signing under Anomaly
 
-Move Hex's macOS Developer ID signing and notarization from Kit's personal team
-(`QC99C9JE59`, local keychain and `HEX_NOTARY_PROFILE` on his Mac) to Anomaly's
-team in GitHub Actions, reusing the credentials OpenCode already uses.
-
-## What OpenCode does
-
-Desktop and CLI (`anomalyco/opencode`, `.github/workflows/publish.yml` on `dev`):
-
-```ts
-team         // Anomaly Innovations, Inc. (5NZ4Q7NXJ4); confirmed from the signed
-             // opencode-darwin-arm64 npm binary, not written in the repo
-runners      // macos-26 (arm64) and macos-26-intel, runner-default Xcode
-certificate  // apple-actions/import-codesign-certs@8f3fb60 (v2.0.0), keychain "build"
-             // p12-file-base64: APPLE_CERTIFICATE, p12-password: APPLE_CERTIFICATE_PASSWORD
-             // no KEYCHAIN_PASSWORD secret: the action generates one
-identity     // security find-identity -v -p codesigning build.keychain
-             // | first "Developer ID Application: …"
-cli          // job sign-cli-macos: codesign --force --timestamp --options runtime
-             // --entitlements packages/cli/script/entitlements.plist (JIT, unsigned
-             // memory, dyld env, no library validation: Bun needs them)
-desktop      // electron-builder (packages/desktop/electron-builder.config.ts):
-             // hardenedRuntime, entitlements resources/entitlements.plist
-             // (allow-jit, audio-input), notarize: true, targets dmg + zip
-notary       // App Store Connect API key through notarytool (electron-builder):
-             // APPLE_API_KEY_PATH secret holds the .p8 *contents*, written to
-             // $RUNNER_TEMP/apple-api-key.p8; APPLE_API_KEY holds the key ID;
-             // APPLE_API_ISSUER the issuer ID
-updates      // electron-updater generic feed; no separate update-signing key
-             // (Squirrel.Mac trusts the code signature)
-windows      // Azure Trusted Signing (AZURE_* secrets), separate from Apple
-```
-
-The repo also has `APPLE_ID` and `APPLE_PASSWORD` secrets, but no workflow
-reads them: Apple ID plus app-specific password is not the current method.
-
-iOS (`anomalyco/opencode-ios`, private): Xcode Cloud archives and ships to
-TestFlight on every push to `main`; signing is automatic (`project.yml`:
-`DEVELOPMENT_TEAM: 5NZ4Q7NXJ4`, `CODE_SIGN_STYLE: Automatic`), no fastlane or
-match. Manual fallbacks use the `asc` CLI and `scripts/testflight-upload.sh` with
-an App Store Connect key from 1Password (`docs/releasing.md`). Reusable for Hex:
-the team, and an App Store Connect API key. A team key with the Developer role
-can notarize Mac apps, so Hex can use the same key as OpenCode desktop.
-
 ## What Hex does
 
 ```ts
@@ -68,14 +25,6 @@ release.yml        // build-macos: HEX_RELEASE_UNSIGNED=1 build-app.sh, no secre
 test-builds.yml            // per-push ad-hoc Hex Test DMG (unsigned)
 ```
 
-Updates no longer use Sparkle: the in-app updater (`src/updater.rs`,
-`docs/plans/release-service.md`) downloads the ZIP from the Anomaly release
-service and, before swapping it in, requires `app/update-requirement.txt`:
-`anchor apple generic`, identifier `anomaly.hex`, a Developer ID leaf from team
-`5NZ4Q7NXJ4`, and `notarized`. Manifests are unsigned, so this code signature
-is the integrity check beyond HTTPS and the manifest's SHA-256; there is no
-separate update-signing key (as with OpenCode's electron-updater).
-
 Next: once the `APPLE_*` secrets exist, run a staging Release and check the
 signed build against the updater's requirement (verify-macos does); then
 optionally sign `Hex Test.app` with the same Developer ID so testers grant
@@ -84,14 +33,9 @@ permissions once (needs `build-app.sh` to accept a team with
 
 ## Secrets for `anomalyco/hex`
 
-Add to the `release` environment (limited to the `dev` branch).
-Names mirror OpenCode; GitHub cannot copy secret values, so an admin
-re-enters them from the source (1Password):
-
 ```ts
 APPLE_CERTIFICATE           // base64 .p12 of the Anomaly "Developer ID Application" cert + key
 APPLE_CERTIFICATE_PASSWORD  // the .p12 password
-APPLE_API_KEY_PATH          // App Store Connect API key .p8 contents (OpenCode's naming)
 APPLE_API_KEY               // that key's ID
 APPLE_API_ISSUER            // the App Store Connect issuer ID
 ```

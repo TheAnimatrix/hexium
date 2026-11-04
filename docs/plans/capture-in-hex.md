@@ -311,31 +311,11 @@ where the work starts (the `capture_host` worker), not only in the window.
   (`RecordedAudio::since`) and transcribed by Hex's transcriber. A mirror
   that ends on its own (`Event::PhoneEnded`) finishes the capture at the
   listener's next reap.
-- The done capsule's route chips read `SettledCapture.route` (its answer,
-  then only the deliveries the capsule can't know itself) and send
-  `CaptureCommand::{Send, Undo, Redirect}`. Built; `offer` isn't drawn.
 - A Scrawl pane under Experiments, feature-owned (D-5): opt-in, shortcut,
   Screen Recording, transcriber, captures folder, retention, and "Use Hex for
   captures" while Scrawl runs (built; iPhone joins with ingest).
 - Screen Recording is asked for at the first capture or from the pane, not in
   core onboarding.
-
-## Routing and delivery
-
-- Built (`capture_host/routing.rs`): Scrawl's router (`crates/router`) runs
-  in Hex's process with `capture.routing` (imported once from Scrawl; never a
-  Jev key) and Scrawl's own router folders, so `scrawl router undo`, rule
-  offers, and evals see Hex's sends as Scrawl's. A `capture-look` thread
-  reads the tab, terminal, and sessions at the stop; the one `capture-route`
-  thread (queue 16) decides once the bundle is written, waits out a rule's
-  3 s undo, sends, and carries out the capsule's Send, Undo, and Redirect on
-  the newest capture in order. Each change lands in `last.route`.
-- Delivery uses the engine's delivery path. Queued sends retry every 15 s,
-  except in tests, while Scrawl.app runs, or while anything serves the ingest
-  port (that process retries). Hex never stores the OpenCode server password
-  itself; the engine reads it as Scrawl does.
-- Not built: `live.ndjson` events for routing (ids, bands, scores, model,
-  stages, and outcomes, never transcript, summary, or window text).
 
 ## Coexistence with Scrawl
 

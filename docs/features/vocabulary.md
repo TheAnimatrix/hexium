@@ -67,7 +67,6 @@ Transcription (Parakeet: RNN-T and TDT, Underdog Bark and Nemotron 3.5 ASR too) 
 │       spelling of the same term inside it; ordinary candidates overlapping
 │       one are skipped), and the pass runs even when a stream kept no frames
 ├── Left alone: case-only differences, inflections ("Cappuccinos"), addresses
-│   and paths ("opencode.ai"), and "sounds like" spellings under 2 characters
 │   (Unicode code points, counted after lowercasing and dropping ASCII spaces
 │   and punctuation), which are ignored entirely; rescoring also skips terms
 │   under 5 letters without a spelling, which the RNN-T decoder can still write
@@ -110,7 +109,6 @@ Screen vocabulary (Labs › Screen vocabulary, macOS)  // vocabulary.screen
 ├── A capture with terms for a model that reads them uses its whole-clip run
 │   rather than a live stream's text: a stream fixes its vocabulary when it
 │   starts, so the text arrives after release with a little more latency
-├── Only that capture: meetings, the local API, and OpenCode rewriting never
 │   see the terms, and only the term count and read time are logged, at debug
 ├── One reader runs at a time; an intend with no pending capture reads nothing
 └── Password fields and their subtrees are skipped; Hex's own window is never
@@ -145,7 +143,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
 │   agent's prompt explains it)
 ├── Its terms come first, then the shared list's, each term once (any case),
 │   so the 64-term cap keeps them
-├── OpenCode rewriting -> every OS, the mode chosen for the dictation
 └── Transcription -> macOS dictation only: the mode of the app and page the
     context monitor last saw when the stream or whole-clip run starts. The app
     is polled every 0.5 s; a scriptable browser's page is read when the browser
@@ -156,7 +153,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
     finished text. Meetings, captures, the local API, Linux, and Windows hear with the
     shared list
 
-OpenCode rewriting (Modes)               // vocabulary.prompt
 └── Prompt gains "Vocabulary (spell these exactly when the speaker means them):
     term (may be transcribed as a, b); …" before the foreground application
 
