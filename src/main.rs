@@ -42,6 +42,7 @@ mod dictation;
 mod durable;
 #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
 mod feedback;
+mod hexium_brand;
 mod history;
 #[cfg(target_os = "macos")]
 mod keyboard;
