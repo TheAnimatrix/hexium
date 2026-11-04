@@ -5,6 +5,7 @@ fn main() {
     check_windows_split();
     build_version();
     test_build_commit();
+    hexium_commit();
     // `hex_capture`: the `capture` experiment's code, in every macOS, Linux,
     // and Windows build (`scrawl-capture` is their dependency).
     println!("cargo::rustc-check-cfg=cfg(hex_capture)");
@@ -311,4 +312,40 @@ fn compile_swift_bridge(name: &str, module: &str, without_autolink: &[&str]) {
         .expect("xcrun swiftc is required to compile Swift bridges");
     assert!(status.success(), "{module} compilation failed");
     println!("cargo:rustc-link-arg={}", object.display());
+}
+
+/// Hexium: the commit a build came from, which its daily release check
+/// compares against the newest release tag (src/hexium_updates.rs).
+fn hexium_commit() {
+    println!("cargo:rerun-if-env-changed=HEXIUM_COMMIT");
+    if let Ok(commit) = std::env::var("HEXIUM_COMMIT") {
+        println!("cargo:rustc-env=HEXIUM_COMMIT={commit}");
+        return;
+    }
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .output()
+            .ok()
+            .filter(|output| output.status.success())
+            .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_owned())
+    };
+    for name in ["HEAD", "packed-refs"] {
+        if let Some(path) = git(&["rev-parse", "--path-format=absolute", "--git-path", name])
+            .filter(|path| std::path::Path::new(path).exists())
+        {
+            println!("cargo:rerun-if-changed={path}");
+        }
+    }
+    if let Some(reference) = git(&["symbolic-ref", "-q", "HEAD"])
+        .and_then(|name| git(&["rev-parse", "--path-format=absolute", "--git-path", &name]))
+        .filter(|path| std::path::Path::new(path).exists())
+    {
+        println!("cargo:rerun-if-changed={reference}");
+    }
+    let clean = git(&["status", "--porcelain", "--untracked-files=no"])
+        .is_some_and(|status| status.is_empty());
+    if let Some(commit) = git(&["rev-parse", "--short=7", "HEAD"]).filter(|_| clean) {
+        println!("cargo:rustc-env=HEXIUM_COMMIT={commit}");
+    }
 }

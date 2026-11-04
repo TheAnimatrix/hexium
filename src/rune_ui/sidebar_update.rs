@@ -22,6 +22,26 @@ pub(super) fn control(ui: &Ui, p: Paint) -> Option<El> {
         )),
         _ => None,
     };
+    // Hexium: Hex's updater is off; a newer Hexium release opens its page.
+    if action.is_none()
+        && let Some(release) = crate::hexium_updates::available()
+    {
+        return Some(
+            row()
+                .key("sidebar-update-control")
+                .gap(8.0)
+                .pl(6.0)
+                .center_y()
+                .child(controls::status_dot(p.accent()))
+                .child(controls::button(
+                    p,
+                    "sidebar-update",
+                    tr("Download Hexium update"),
+                    controls::ButtonKind::Secondary,
+                    move |_: &mut Ui, _| crate::hexium_updates::open(&release.url),
+                )),
+        );
+    }
     // An available update is a state, not the screen's main action.
     action.map(|(label, action)| {
         row()
@@ -37,6 +57,25 @@ pub(super) fn control(ui: &Ui, p: Paint) -> Option<El> {
                 controls::ButtonKind::Secondary,
                 move |ui: &mut Ui, _| ui.send(Request::Desktop(action.clone())),
             ))
+    })
+}
+
+/// Hexium: the footer's update line follows Hexium's release check, since
+/// Hex's updater is off (Unavailable): Check for updates, Checking…, up to
+/// date or couldn't check. A release found is the button above instead.
+pub(super) fn hexium_status(ui: &Ui) -> Option<DesktopUpdateStatus> {
+    let off =
+        ui.view.as_ref().map(|view| &view.update_status) == Some(&DesktopUpdateStatus::Unavailable);
+    if !crate::app_paths::HEXIUM || !off {
+        return None;
+    }
+    Some(match crate::hexium_updates::status() {
+        crate::hexium_updates::Status::Checking => DesktopUpdateStatus::Checking,
+        crate::hexium_updates::Status::Failed => DesktopUpdateStatus::Failed,
+        crate::hexium_updates::Status::Found(_) => DesktopUpdateStatus::Available,
+        crate::hexium_updates::Status::Idle | crate::hexium_updates::Status::Current => {
+            DesktopUpdateStatus::Current
+        }
     })
 }
 
