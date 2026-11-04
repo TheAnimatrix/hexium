@@ -44,7 +44,7 @@ WAV files beside it:
     {
       "id": "short-product-name",
       "audio": "short-product-name.wav",
-      "expected": "OpenCode should keep this sentence concise."
+      "expected": "Hex should keep this sentence concise."
     }
   ]
 }

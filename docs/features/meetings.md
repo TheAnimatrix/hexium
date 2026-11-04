@@ -29,14 +29,9 @@ Labs > Meetings switch (macOS)                       // meetings.opt-in; off by 
 │   ├── Advanced -> Show recording indicator (on by default; corner-snapping capsule),
 │   │   Transcript folder (~/Documents/Hex Meetings; Reveal / choose; an error opens
 │   │   Advanced), Summarize with Apple Intelligence (on by default), Summarize
-│   │   with OpenCode (off by default; when Apple Intelligence is off or missing),
 │   │   then with Labs › Choose meeting summary model on, Summary model: a
-│   │   searchable picker of the running OpenCode's models (the catalog Modes
 │   │   uses, read only while this row shows) whose pick is the provider/model
-│   │   OpenCode notes use, no fallback; "Hex picks a fast model" clears it ->
-│   │   the ranked fast models. OpenCode missing or failing -> a notice with
 │   │   Check again / Retry, the saved model kept and shown by its ID
-│   │   (meetings.opencode_model; see labs.md, #1107, #1301)
 │   ├── Calendar -> Connect calendar; reminders before meetings // meetings.calendar
 │   └── Detected calls -> Ask / Always record / Never offer per provider // meetings.policy
 │       ├── Slack huddles, Zoom, Google Meet, Microsoft Teams, FaceTime, WhatsApp,
@@ -123,14 +118,9 @@ Browser calls -> offered as "Call in <browser>": no site is read yet, so a
         process); others are not detected (#1105)
 Permissions -> none asked; the System Audio Recording row is macOS-only
 Calendar -> none (no Connect calendar row)
-Notes and live chapters -> Summarize with OpenCode (off by default); it sends
-    the transcript excerpt to the OpenCode model
-    ├── Summarize -> "Writing a title and summary with OpenCode…" (never
     │   Apple Intelligence off a Mac that has it)
     ├── Labs › Choose meeting summary model (off by default; #1160) -> Advanced
-    │   shows Summary model while Summarize with OpenCode is on; a saved
     │   provider/model is used alone, as on macOS (labs.md)
-    └── No writer (OpenCode not running) -> "Notes could not be written." with
         the reason, recorded as notes_error (#1151: it was dropped silently)
 Idle sleep -> systemd-inhibit idle:sleep (Linux),
     SetThreadExecutionState (Windows) while recording
@@ -1061,23 +1051,16 @@ Final publication complete                               // meetings.notes
   -> 90 s total deadline; the call ≤60 s
   -> Manifest: notes { title ≤8 words, summary ≤2 sentences / 400 chars,
      excerpt_chars, transcript_chars, written_by }
-     └── written_by: {"writer": "apple_intelligence"} or {"writer": "opencode",
-         "model": "provider/model"} (no model when OpenCode's default answered);
          absent on notes written before #1125
   -> Markdown copy, same file name, atomic replace
      ├── Heading -> final title, only while it still reads Hex's last title
      ├── <!-- hex:notes --> ## Summary (one paragraph) above ## Transcript
      │   └── Footer names the writer: "Written on this Mac by Apple
-     │       Intelligence", "Written by <provider/model> through OpenCode", or,
      │       for older notes without written_by, no writer at all (#1125;
      │       check: the_notes_footer_names_the_writer_that_wrote_them)
      ├── Text outside the block is preserved; changed mid-write -> not written
      └── Missing file -> manifest only
   -> Failure / timeout -> notes_error; Markdown untouched; recording stays Complete
-  -> OpenCode without a chosen model: the ranked models are cached per service;
-     any one failing drops the cache (the next call reads OpenCode's catalog
-     again), and all failing asks OpenCode's own default model, so a list read
-     while OpenCode was still loading no longer fails every call until a
      restart (#1123; check: stale_ranked_models_fall_back_to_the_default_model)
 
 Unavailable (not eligible / Apple Intelligence off / model not ready / macOS < 26)
@@ -1340,7 +1323,6 @@ meetings without WAVs): first launch of a freshly signed binary 440 ms to
 
 ```ts
 Don't: MCP client config runs `ssh pro hex mcp`         // one SSH per client
-  -> 41 OpenCode instances = 41 SSH sessions -> the Pro's sshd reset connections
 
 Do: one periodic pull, then local servers               // meetings.mcp.mirror
 scripts/sync-meetings-mirror.sh (LaunchAgent template, every 120 s,

@@ -10,7 +10,7 @@
 
 ## Sharing the Engine and the Models: the Guide
 
-There are two ways for Hex, Seer, Rune Desktop and OpenCode Desktop to share
+There are two ways for Hex, Seer and Rune Desktop to share
 speech recognition. Either each app links the engine as a library, or one
 engine process serves them all.
 
@@ -91,7 +91,7 @@ Fixtures: `term-hex-3.wav` (**2.64 s**, 84.5 KB) and 5 concatenated vocabulary c
 | --- | --- | --- |
 | **`SMAppService.agent(plistName:)`** in `Hex.app/Contents/Library/LaunchAgents/` | `launchd` supervises crashes (`KeepAlive.SuccessfulExit = false`) and applies `ProcessType = Interactive` + `LimitLoadToSessionType = Aqua`. | Verified via `sfltool dumpbtm`: macOS posts a **"Background Items Added"** notification (`Disposition: [enabled, allowed, notified]`) and adds a separate toggle in System Settings that breaks transcription if turned off (`RequiresApproval`). Also requires `Hex.app` to be installed, failing in Seer-only / Rune-only installs. |
 | **`SMAppService.mainApp` Login Item** | Already used by `Hex.app` for Launch at Login. | Starts the full `Hex.app` menu-bar app, not a headless engine for Seer-only users. |
-| **On-demand user-session daemon (`hex engine`) coordinated by `engine.lock` + `local-api.json` (Recommended)** | Zero BTM "Background Items Added" notifications; works identically whether the user has `Hex.app`, only Seer, only OpenCode Desktop, or all four; inherits foreground interactive task policy when spawned by a GUI app. | Client SDK/host helper respawns the daemon on connection failure instead of `launchd` `KeepAlive`. |
+| **On-demand user-session daemon (`hex engine`) coordinated by `engine.lock` + `local-api.json` (Recommended)** | Zero BTM "Background Items Added" notifications; works identically whether the user has `Hex.app`, only Seer, or all three; inherits foreground interactive task policy when spawned by a GUI app. | Client SDK/host helper respawns the daemon on connection failure instead of `launchd` `KeepAlive`. |
 
 **Recommendation:** Use an **on-demand detached user daemon (`hex engine`)** coordinated through `~/Library/Application Support/hex/engine.lock` and `local-api.json`, while `Hex.app` keeps its existing `SMAppService.mainApp` Login Item.
 
@@ -114,7 +114,7 @@ client.connectOrStartEngine()
 **Recommendation:** Keep **authenticated loopback HTTP (`127.0.0.1:<ephemeral-port>`)** with `0600` `local-api.json` discovery and random 256-bit Bearer token, and ship the 12-line `libc::poll` accept fix in `src/local_api.rs` (plus HTTP/1.1 keep-alive for `/streams/:id/audio` connection reuse).
 
 - With `libc::poll` on `listener.as_raw_fd()`, loopback HTTP takes **0.12 ms** per control call, **0.28 ms** per 100 ms audio chunk, and **0.39 ms** for SSE partials—over **40× below** human perceptual thresholds (~15 ms).
-- A Unix domain socket saves ~40 µs per call while breaking standard `fetch`/`EventSource` in TypeScript clients (`@kitlangton/hex`, Seer, OpenCode Desktop).
+- A Unix domain socket saves ~40 µs per call while breaking standard `fetch`/`EventSource` in TypeScript clients (`@kitlangton/hex`, Seer).
 
 ## 3. Process Priority, QoS, and Metal Access
 
@@ -136,7 +136,7 @@ client.connectOrStartEngine()
 
 **Recommendation:** Stateless fail-fast recovery with **retained-audio fallback in `Hex.app`**.
 
-- **In-flight `/streams` and `/transcriptions`:** If `hex engine` crashes or hangs past the client's deadline, the socket closes (`EOF` / `ECONNRESET`). External SDK clients (`Seer`, `OpenCode`) receive a typed `EngineDisconnected` error on that stream, call `connectOrStartEngine()`, and reconnect within **~390–585 ms** on the next utterance.
+- **In-flight `/streams` and `/transcriptions`:** If `hex engine` crashes or hangs past the client's deadline, the socket closes (`EOF` / `ECONNRESET`). External SDK clients (`Seer`) receive a typed `EngineDisconnected` error on that stream, call `connectOrStartEngine()`, and reconnect within **~390–585 ms** on the next utterance.
 - **`Hex.app` dictation resilience:** `Hex.app` retains the authoritative 16 kHz PCM capture buffer in its own memory (`dictation_audio`) until paste completes. If the speculative `/streams` session to `hex engine` drops mid-capture or times out at `/finish`, `Hex.app` respawns `hex engine` and submits the retained whole clip via `POST /transcriptions` (the exact same speculative-stream-to-whole-clip fallback `TranscriptionEngine::finish_with` performs today). No dictated speech is ever lost to an engine crash.
 - **Crash loop throttle:** Clients track engine spawn timestamps in-process and cap restarts at **3 attempts per 30 seconds** (with `100 ms → 1 s → 5 s` backoff) before surfacing `EngineUnavailable`.
 
@@ -147,7 +147,7 @@ client.connectOrStartEngine()
 ```ts
 POST /streams { priority: "dictation" | "stream" }
 ├── priority: "dictation" (Hex.app hotkey / Voice Action)
-│   ├── increments dictation_busy in engine -> immediately closes any active YieldingStream (Seer/OpenCode)
+│   ├── increments dictation_busy in engine -> immediately closes any active YieldingStream (Seer)
 │   ├── claims exclusive LiveStream on TranscriptionEngine
 │   └── any competing /streams push buffers in its 30 s backlog and catches up via offline window after dictation finishes
 └── POST /transcriptions { priority: "dictation" | "normal" | "background" }
@@ -178,7 +178,7 @@ POST /streams { priority: "dictation" | "stream" }
 
 ## 9. How `Hex.app` Talks to It & Incremental PR Plan
 
-`Hex.app` keeps **all** macOS-specific desktop responsibilities in-process: `dictation_audio` (CoreAudio mic + pre-roll), `suppression` (event taps + shortcut state machine), `dictation_indicator` (Metal HUD), `audio/recording_environment` (mute/media pause/sleep), `dictation_processor` (corrections, OpenCode rewrite, transformations), `paste`, `history`, `recognition` (Moonshine voice commands), `meeting_capture`, and the Rune settings window. Only `TranscriptionEngine` (Parakeet/Cohere/Whisper GGUF + Apple Speech) moves behind an `EngineClient` seam that speaks to `hex engine` over `local-api.json`:
+`Hex.app` keeps **all** macOS-specific desktop responsibilities in-process: `dictation_audio` (CoreAudio mic + pre-roll), `suppression` (event taps + shortcut state machine), `dictation_indicator` (Metal HUD), `audio/recording_environment` (mute/media pause/sleep), `dictation_processor` (corrections, transformations), `paste`, `history`, `recognition` (Moonshine voice commands), `meeting_capture`, and the Rune settings window. Only `TranscriptionEngine` (Parakeet/Cohere/Whisper GGUF + Apple Speech) moves behind an `EngineClient` seam that speaks to `hex engine` over `local-api.json`:
 
 1. **PR 1 — `LocalApi::serve` `poll(2)` accept + HTTP keep-alive:** Land the 12-line `libc::poll` fix in `src/local_api.rs` (dropping loopback latency from 12.5 ms to **0.12 ms**) and `POST /warm`.
 2. **PR 2 — Standalone `hex engine` command & lock/discovery lifecycle:** Promote `hex service` / `hex engine` to start and share `TranscriptionEngine` with interactive QoS, App Nap assertion, 10-minute idle model unload, and `shutdown-when-idle`.
