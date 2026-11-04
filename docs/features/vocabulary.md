@@ -56,7 +56,6 @@ Transcription (Parakeet: RNN-T and TDT, Underdog Bark and Nemotron 3.5 ASR too) 
 │   replaces the span only when its score plus the boost per term piece beats
 │   the heard words'
 ├── Left alone: case-only differences, inflections ("Cappuccinos"), and addresses
-│   and paths ("opencode.ai"); rescoring also skips terms under 5 letters
 │   without a spelling, which the RNN-T decoder can still write ("Kip" -> Kit)
 └── SenseVoice, Cohere, GigaAM, Granite, Apple Speech -> no vocabulary in transcription
 
@@ -97,7 +96,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
 │   agent's prompt explains it)
 ├── Its terms come first, then the shared list's, each term once (any case),
 │   so the 64-term cap keeps them
-├── OpenCode rewriting -> every OS, the mode chosen for the dictation
 └── Transcription -> macOS dictation only: the mode of the app and page the
     context monitor last saw when the stream or whole-clip run starts. The app
     is polled every 0.5 s; a scriptable browser's page is read when the browser
@@ -108,7 +106,6 @@ A mode's own vocabulary                  // vocabulary.modes; DictationMode::voc
     finished text. Meetings, captures, the local API, Linux, and Windows hear with the
     shared list
 
-OpenCode rewriting (Modes)               // vocabulary.prompt
 └── Prompt gains "Vocabulary (spell these exactly when the speaker means them):
     term (may be transcribed as a, b); …" before the foreground application
 
