@@ -252,6 +252,7 @@ pub struct Updater {
 
 impl Updater {
     pub fn start() -> Self {
+        crate::hexium_updates::start();
         let method = platform::method();
         let disabled = if crate::app_paths::HEXIUM
             || option_env!("HEX_TEST_BUILD") == Some("1")
