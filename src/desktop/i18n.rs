@@ -268,6 +268,14 @@ fn locale_from_env(lc_all: Option<&str>, lc_messages: Option<&str>, lang: Option
 /// Translate one UI string. Returns the input unchanged for English or for
 /// strings missing from the table, so dynamic values pass through safely.
 pub(crate) fn tr(english: &str) -> &str {
+    // Hexium: the app's name in every UI string (src/hexium_brand.rs).
+    #[cfg(not(test))]
+    return crate::hexium_brand::brand(translate(english));
+    #[cfg(test)]
+    translate(english)
+}
+
+fn translate(english: &str) -> &str {
     let column = current();
     if column == ENGLISH {
         return english;
