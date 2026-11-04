@@ -4580,7 +4580,7 @@ dependencies = [
 [[package]]
 name = "procwatch"
 version = "0.1.0"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "libc",
 ]
@@ -5060,7 +5060,7 @@ dependencies = [
 [[package]]
 name = "rune"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "accesskit",
  "accesskit_macos",
@@ -5142,7 +5142,7 @@ dependencies = [
 [[package]]
 name = "rune-highlights"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "unicode-ident",
  "wasmparser",
@@ -5151,7 +5151,7 @@ dependencies = [
 [[package]]
 name = "rune-kit"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "rune",
  "rune-highlights",
@@ -5162,12 +5162,12 @@ dependencies = [
 [[package]]
 name = "rune-motion"
 version = "0.1.0"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 
 [[package]]
 name = "rune-staging"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "wgpu",
 ]
@@ -5175,7 +5175,7 @@ dependencies = [
 [[package]]
 name = "rune-taffy"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "taffy",
 ]
@@ -5183,7 +5183,7 @@ dependencies = [
 [[package]]
 name = "rune-theme-opencode"
 version = "0.0.1"
-source = "git+https://github.com/anomalyco/rune.git?rev=a7cea1692a8ce68b1b63c46688c493bb94a8456d#a7cea1692a8ce68b1b63c46688c493bb94a8456d"
+source = "git+https://github.com/TheAnimatrix/rune?rev=d7ea3cd65f9c6367f5b581db0321cfccae67379f#d7ea3cd65f9c6367f5b581db0321cfccae67379f"
 dependencies = [
  "rune",
  "rune-kit",
@@ -6391,7 +6391,7 @@ dependencies = [
 [[package]]
 name = "transcribe-cpp"
 version = "0.4.1"
-source = "git+https://github.com/anomalyco/transcribe.cpp?rev=bcb639faa4c74a2300ba19e30360cb2355b1663a#bcb639faa4c74a2300ba19e30360cb2355b1663a"
+source = "git+https://github.com/TheAnimatrix/transcribe.cpp?rev=ffe0bfd6a91987b2d9e7ad8b456fa0113e7914ba#ffe0bfd6a91987b2d9e7ad8b456fa0113e7914ba"
 dependencies = [
  "log",
  "thiserror 2.0.21",
@@ -6401,7 +6401,7 @@ dependencies = [
 [[package]]
 name = "transcribe-cpp-sys"
 version = "0.4.1"
-source = "git+https://github.com/anomalyco/transcribe.cpp?rev=bcb639faa4c74a2300ba19e30360cb2355b1663a#bcb639faa4c74a2300ba19e30360cb2355b1663a"
+source = "git+https://github.com/TheAnimatrix/transcribe.cpp?rev=ffe0bfd6a91987b2d9e7ad8b456fa0113e7914ba#ffe0bfd6a91987b2d9e7ad8b456fa0113e7914ba"
 dependencies = [
  "cmake",
  "serde_json",
