@@ -35,12 +35,12 @@
         }
       },
       "guard": [
-        { "file": "%APPDATA%/hex/local-api.json", "pid": "pid" },
-        { "file": "%APPDATA%/hex/settings.json" },
-        { "file": "~/Library/Application Support/hex/local-api.json", "pid": "pid" },
-        { "file": "~/Library/Application Support/hex/settings.json" },
-        { "file": "~/.local/share/hex/local-api.json", "pid": "pid" },
-        { "file": "~/.local/share/hex/settings.json" }
+        { "file": "%APPDATA%/hex/local-api.json", "pid": "pid", "os": "windows" },
+        { "file": "%APPDATA%/hex/settings.json", "os": "windows" },
+        { "file": "~/Library/Application Support/hex/local-api.json", "pid": "pid", "os": "macos" },
+        { "file": "~/Library/Application Support/hex/settings.json", "os": "macos" },
+        { "file": "~/.local/share/hex/local-api.json", "pid": "pid", "os": "linux" },
+        { "file": "~/.local/share/hex/settings.json", "os": "linux" }
       ]
     },
     "hex-listening": {
