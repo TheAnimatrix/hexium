@@ -517,7 +517,7 @@ impl AppSettings {
         let model = crate::transcription::models::definition(id);
         TranscriptionSelection {
             model: id,
-            language: model.language_for(&self.transcription.language).into(),
+            language: model.switch_language(&self.transcription.language).into(),
         }
     }
 
