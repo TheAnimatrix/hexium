@@ -384,8 +384,12 @@ pub(super) fn choose(ui: &mut Ui, model: &'static ModelDefinition) {
         close(ui);
         return;
     }
-    let language = model.language_for(&current.language).to_owned();
-    ui.picker.fallback = (language != current.language).then(|| LanguageFallback {
+    let language = model.switch_language(&current.language).to_owned();
+    // Hexium: a switch to Auto from a language the model supports says
+    // nothing (switch_language).
+    ui.picker.fallback = (language != current.language
+        && !model.supports_language(&current.language))
+    .then(|| LanguageFallback {
         model: model.id,
         from: current.language.clone(),
     });
