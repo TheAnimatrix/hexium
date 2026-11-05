@@ -16,6 +16,7 @@ pub(crate) mod gguf_session;
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 pub(crate) mod gpu_health;
 pub(crate) mod keyboard_model_switching;
+pub(crate) mod language_id;
 pub(crate) mod languages;
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 pub(crate) mod local_transcriber;

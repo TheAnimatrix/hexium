@@ -68,7 +68,10 @@ pub(crate) fn validate_gguf_artifact(
             artifact.variant
         ));
     }
-    if selection.language == AUTO_LANGUAGE && !supports_language_detect {
+    if selection.language == AUTO_LANGUAGE
+        && !supports_language_detect
+        && !definition.identifies_language()
+    {
         return Err(eyre!(
             "{} does not advertise automatic language detection",
             definition.name
@@ -133,6 +136,10 @@ pub(crate) struct OfflineGgufSession {
     last_run: Option<Instant>,
     /// How runs take the vocabulary.
     vocabulary: VocabularySlot,
+    /// Hexium: on Auto with a model that must be told the language, the
+    /// languages each run identifies the spoken one among
+    /// (`crate::transcription::language_id`).
+    identify: Option<&'static [&'static str]>,
 }
 
 impl OfflineGgufSession {
@@ -154,7 +161,17 @@ impl OfflineGgufSession {
             options,
             last_run: None,
             vocabulary,
+            identify: None,
         })
+    }
+
+    /// Hexium: makes each run without a language identify the spoken one
+    /// among `languages` first; `None` leaves the model to its own.
+    pub(crate) fn identify_language_among(&mut self, languages: Option<&'static [&'static str]>) {
+        if languages.is_some() {
+            crate::transcription::language_id::ensure_installed();
+        }
+        self.identify = languages;
     }
 
     /// `options` with the vocabulary added, read now so a settings change
@@ -316,6 +333,17 @@ impl OfflineGgufSession {
             session.set_cancel_token(&cancel);
         }
         let options = self.with_vocabulary(options, false);
+        let options = match self.identify {
+            Some(languages) if options.language.is_none() => {
+                Cow::Owned(transcribe_cpp::RunOptions {
+                    language: Some(crate::transcription::language_id::identify(
+                        samples, languages,
+                    )),
+                    ..options.into_owned()
+                })
+            }
+            _ => options,
+        };
         let result =
             keep_repetition_partial(session.run(samples, &options)).map(|mut transcript| {
                 if let Some(prompt) = &options.prompt {
