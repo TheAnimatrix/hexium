@@ -385,7 +385,8 @@ impl LocalTranscriber {
             variant,
             "loaded local transcription model"
         );
-        let session = OfflineGgufSession::new(model)?;
+        let mut session = OfflineGgufSession::new(model)?;
+        session.identify_language_among(definition.identified_languages(&selection.language));
         let mut transcriber = Self {
             session,
             selection: selection.clone(),

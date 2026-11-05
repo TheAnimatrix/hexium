@@ -71,10 +71,12 @@ pub(crate) fn validate_gguf_artifact(
     }
     // Auto gates a hint, so it needs detection only from a model that takes
     // one: a no-hint head (Parakeet v3, Granite) hears the language itself,
-    // whatever its file's lang_detect metadata says.
+    // whatever its file's lang_detect metadata says. Hexium: a model Hex
+    // identifies the language for (Indic-Transcribe-Flex) is fine too.
     if selection.language == AUTO_LANGUAGE
         && definition.accepts_language_hint
         && !supports_language_detect
+        && !definition.identifies_language()
     {
         return Err(eyre!(
             "{} does not advertise automatic language detection",
@@ -167,6 +169,10 @@ pub(crate) struct OfflineGgufSession {
     last_run: Option<Instant>,
     /// How runs take the vocabulary.
     vocabulary: VocabularySlot,
+    /// Hexium: on Auto with a model that must be told the language, the
+    /// languages each run identifies the spoken one among
+    /// (`crate::transcription::language_id`).
+    identify: Option<&'static [&'static str]>,
 }
 
 impl OfflineGgufSession {
@@ -188,7 +194,17 @@ impl OfflineGgufSession {
             options,
             last_run: None,
             vocabulary,
+            identify: None,
         })
+    }
+
+    /// Hexium: makes each run without a language identify the spoken one
+    /// among `languages` first; `None` leaves the model to its own.
+    pub(crate) fn identify_language_among(&mut self, languages: Option<&'static [&'static str]>) {
+        if languages.is_some() {
+            crate::transcription::language_id::ensure_installed();
+        }
+        self.identify = languages;
     }
 
     /// `options` with the vocabulary added, read now so a settings change
@@ -377,6 +393,19 @@ impl OfflineGgufSession {
         let options = match kind.takes_vocabulary() {
             true => self.with_vocabulary(options, false),
             false => Cow::Borrowed(options),
+        };
+        // Hexium: on Auto, Flex is told the language identified in this clip
+        // (a warm-up too, since Flex must always be told one).
+        let options = match self.identify {
+            Some(languages) if options.language.is_none() => {
+                Cow::Owned(transcribe_cpp::RunOptions {
+                    language: Some(crate::transcription::language_id::identify(
+                        samples, languages,
+                    )),
+                    ..options.into_owned()
+                })
+            }
+            _ => options,
         };
         let result =
             keep_repetition_partial(session.run(samples, &options)).map(|mut transcript| {
