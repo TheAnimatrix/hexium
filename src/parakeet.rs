@@ -1225,7 +1225,10 @@ impl Parakeet {
             }
             options.language = runtime_language;
         }
-        let session = OfflineGgufSession::new(model)?;
+        let mut session = OfflineGgufSession::new(model)?;
+        if let (Some(selection), Some(definition)) = (selection, definition) {
+            session.identify_language_among(definition.identified_languages(&selection.language));
+        }
         let weights_bytes = std::fs::metadata(model_path).map_or(0, |meta| meta.len() as usize);
         Ok(Self {
             session,

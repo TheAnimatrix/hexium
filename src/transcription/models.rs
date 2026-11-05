@@ -282,6 +282,32 @@ impl ModelDefinition {
         }
     }
 
+    /// Hexium: whether Auto identifies the spoken language first and tells
+    /// the model (`crate::transcription::language_id`), for a model that
+    /// cannot find it itself.
+    pub fn identifies_language(&self) -> bool {
+        self.id == TranscriptionModelId::IndicTranscribeFlex
+    }
+
+    /// The language a switch to this model from one on `language` picks:
+    /// [`Self::language_for`], except that English becomes Auto on a model
+    /// Auto identifies for (Hexium): told English, Indic-Transcribe-Flex
+    /// writes Telugu or Hindi in English letters, while Auto keeps English
+    /// as English.
+    pub fn switch_language<'a>(&self, language: &'a str) -> &'a str {
+        if language == "en" && self.identifies_language() {
+            AUTO_LANGUAGE
+        } else {
+            self.language_for(language)
+        }
+    }
+
+    /// Hexium: the languages a run on `language` identifies the spoken one
+    /// among, or `None` when the model is told the language or finds it.
+    pub fn identified_languages(&self, language: &str) -> Option<&'static [&'static str]> {
+        (language == AUTO_LANGUAGE && self.identifies_language()).then_some(self.languages)
+    }
+
     pub fn runtime_language_hint<'a>(&self, language: &'a str) -> Option<&'a str> {
         (language != AUTO_LANGUAGE && self.accepts_language_hint)
             .then(|| self.runtime_language(language))
@@ -482,7 +508,8 @@ pub const MODELS: &[ModelDefinition] = &[
         runtime: ModelRuntime::Gguf(&INDIC_TRANSCRIBE_FLEX_ARTIFACT),
         languages: INDIC_TRANSCRIBE_LANGUAGES,
         accepts_language_hint: true,
-        supports_language_detection: false,
+        // Hexium: Auto identifies the language first (identifies_language).
+        supports_language_detection: true,
     },
     ModelDefinition {
         id: TranscriptionModelId::IvritWhisperLargeV3Turbo,
@@ -1141,7 +1168,47 @@ pub fn download_with_stage_progress(
     if !speech_detector_installed() {
         crate::transcription::speech_detector::start_download();
     }
+    // Hexium: Auto on this model needs the language identifier.
+    if model.identifies_language() {
+        crate::transcription::language_id::ensure_installed();
+    }
     Ok(path)
+}
+
+/// Hexium: VoxLingua107 ECAPA-TDNN, which names the spoken language for a
+/// model that must be told it (Indic-Transcribe-Flex on Auto).
+pub const LANGUAGE_IDENTIFIER_ARTIFACT: GgufArtifact = GgufArtifact {
+    filename: "lang-id-voxlingua107-ecapa-Q8_0.gguf",
+    revision: "e59f0f3847e77723b7d58447ef9456fa0c7e9436",
+    repository: "handy-computer/lang-id-voxlingua107-ecapa-gguf",
+    bytes: 26_693_632,
+    sha256: "063e6cb0af3d53085fc7d68356dfde5ecee2ffa7bc79855f7e4ff930081bfe3a",
+    architecture: "ecapa_tdnn",
+    variant: "voxlingua107",
+};
+
+/// Hexium: downloads the language identifier unless a verified copy is
+/// installed.
+#[cfg_attr(test, allow(dead_code))]
+pub fn download_language_identifier(canceled: &AtomicBool) -> Result<PathBuf> {
+    download_artifact(
+        &LANGUAGE_IDENTIFIER_ARTIFACT,
+        "the language identifier",
+        canceled,
+        &AtomicU64::new(0),
+        &AtomicU8::new(ModelPreparationStage::Downloading as u8),
+    )
+}
+
+pub fn language_identifier_path() -> Result<PathBuf> {
+    Ok(models_dir()?.join(LANGUAGE_IDENTIFIER_ARTIFACT.filename))
+}
+
+/// Hexium: whether the language identifier is installed at its pinned size.
+pub fn language_identifier_installed() -> bool {
+    language_identifier_path()
+        .and_then(|path| Ok(fs::metadata(path)?.len() == LANGUAGE_IDENTIFIER_ARTIFACT.bytes))
+        .unwrap_or(false)
 }
 
 /// Downloads the speech detector unless a verified copy is installed.
@@ -2021,6 +2088,19 @@ mod tests {
         let qwen = definition(TranscriptionModelId::Qwen3Asr06B);
 
         assert_eq!(whisper.runtime_language_hint(AUTO_LANGUAGE), None);
+        // Hexium: Indic-Transcribe-Flex identifies the language on Auto, and
+        // a switch to it from English lands there.
+        let flex = definition(TranscriptionModelId::IndicTranscribeFlex);
+        assert!(flex.language_choices().contains(&AUTO_LANGUAGE));
+        assert_eq!(flex.switch_language("en"), AUTO_LANGUAGE);
+        assert_eq!(flex.switch_language("te"), "te");
+        assert_eq!(flex.identified_languages("te"), None);
+        assert!(
+            flex.identified_languages(AUTO_LANGUAGE)
+                .is_some_and(|l| l.contains(&"te"))
+        );
+        assert_eq!(whisper.switch_language("en"), "en");
+        assert_eq!(whisper.identified_languages(AUTO_LANGUAGE), None);
         assert_eq!(whisper.runtime_language_hint("fil"), Some("tl"));
         assert_eq!(qwen.runtime_language_hint(AUTO_LANGUAGE), None);
         assert_eq!(qwen.runtime_language_hint("zh"), Some("zh"));
