@@ -73,10 +73,12 @@ pub(crate) fn validate_gguf_artifact(
     }
     // Auto gates a hint, so it needs detection only from a model that takes
     // one: a no-hint head (Parakeet v3, Granite) hears the language itself,
-    // whatever its file's lang_detect metadata says.
+    // whatever its file's lang_detect metadata says. Hexium: a model Hex
+    // identifies the language for (Indic-Transcribe-Flex) is fine too.
     if selection.language == AUTO_LANGUAGE
         && definition.accepts_language_hint
         && !supports_language_detect
+        && !definition.identifies_language()
     {
         return Err(eyre!(
             "{} does not advertise automatic language detection",
@@ -191,6 +193,10 @@ pub(crate) struct OfflineGgufSession {
     stream_menus_read: bool,
     /// The model file's path, kept for that lazy read.
     stream_path: Option<std::path::PathBuf>,
+    /// Hexium: on Auto with a model that must be told the language, the
+    /// languages each run identifies the spoken one among
+    /// (`crate::transcription::language_id`).
+    identify: Option<&'static [&'static str]>,
 }
 
 impl OfflineGgufSession {
@@ -218,7 +224,17 @@ impl OfflineGgufSession {
             stream_menus: None,
             stream_menus_read: false,
             stream_path: None,
+            identify: None,
         })
+    }
+
+    /// Hexium: makes each run without a language identify the spoken one
+    /// among `languages` first; `None` leaves the model to its own.
+    pub(crate) fn identify_language_among(&mut self, languages: Option<&'static [&'static str]>) {
+        if languages.is_some() {
+            crate::transcription::language_id::ensure_installed();
+        }
+        self.identify = languages;
     }
 
     /// `options` with the vocabulary added, read now so a settings change
@@ -503,6 +519,19 @@ impl OfflineGgufSession {
         // after the run instead, and a model with no vocabulary slot doesn't
         // get the list at all.
         let correct_spellings = corrects_sounds_like(self.vocabulary, kind);
+        // Hexium: on Auto, Flex is told the language identified in this clip
+        // (a warm-up too, since Flex must always be told one).
+        let options = match self.identify {
+            Some(languages) if options.language.is_none() => {
+                Cow::Owned(transcribe_cpp::RunOptions {
+                    language: Some(crate::transcription::language_id::identify(
+                        samples, languages,
+                    )),
+                    ..options.into_owned()
+                })
+            }
+            _ => options,
+        };
         let result =
             keep_repetition_partial(session.run(samples, &options)).map(|mut transcript| {
                 // Only the vocabulary sets a prompt, and a warm-up leaves it
