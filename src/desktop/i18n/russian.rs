@@ -1207,6 +1207,10 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Use an OpenCode service running in your default WSL distribution for Modes rewriting and the Modes model picker. Looking for it can start WSL.", "Использует службу OpenCode, запущенную в вашем дистрибутиве WSL по умолчанию, для переписывания в режимах и выбора моделей в режимах. Её поиск может запустить WSL."),
     ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
     ("Download Hexium update", "Скачать обновление Hexium"),
+    ("Learn from your fixes", "Учиться на ваших исправлениях"),
+    ("Correct a misheard word once and Hexium spells it your way from then on", "Исправьте неверно услышанное слово один раз, и Hexium будет писать его так"),
+    ("Quote what's on screen", "Цитировать то, что на экране"),
+    ("Say a heading or label from the open window and it's quoted as written", "Произнесите заголовок или подпись из открытого окна, и они будут процитированы как есть"),
 ];
 
 #[cfg(test)]

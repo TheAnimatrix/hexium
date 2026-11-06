@@ -24,6 +24,7 @@ the newest upstream, tests it, and ships it.
 | new icon | `resources/windows/*`, `app/AppIcon.icon` (from `branding/make_icons.py`) |
 | Indic-Transcribe-Flex as a built-in model | `artifacts.rs`, `models.rs`, picker blurb |
 | Auto language for Indic-Transcribe-Flex | `language_id.rs` (VoxLingua107), one step in `gguf_session::run`, the identifier's download in `models.rs` |
+| learn from fixes, quote what's on screen | `dictation/{fix_learning,screen_quotes,screen_text}.rs`, a screen reader per OS (`accessibility/`, `windows/`, `linux/atspi/`), two Labs switches, one step in `processor.rs` and one after each OS's paste |
 | README, contributing, sync | `README.md`, `CONTRIBUTING.md`, `hexium/` |
 | release workflow | `.github/workflows/hexium-release.yml` |
 | no assistant integration | one switch in `app_paths.rs` plus hidden UI and docs |

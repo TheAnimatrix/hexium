@@ -390,7 +390,9 @@ impl Profiles {
         }
         if !profile.ai_enabled || numbers_only {
             return Processed {
-                text: corrected,
+                // Hexium: Labs › Learn from your fixes and Quote what's on
+                // screen, last, so no model ever reads the window's text.
+                text: crate::dictation::screen_quotes::finish(corrected, &profile.vocabulary),
                 observation: None,
                 transformations: profile.transformations.clone(),
             };
@@ -426,7 +428,11 @@ impl Profiles {
             ),
         }
         Processed {
-            text: text.unwrap_or(corrected),
+            // Hexium: after the rewrite, so the window's text never reaches it.
+            text: crate::dictation::screen_quotes::finish(
+                text.unwrap_or(corrected),
+                &profile.vocabulary,
+            ),
             observation: Some(observation),
             transformations: profile.transformations.clone(),
         }

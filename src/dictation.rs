@@ -9,12 +9,16 @@ pub(crate) mod context;
 #[cfg(target_os = "macos")]
 pub(crate) mod diagnostics;
 pub(crate) mod filler_words;
+// Hexium: Labs › Learn from your fixes and Quote what's on screen.
+pub(crate) mod fix_learning;
 pub(crate) mod indicator;
 pub(crate) mod live_text;
 #[cfg_attr(target_os = "macos", allow(dead_code))]
 pub(crate) mod modes;
 #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
 pub(crate) mod processor;
+pub(crate) mod screen_quotes;
+pub(crate) mod screen_text;
 pub(crate) mod service;
 pub(crate) mod spoken_formatting;
 pub(crate) mod spoken_symbols;
