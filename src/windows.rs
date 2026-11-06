@@ -7,6 +7,8 @@ pub(crate) mod input;
 pub(crate) mod login_item;
 pub(crate) mod paste;
 pub(crate) mod rune;
+// Hexium: Labs › Quote what's on screen and Learn from your fixes.
+pub(crate) mod screen_text;
 pub(crate) mod vulkan;
 
 use std::io::Write;

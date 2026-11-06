@@ -120,6 +120,10 @@ pub(super) fn process_dictation_job(
                 pasted
             };
             copied = matches!(pasted, Ok(Paste::Copied));
+            // Hexium: Labs › Learn from your fixes watches the field.
+            if pasted.is_ok() && !copy_only && !sent {
+                crate::dictation::fix_learning::pasted(&text);
+            }
             // A failed paste still keeps the text for Paste Last.
             *last_dictation
                 .lock()

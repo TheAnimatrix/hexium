@@ -618,7 +618,9 @@ impl Profiles {
             } else {
                 crate::dictation::apple_cleanup::stage(&corrected, numbers_only, cancelled)
             };
-            return with_style(
+            // Hexium: Labs › Learn from your fixes and Quote what's on
+            // screen, last, so no model ever reads the window's text.
+            let mut processed = with_style(
                 Processed {
                     text,
                     nothing: false,
@@ -628,6 +630,9 @@ impl Profiles {
                 style,
                 language,
             );
+            processed.text =
+                crate::dictation::screen_quotes::finish(processed.text, &profile.vocabulary);
+            return processed;
         }
         let prompt = prompt(
             profile,
@@ -663,7 +668,8 @@ impl Profiles {
                 "dictation post-processing failed; pasting the corrected transcript"
             ),
         }
-        with_style(
+        // Hexium: after the rewrite, so the window's text never reaches it.
+        let mut processed = with_style(
             Processed {
                 text: text.unwrap_or(corrected),
                 nothing: false,
@@ -672,7 +678,10 @@ impl Profiles {
             },
             style,
             language,
-        )
+        );
+        processed.text =
+            crate::dictation::screen_quotes::finish(processed.text, &profile.vocabulary);
+        processed
     }
 }
 

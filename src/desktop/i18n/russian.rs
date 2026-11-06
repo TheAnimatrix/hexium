@@ -1488,6 +1488,10 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Agent tools for captures", "Инструменты агента для записей"),
     ("Adds hex annotate zoom, inspect, frames, and skill so coding agents can read a capture closely", "Добавляет hex annotate zoom, inspect, frames и skill, чтобы агенты для кода могли внимательно изучить запись"),
     ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
+    ("Learn from your fixes", "Учиться на ваших исправлениях"),
+    ("Correct a misheard word once and Hexium spells it your way from then on", "Исправьте неверно услышанное слово один раз, и Hexium будет писать его так"),
+    ("Quote what's on screen", "Цитировать то, что на экране"),
+    ("Say a heading or label from the open window and it's quoted as written", "Произнесите заголовок или подпись из открытого окна, и они будут процитированы как есть"),
 ];
 
 #[cfg(test)]

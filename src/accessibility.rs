@@ -5,6 +5,10 @@ use std::time::{Duration, Instant};
 
 use crate::dictation::caret_text::{Keep, bounded_units};
 
+// Hexium: the window's and the focused field's text (Labs › Quote what's on
+// screen, Learn from your fixes).
+pub(crate) mod screen_text;
+
 type CfTypeRef = *const c_void;
 type CfStringRef = *const c_void;
 type AxUiElementRef = *const c_void;

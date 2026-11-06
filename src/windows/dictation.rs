@@ -783,6 +783,10 @@ pub fn run(
                         stop_phrase: finish_phrase,
                         return_to: active.return_to,
                         context: if capture.would_transcribe(occurred_at) {
+                            // Hexium: the window is read while the model transcribes.
+                            if !active.flavour.raw() {
+                                crate::dictation::screen_text::prefetch();
+                            }
                             crate::windows::context::begin_capture(
                                 !active.flavour.raw()
                                     && capture_modes

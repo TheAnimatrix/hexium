@@ -487,6 +487,8 @@ impl DictationWorker {
         let transcript = engine
             .finish_with(stream, samples, offline)
             .map_err(|_| "dictation worker is unavailable")?;
+        // Hexium: the window is read while the model transcribes.
+        crate::dictation::screen_text::prefetch();
         let ticket = OutputTicket::new(
             job_id.0,
             TicketKind::Dictation { job_id, target },
@@ -1105,6 +1107,10 @@ fn finish_output(
                                     return Err(error.to_string());
                                 }
                             };
+                            // Hexium: Labs › Learn from your fixes watches the field.
+                            if matches!(mode, PasteMode::Continue) {
+                                crate::dictation::fix_learning::pasted(&completed.text);
+                            }
                             if let Some(gate) = send_gate {
                                 sent = send_unless_escaped(gate, Instant::now(), paste);
                             }

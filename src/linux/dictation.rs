@@ -855,6 +855,10 @@ pub(crate) fn run(
                         flavour: recording_flavour,
                         by_shortcut: recording_by_shortcut,
                         context: if capture.would_transcribe(released_at) {
+                            // Hexium: the window is read alongside the context.
+                            if !recording_flavour.raw() {
+                                crate::dictation::screen_text::prefetch();
+                            }
                             crate::linux::context::begin_capture(
                                 !recording_flavour.raw()
                                     && (crate::dictation::modes::uses_page(
