@@ -470,6 +470,8 @@ impl DictationWorker {
         let transcript = engine
             .finish_with(stream, samples, offline)
             .map_err(|_| "dictation worker is unavailable")?;
+        // Hexium: the window is read while the model transcribes.
+        crate::dictation::screen_text::prefetch();
         jobs.try_send(InferenceJob {
             job_id,
             control: control.clone(),
@@ -1088,7 +1090,12 @@ fn finish_output(
                                 );
                                 return Err(error.to_string());
                             }
-                            paste(&completed.text, mode, &commit)
+                            let pasted = paste(&completed.text, mode, &commit);
+                            // Hexium: Labs › Learn from your fixes watches the field.
+                            if pasted.is_ok() && matches!(mode, PasteMode::Continue) {
+                                crate::dictation::fix_learning::pasted(&completed.text);
+                            }
+                            pasted
                         }
                         TranscriptionTarget::Service
                         | TranscriptionTarget::Print

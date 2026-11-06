@@ -15,6 +15,13 @@ to Hex and pulls in its changes every week, adding:
   language identifier (VoxLingua107, 27 MB) hears which language you are
   speaking each time, in a few tens of milliseconds, so Telugu comes out in
   Telugu, Hindi in Hindi and English in English, mixed or not.
+- **Learns from your fixes** (Labs). Correct a word it misheard right after
+  dictating, and the spelling goes into Vocabulary, so the next dictation
+  writes it that way, with any model, in any language.
+- **Quotes what's on screen** (Labs). Say a heading, a label or a short
+  message from the window you're in, and it lands in quotes, spelled exactly
+  as the window shows it. Both read the open app on your device, on Mac,
+  Windows and Linux, and keep nothing.
 - **Nothing phones home.** No telemetry and no AI-assistant add-ons. Network
   use is the speech-model download, plus one anonymous look a day at
   Hexium's GitHub releases so the sidebar can offer a new build

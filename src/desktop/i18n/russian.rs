@@ -1267,6 +1267,10 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Copy puts the selected dictations on the clipboard, oldest first, with a blank line between each", "Копирование помещает выбранные диктовки в буфер обмена, начиная с самой старой, с пустой строкой между ними"),
     ("Delete {} dictations", "Удалить диктовки: {}"),
     ("27 Indian languages, with English mixed in as you speak it", "27 индийских языков, с английским вперемешку, как вы говорите"),
+    ("Learn from your fixes", "Учиться на ваших исправлениях"),
+    ("Correct a misheard word once and Hexium spells it your way from then on", "Исправьте неверно услышанное слово один раз, и Hexium будет писать его так"),
+    ("Quote what's on screen", "Цитировать то, что на экране"),
+    ("Say a heading or label from the open window and it's quoted as written", "Произнесите заголовок или подпись из открытого окна, и они будут процитированы как есть"),
 ];
 
 #[cfg(test)]

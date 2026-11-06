@@ -279,6 +279,17 @@ pub(super) const KEYS: &[Key] = &[
         Kind::Choice(&["off", "day", "week", "month", "forever"]),
         "How long dictation history is kept",
     ),
+    // Hexium: Labs › Learn from your fixes and Quote what's on screen.
+    key(
+        "labs.learn_fixes",
+        Kind::Bool,
+        "Labs: a word you correct after a dictation is added to Vocabulary and written that way next time",
+    ),
+    key(
+        "labs.quote_screen",
+        Kind::Bool,
+        "Labs: quote headings, labels, and short messages from the open window when a dictation says them",
+    ),
     key(
         "labs.live_text",
         Kind::Bool,
