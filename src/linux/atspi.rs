@@ -13,6 +13,9 @@ use std::time::Duration;
 use url::Url;
 use zbus::{Connection, OwnedObjectPath, OwnedVariant};
 
+// Hexium: Labs › Quote what's on screen and Learn from your fixes.
+pub(crate) mod screen_text;
+
 const REGISTRY: &str = "org.a11y.atspi.Registry";
 const ROOT: &str = "/org/a11y/atspi/accessible/root";
 const NULL: &str = "/org/a11y/atspi/null";
