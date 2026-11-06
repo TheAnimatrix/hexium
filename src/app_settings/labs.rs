@@ -6,6 +6,10 @@ use super::*;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(default)]
 pub struct LabsSettings {
+    /// Hexium: a word you correct after a dictation is learned into Vocabulary.
+    pub learn_fixes: bool,
+    /// Hexium: a dictation quotes and spells text the focused window shows.
+    pub quote_screen: bool,
     /// Live text beside the HUD while dictating.
     pub live_text: bool,
     pub live_chapters: bool,
@@ -100,6 +104,8 @@ pub const UNLOAD_IDLE_MINUTES: [u32; 4] = [5, 15, 30, 60];
 impl Default for LabsSettings {
     fn default() -> Self {
         Self {
+            learn_fixes: false,
+            quote_screen: false,
             live_text: false,
             live_chapters: false,
             playground: false,

@@ -887,6 +887,10 @@ fn process_dictation_job(
             .unwrap_or_else(|error| error.into_inner())
             .reads_page();
     let pending_context = crate::windows::context::begin_capture(reads_page);
+    // Hexium: the window is read while the model transcribes.
+    if !job.raw {
+        crate::dictation::screen_text::prefetch();
+    }
     let inference_started = Instant::now();
     let transcription = job.transcript.wait().map(|transcribed| {
         tracing::info!(
@@ -924,6 +928,8 @@ fn process_dictation_job(
                 .map_err(|error| format!("{error:#}"))?
                 .paste(&text)
                 .map_err(|error| format!("{error:#}"))?;
+            // Hexium: Labs › Learn from your fixes watches the field.
+            crate::dictation::fix_learning::pasted(&text);
             *last_dictation
                 .lock()
                 .unwrap_or_else(|error| error.into_inner()) = Some(text.clone());

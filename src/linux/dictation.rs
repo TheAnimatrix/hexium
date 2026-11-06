@@ -232,6 +232,10 @@ impl DictationOutput {
             .read()
             .unwrap_or_else(|error| error.into_inner())
             .clone();
+        // Hexium: the window is read alongside the context.
+        if !raw {
+            crate::dictation::screen_text::prefetch();
+        }
         let context = crate::linux::context::capture(!raw && modes.reads_page());
         let processed = if raw {
             crate::dictation::processor::Processed::unchanged(raw_text.trim())
@@ -244,6 +248,8 @@ impl DictationOutput {
         let printed = paster.is_none();
         if let Some(paster) = paster {
             paster.paste(&processed.text)?;
+            // Hexium: Labs › Learn from your fixes watches the field.
+            crate::dictation::fix_learning::pasted(&processed.text);
         }
         if let Some(history) = &self.history {
             let mut draft = crate::dictation::modes::history_draft(

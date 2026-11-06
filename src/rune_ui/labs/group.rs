@@ -84,6 +84,7 @@ impl Place {
             Lab::Annotate => return Self::Pane(Pane::Annotate),
         };
         match feature {
+            Feature::LearnFixes | Feature::QuoteScreen => Self::Elsewhere(tr("Every dictation")),
             Feature::Meetings
             | Feature::LiveChapters
             | Feature::MeetingSummaryModel

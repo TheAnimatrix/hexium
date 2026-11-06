@@ -438,6 +438,19 @@ fn rows(ui: &Ui) -> Vec<Row> {
         tr("Vocabulary biasing"),
         tr("Bias Parakeet transcription toward your vocabulary; rewriting and search use it either way"),
     ));
+    // Hexium: both read the open app through each OS's accessibility interface.
+    rows.push(row(
+        Feature::LearnFixes,
+        Some(&BOOK),
+        tr("Learn from your fixes"),
+        tr("Correct a misheard word once and Hexium spells it your way from then on"),
+    ));
+    rows.push(row(
+        Feature::QuoteScreen,
+        None,
+        tr("Quote what's on screen"),
+        tr("Say a heading or label from the open window and it's quoted as written"),
+    ));
     if caps.keyboard_model_switching {
         rows.push(row(
             Feature::KeyboardModelSwitching,
@@ -723,6 +736,8 @@ fn row_key(lab: Lab) -> &'static str {
     };
     match feature {
         Feature::Meetings => "lab-meetings",
+        Feature::LearnFixes => "lab-learn-fixes",
+        Feature::QuoteScreen => "lab-quote-screen",
         Feature::VoiceFilter => "lab-voice-filter",
         Feature::Playground => "lab-playground",
         Feature::LiveText => "lab-live-text",
