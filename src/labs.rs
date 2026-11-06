@@ -65,6 +65,9 @@ impl Audience {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Feature {
     Meetings,
+    // Hexium: Labs › Learn from your fixes and Quote what's on screen.
+    LearnFixes,
+    QuoteScreen,
     VoiceFilter,
     Playground,
     LiveText,
@@ -128,8 +131,10 @@ pub enum Feature {
 }
 
 impl Feature {
-    pub const ALL: [Self; 61] = [
+    pub const ALL: [Self; 63] = [
         Self::Meetings,
+        Self::LearnFixes,
+        Self::QuoteScreen,
         Self::VoiceFilter,
         Self::Playground,
         Self::LiveText,
@@ -213,6 +218,7 @@ impl Feature {
     /// Who the feature is for. Every feature picks one.
     pub const fn audience(self) -> Audience {
         match self {
+            Self::LearnFixes | Self::QuoteScreen => Audience::Everyone,
             // Developer tools: the story browser, and the virtual microphone
             // (a stable build keeps only its Uninstall while the driver is
             // installed).
@@ -282,6 +288,7 @@ impl Feature {
     /// The day it joined Labs, as `yyyymmdd`. Labs marks the newest as New.
     pub const fn added(self) -> u32 {
         match self {
+            Self::LearnFixes | Self::QuoteScreen => 20261106,
             Self::Meetings
             | Self::VoiceFilter
             | Self::Playground
@@ -377,6 +384,7 @@ impl Feature {
         match self {
             // Hexium: no OpenCode, so no OpenCode service to look for in WSL.
             Self::OpenCodeInWsl if !crate::app_paths::OPENCODE => false,
+            Self::LearnFixes | Self::QuoteScreen => true,
             Self::Meetings
             | Self::LiveChapters
             | Self::SubtitleExport
@@ -455,6 +463,8 @@ impl Feature {
     pub const fn name(self) -> &'static str {
         match self {
             Self::Meetings => "meetings",
+            Self::LearnFixes => "learn-fixes",
+            Self::QuoteScreen => "quote-screen",
             Self::VoiceFilter => "voice-filter",
             Self::Playground => "playground",
             Self::LiveText => "live-text",
@@ -522,6 +532,8 @@ impl Feature {
     pub const fn settings_key(self) -> &'static str {
         match self {
             Self::Meetings => "meetings.enabled",
+            Self::LearnFixes => "labs.learn_fixes",
+            Self::QuoteScreen => "labs.quote_screen",
             Self::VoiceFilter => "experimental.hex_microphone",
             Self::Playground => "labs.playground",
             Self::LiveText => "labs.live_text",
@@ -593,6 +605,8 @@ impl Feature {
     pub fn on(self, settings: &AppSettings) -> bool {
         match self {
             Self::Meetings => settings.meetings.enabled,
+            Self::LearnFixes => settings.labs.learn_fixes,
+            Self::QuoteScreen => settings.labs.quote_screen,
             Self::VoiceFilter => settings.experimental.hex_microphone,
             Self::Playground => settings.labs.playground,
             Self::LiveText => settings.labs.live_text,
@@ -664,6 +678,8 @@ impl Feature {
             &mut settings.meetings.enabled,
             &mut settings.experimental.hex_microphone,
             &mut settings.paste_with_shift,
+            &mut labs.learn_fixes,
+            &mut labs.quote_screen,
             &mut settings.keyboard_model_switching.enabled,
             &mut settings.pause_browser_media,
             &mut settings.share_dictation_shortcut,
@@ -733,6 +749,8 @@ impl Feature {
     pub fn set(self, settings: &mut AppSettings, on: bool) {
         match self {
             Self::Meetings => settings.meetings.enabled = on,
+            Self::LearnFixes => settings.labs.learn_fixes = on,
+            Self::QuoteScreen => settings.labs.quote_screen = on,
             Self::VoiceFilter => settings.experimental.hex_microphone = on,
             Self::Playground => settings.labs.playground = on,
             Self::LiveText => settings.labs.live_text = on,
@@ -806,6 +824,9 @@ impl Feature {
 
 /// Set once this process knows its settings.
 const KNOWN: u64 = 1;
+// Hexium's switches sit at the top, clear of upstream's.
+const LEARN_FIXES: u64 = 1 << 62;
+const QUOTE_SCREEN: u64 = 1 << 61;
 const LIVE_TEXT: u64 = 1 << 1;
 const LIVE_CHAPTERS: u64 = 1 << 2;
 const PLAYGROUND: u64 = 1 << 3;
@@ -887,6 +908,16 @@ fn state() -> u64 {
 }
 
 /// Live text: provisional words beside the HUD (read as each dictation starts).
+/// Hexium: Labs › Learn from your fixes (`dictation::fix_learning`).
+pub fn learn_fixes() -> bool {
+    on(LEARN_FIXES)
+}
+
+/// Hexium: Labs › Quote what's on screen (`dictation::screen_quotes`).
+pub fn quote_screen() -> bool {
+    on(QUOTE_SCREEN)
+}
+
 pub fn live_text() -> bool {
     on(LIVE_TEXT)
 }
@@ -1190,6 +1221,8 @@ fn encode(settings: &LabsSettings) -> u64 {
 fn encode_where(settings: &LabsSettings, reaches: impl Fn(Feature) -> bool) -> u64 {
     let minutes = u64::from(settings.unload_idle_minutes.clamp(1, 24 * 60)) << MINUTES_SHIFT;
     [
+        (Feature::LearnFixes, settings.learn_fixes, LEARN_FIXES),
+        (Feature::QuoteScreen, settings.quote_screen, QUOTE_SCREEN),
         (Feature::LiveText, settings.live_text, LIVE_TEXT),
         (
             Feature::FailureNotices,
