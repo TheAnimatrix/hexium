@@ -6,6 +6,9 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Feature {
     Meetings,
+    // Hexium: Labs › Learn from your fixes and Quote what's on screen.
+    LearnFixes,
+    QuoteScreen,
     VoiceFilter,
     Playground,
     LiveText,
@@ -93,8 +96,10 @@ pub enum Feature {
 }
 
 impl Feature {
-    pub const ALL: [Self; 85] = [
+    pub const ALL: [Self; 87] = [
         Self::Meetings,
+        Self::LearnFixes,
+        Self::QuoteScreen,
         Self::VoiceFilter,
         Self::Playground,
         Self::LiveText,

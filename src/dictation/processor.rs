@@ -534,7 +534,9 @@ impl Profiles {
                 crate::dictation::apple_cleanup::stage(&corrected, numbers_only, cancelled)
             };
             return Processed {
-                text,
+                // Hexium: Labs › Learn from your fixes and Quote what's on
+                // screen, last, so no model ever reads the window's text.
+                text: crate::dictation::screen_quotes::finish(text, &profile.vocabulary),
                 nothing: false,
                 observation,
                 transformations: profile.transformations.clone(),
@@ -572,7 +574,11 @@ impl Profiles {
             ),
         }
         Processed {
-            text: text.unwrap_or(corrected),
+            // Hexium: after the rewrite, so the window's text never reaches it.
+            text: crate::dictation::screen_quotes::finish(
+                text.unwrap_or(corrected),
+                &profile.vocabulary,
+            ),
             nothing: false,
             observation: Some(observation),
             transformations: profile.transformations.clone(),

@@ -4,6 +4,16 @@
 
 use super::*;
 
+/// Hexium: Labs › Learn from your fixes (`dictation::fix_learning`).
+pub fn learn_fixes() -> bool {
+    on(LEARN_FIXES)
+}
+
+/// Hexium: Labs › Quote what's on screen (`dictation::screen_quotes`).
+pub fn quote_screen() -> bool {
+    on(QUOTE_SCREEN)
+}
+
 /// Live text: provisional words beside the HUD (read as each dictation starts).
 pub fn live_text() -> bool {
     on(LIVE_TEXT)

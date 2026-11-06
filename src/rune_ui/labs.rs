@@ -528,6 +528,9 @@ fn rows(ui: &Ui) -> Vec<Row> {
     if caps.os == super::platform::Os::Macos {
         rows.push(row(Feature::ScreenVocabulary, Some(&BOOK)));
     }
+    // Hexium: both read the open app through each OS's accessibility interface.
+    rows.push(row(Feature::LearnFixes, Some(&BOOK)));
+    rows.push(row(Feature::QuoteScreen, None));
     if caps.keyboard_model_switching {
         rows.push(row(Feature::KeyboardModelSwitching, Some(&KEYBOARD)));
     }
@@ -791,6 +794,8 @@ fn row_key(lab: Lab) -> &'static str {
     };
     match feature {
         Feature::Meetings => "lab-meetings",
+        Feature::LearnFixes => "lab-learn-fixes",
+        Feature::QuoteScreen => "lab-quote-screen",
         Feature::VoiceFilter => "lab-voice-filter",
         Feature::Playground => "lab-playground",
         Feature::LiveText => "lab-live-text",

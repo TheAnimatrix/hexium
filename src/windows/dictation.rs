@@ -767,6 +767,10 @@ pub fn run(
                         by_shortcut: recording_by_shortcut,
                         print: print.take(),
                         context: if capture.would_transcribe(occurred_at) {
+                            // Hexium: the window is read while the model transcribes.
+                            if !recording_flavour.raw() {
+                                crate::dictation::screen_text::prefetch();
+                            }
                             crate::windows::context::begin_capture(
                                 !recording_flavour.raw()
                                     && capture_modes
@@ -1157,6 +1161,10 @@ fn process_dictation_job(
                     crate::dictation::yolo_mode::sends(held_ms, application.as_deref())
                 });
             let pasted = if sent { paster.press_return() } else { pasted };
+            // Hexium: Labs › Learn from your fixes watches the field.
+            if pasted.is_ok() && !copy_only && !sent {
+                crate::dictation::fix_learning::pasted(&text);
+            }
             // A failed paste still keeps the text for Paste Last.
             *last_dictation
                 .lock()

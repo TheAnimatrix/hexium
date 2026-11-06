@@ -84,6 +84,11 @@ mod tests {
 
     #[test]
     fn the_website_lists_every_public_lab() {
+        // Hexium: site/src/labs.json is Hex's website. Hexium publishes no
+        // site, and its registry adds its own labs.
+        if crate::app_paths::HEXIUM {
+            return;
+        }
         let expected = catalog_json();
         if std::env::var_os("HEX_UPDATE_LABS_JSON").is_some() {
             std::fs::write(PATH, &expected).unwrap();

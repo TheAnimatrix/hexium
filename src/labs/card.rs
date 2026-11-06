@@ -8,6 +8,8 @@ impl Feature {
     /// The card's title.
     pub const fn title(self) -> &'static str {
         match self {
+            Self::LearnFixes => "Learn from your fixes",
+            Self::QuoteScreen => "Quote what's on screen",
             Self::Meetings => "Meetings (beta)",
             Self::VoiceFilter => "Voice Filter",
             Self::Playground => "Playground",
@@ -99,6 +101,12 @@ impl Feature {
     /// The card's one line, under its title.
     pub const fn summary(self) -> &'static str {
         match self {
+            Self::LearnFixes => {
+                "Correct a misheard word once and Hexium spells it your way from then on"
+            }
+            Self::QuoteScreen => {
+                "Say a heading or label from the open window and it's quoted as written"
+            }
             Self::Meetings => "Record calls and keep transcripts",
             Self::VoiceFilter => "Hex Microphone virtual input and real-time voice filters",
             Self::Playground => "Scene and story browser in the window",

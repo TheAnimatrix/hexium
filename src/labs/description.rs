@@ -9,6 +9,12 @@ impl Feature {
     pub const fn description(self) -> &'static str {
         match self {
             Self::Meetings => "Record calls and keep transcripts (its own pane)",
+            Self::LearnFixes => {
+                "When you correct a word Hexium misheard, it adds the spelling to Vocabulary and writes it that way next time"
+            }
+            Self::QuoteScreen => {
+                "Quote headings, labels, and short messages from the open window when you say them, spelled as they appear"
+            }
             Self::VoiceFilter => {
                 "Hex Microphone virtual input and real-time voice filters (its own pane)"
             }

@@ -10,6 +10,8 @@ impl Feature {
     /// Who the feature is for. Every feature picks one.
     pub const fn audience(self) -> Audience {
         match self {
+            // Hexium's own.
+            Self::LearnFixes | Self::QuoteScreen => Audience::Everyone,
             // Developer tools: the story browser, and the virtual microphone
             // (a stable build keeps only its Uninstall while the driver is
             // installed).
@@ -103,6 +105,7 @@ impl Feature {
     /// The day it joined Labs, as `yyyymmdd`. Labs marks the newest as New.
     pub const fn added(self) -> u32 {
         match self {
+            Self::LearnFixes | Self::QuoteScreen => 20261106,
             Self::Meetings
             | Self::VoiceFilter
             | Self::Playground
@@ -267,6 +270,8 @@ impl Feature {
         const WINDOWS_LINUX: &[Os] = &[Os::Windows, Os::Linux];
         const EVERY: &[Os] = &[Os::Macos, Os::Windows, Os::Linux];
         match self {
+            // Hexium: each OS's accessibility interface reads the open app.
+            Self::LearnFixes | Self::QuoteScreen => EVERY,
             Self::Meetings
             | Self::LiveChapters
             | Self::SubtitleExport
@@ -357,6 +362,8 @@ impl Feature {
     /// The name `hex labs on|off` takes.
     pub const fn name(self) -> &'static str {
         match self {
+            Self::LearnFixes => "learn-fixes",
+            Self::QuoteScreen => "quote-screen",
             Self::Meetings => "meetings",
             Self::VoiceFilter => "voice-filter",
             Self::Playground => "playground",
@@ -448,6 +455,8 @@ impl Feature {
     /// Its `hex settings` key.
     pub const fn settings_key(self) -> &'static str {
         match self {
+            Self::LearnFixes => "labs.learn_fixes",
+            Self::QuoteScreen => "labs.quote_screen",
             Self::Meetings => "meetings.enabled",
             Self::VoiceFilter => "experimental.hex_microphone",
             Self::Playground => "labs.playground",

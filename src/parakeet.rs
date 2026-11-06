@@ -477,6 +477,8 @@ impl DictationWorker {
         let transcript = engine
             .finish_with(stream, samples, offline)
             .map_err(|_| "dictation worker is unavailable")?;
+        // Hexium: the window is read while the model transcribes.
+        crate::dictation::screen_text::prefetch();
         jobs.try_send(InferenceJob {
             job_id,
             control,
@@ -1103,6 +1105,10 @@ fn finish_output(
                             if let Err(error) = paste(&completed.text, mode) {
                                 *last_transcript = Some(completed.text.clone());
                                 return Err(error.to_string());
+                            }
+                            // Hexium: Labs › Learn from your fixes watches the field.
+                            if matches!(mode, PasteMode::Continue) {
+                                crate::dictation::fix_learning::pasted(&completed.text);
                             }
                             if matches!(mode, PasteMode::Send) {
                                 sent = send_unless_escaped(

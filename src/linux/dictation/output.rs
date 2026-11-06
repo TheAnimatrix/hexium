@@ -129,6 +129,11 @@ impl DictationOutput {
         if !printed {
             *last_dictation = Some(processed.text.clone());
         }
+        // Hexium: Labs › Learn from your fixes watches the field the text
+        // went into, pasted or typed.
+        if !printed && !sent {
+            crate::dictation::fix_learning::pasted(&processed.text);
+        }
         if let Some(history) = &self.history {
             let mut draft = crate::dictation::modes::history_draft(
                 raw_text,
