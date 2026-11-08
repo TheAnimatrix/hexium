@@ -1280,6 +1280,9 @@ pub fn log_launch() {
         live_chapters = live_chapters(),
         playground = playground(),
         vocabulary_biasing = vocabulary_biasing(),
+        // Hexium's labs.
+        learn_fixes = learn_fixes(),
+        quote_screen = quote_screen(),
         "labs"
     );
 }
