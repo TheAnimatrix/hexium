@@ -1058,6 +1058,9 @@ pub fn log_launch() {
         cursor_context = cursor_context(),
         history_multi_select = history_multi_select(),
         copy_dictation_audio = copy_dictation_audio(),
+        // Hexium's labs.
+        learn_fixes = learn_fixes(),
+        quote_screen = quote_screen(),
         "labs"
     );
 }
