@@ -30,8 +30,14 @@ const POLL: Duration = Duration::from_millis(750);
 const SETTLED: Duration = Duration::from_secs(4);
 /// The longest a dictation's field is watched.
 const WATCH_LIMIT: Duration = Duration::from_secs(90);
-/// How long one field read may take.
-const READ_WAIT: Duration = Duration::from_millis(600);
+/// How long one field read may take. An app asked for the first time
+/// (Chromium, Electron) builds its accessibility tree first, which can take
+/// over a second.
+const READ_WAIT: Duration = Duration::from_millis(1_500);
+/// How many times the field is looked for after a paste before giving up.
+const FIRST_LOOKS: usize = 5;
+/// Missed reads in a row that end a watch.
+const MAX_MISSES: usize = 3;
 /// Characters around the dictation that find it again after edits.
 const ANCHOR_CHARS: usize = 40;
 /// The most words on either side of one learned fix.
@@ -78,23 +84,48 @@ pub(crate) fn pasted(text: &str) {
         .name("hexium-learn-fixes".into())
         .spawn(move || watch(generation, &pasted));
     if let Err(error) = spawned {
-        tracing::debug!(%error, "could not watch the dictation for fixes");
+        tracing::info!(%error, "could not watch the dictation for fixes");
     }
 }
 
+/// The focused field holding the dictation, looked for a few times: the
+/// paste may still be landing, and an app asked for the first time may not
+/// have its accessibility tree yet.
+fn find_dictation(generation: u64, pasted: &str) -> Option<(FieldText, Range<usize>)> {
+    let mut exposed = false;
+    for look in 0..FIRST_LOOKS {
+        std::thread::sleep(if look == 0 { FIRST_LOOK } else { POLL });
+        if GENERATION.load(Ordering::Acquire) != generation {
+            return None;
+        }
+        if let Some(field) = screen_text::focused_field(READ_WAIT) {
+            exposed = true;
+            if let Some(span) = locate(&field, pasted) {
+                return Some((field, span));
+            }
+        }
+    }
+    if exposed {
+        tracing::info!(
+            "learn from fixes: the dictation isn't in the focused field; nothing to watch"
+        );
+    } else {
+        tracing::info!(
+            "learn from fixes: the focused app doesn't expose its text; nothing to watch"
+        );
+    }
+    None
+}
+
 fn watch(generation: u64, pasted: &str) {
-    std::thread::sleep(FIRST_LOOK);
-    let Some(first) = screen_text::focused_field(READ_WAIT) else {
-        tracing::debug!("the focused app doesn't expose its text; no fixes to learn");
+    let Some((first, span)) = find_dictation(generation, pasted) else {
         return;
     };
-    let Some(span) = locate(&first, pasted) else {
-        tracing::debug!("the dictation isn't in the focused field; no fixes to learn");
-        return;
-    };
+    tracing::info!("learn from fixes: watching the field the dictation went into");
     let started = Instant::now();
     let mut last = first.text.clone();
     let mut changed_at: Option<Instant> = None;
+    let mut misses = 0;
     loop {
         std::thread::sleep(POLL);
         if GENERATION.load(Ordering::Acquire) != generation || started.elapsed() > WATCH_LIMIT {
@@ -104,9 +135,15 @@ fn watch(generation: u64, pasted: &str) {
         if !crate::labs::learn_fixes() {
             return;
         }
+        // One slow read doesn't end the watch; several in a row do.
         let Some(now) = screen_text::focused_field(READ_WAIT) else {
-            break;
+            misses += 1;
+            if misses >= MAX_MISSES {
+                break;
+            }
+            continue;
         };
+        misses = 0;
         // Another element, even one holding the same words, isn't this one.
         if now.identity != first.identity {
             break;
@@ -124,9 +161,14 @@ fn watch(generation: u64, pasted: &str) {
         changed_at = Some(Instant::now());
     }
     if last == first.text {
+        tracing::info!("learn from fixes: the dictation wasn't changed");
         return;
     }
-    for (fix, confidence) in fixes(&first.text, span, &last) {
+    let found = fixes(&first.text, span, &last);
+    if found.is_empty() {
+        tracing::info!("learn from fixes: the changes looked like edits, not misheard words");
+    }
+    for (fix, confidence) in found {
         if !crate::labs::learn_fixes() {
             return;
         }
@@ -520,6 +562,18 @@ pub(crate) fn spell(transcript: &str, mode_vocabulary: &[VocabularyEntry]) -> St
         || transcript.to_string(),
         |(_, set)| set.replace(transcript),
     )
+}
+
+/// The fixes a watch would find between a field read before and after an
+/// edit, as (heard, written): for live checks against a real app.
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) fn fixes_between(first: &FieldText, pasted: &str, now: &str) -> Vec<(String, String)> {
+    locate(first, pasted)
+        .map(|span| fixes(&first.text, span, now))
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(fix, _)| (fix.heard, fix.written))
+        .collect()
 }
 
 #[cfg(test)]
