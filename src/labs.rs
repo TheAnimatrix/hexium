@@ -369,6 +369,9 @@ pub fn log_launch() {
         cursor_context = cursor_context(),
         copy_dictation_audio = copy_dictation_audio(),
         hold_through_keys = hold_through_keys(),
+        // Hexium's labs.
+        learn_fixes = learn_fixes(),
+        quote_screen = quote_screen(),
         "labs"
     );
 }
