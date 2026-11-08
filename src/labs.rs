@@ -1162,6 +1162,9 @@ pub fn log_launch() {
         playground = playground(),
         vocabulary_biasing = vocabulary_biasing(),
         history_multi_select = history_multi_select(),
+        // Hexium's labs.
+        learn_fixes = learn_fixes(),
+        quote_screen = quote_screen(),
         "labs"
     );
 }
