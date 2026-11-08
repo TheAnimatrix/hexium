@@ -1405,6 +1405,9 @@ pub fn log_launch() {
         typed_text = typed_text(),
         playground = playground(),
         vocabulary_biasing = vocabulary_biasing(),
+        // Hexium's labs.
+        learn_fixes = learn_fixes(),
+        quote_screen = quote_screen(),
         "labs"
     );
 }
