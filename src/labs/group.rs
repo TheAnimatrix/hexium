@@ -51,7 +51,7 @@ impl Feature {
     /// The group Labs lists it under. Every feature picks one.
     pub const fn group(self) -> Group {
         match self {
-            Self::LearnFixes | Self::QuoteScreen => Group::Output,
+            Self::LearnFixes | Self::QuoteScreen | Self::RepeatedWords => Group::Output,
             Self::LiveText
             | Self::FailureNotices
             | Self::LiveTyping

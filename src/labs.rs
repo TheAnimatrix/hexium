@@ -92,7 +92,7 @@ impl Feature {
     /// Who the feature is for. Every feature picks one.
     pub const fn audience(self) -> Audience {
         match self {
-            Self::LearnFixes | Self::QuoteScreen => Audience::Everyone,
+            Self::LearnFixes | Self::QuoteScreen | Self::RepeatedWords => Audience::Everyone,
             // Developer tools: the story browser, and the virtual microphone
             // (a stable build keeps only its Uninstall while the driver is
             // installed).
@@ -175,6 +175,7 @@ impl Feature {
     pub const fn added(self) -> u32 {
         match self {
             Self::LearnFixes | Self::QuoteScreen => 20261106,
+            Self::RepeatedWords => 20261111,
             Self::Meetings
             | Self::VoiceFilter
             | Self::Playground
@@ -285,7 +286,7 @@ impl Feature {
         match self {
             // Hexium: no OpenCode, so no OpenCode service to look for in WSL.
             Self::OpenCodeInWsl if !crate::app_paths::OPENCODE => false,
-            Self::LearnFixes | Self::QuoteScreen => true,
+            Self::LearnFixes | Self::QuoteScreen | Self::RepeatedWords => true,
             Self::Meetings
             | Self::LiveChapters
             | Self::SubtitleExport
@@ -377,6 +378,7 @@ impl Feature {
             Self::Meetings => "meetings",
             Self::LearnFixes => "learn-fixes",
             Self::QuoteScreen => "quote-screen",
+            Self::RepeatedWords => "repeated-words",
             Self::VoiceFilter => "voice-filter",
             Self::Playground => "playground",
             Self::LiveText => "live-text",
@@ -458,6 +460,7 @@ impl Feature {
             Self::Meetings => "meetings.enabled",
             Self::LearnFixes => "labs.learn_fixes",
             Self::QuoteScreen => "labs.quote_screen",
+            Self::RepeatedWords => "labs.repeated_words",
             Self::VoiceFilter => "experimental.hex_microphone",
             Self::Playground => "labs.playground",
             Self::LiveText => "labs.live_text",
@@ -543,6 +546,7 @@ impl Feature {
             Self::Meetings => settings.meetings.enabled,
             Self::LearnFixes => settings.labs.learn_fixes,
             Self::QuoteScreen => settings.labs.quote_screen,
+            Self::RepeatedWords => settings.labs.repeated_words,
             Self::VoiceFilter => settings.experimental.hex_microphone,
             Self::Playground => settings.labs.playground,
             Self::LiveText => settings.labs.live_text,
@@ -628,6 +632,7 @@ impl Feature {
             &mut settings.paste_with_shift,
             &mut labs.learn_fixes,
             &mut labs.quote_screen,
+            &mut labs.repeated_words,
             &mut settings.keyboard_model_switching.enabled,
             &mut settings.pause_browser_media,
             &mut settings.share_dictation_shortcut,
@@ -711,6 +716,7 @@ impl Feature {
             Self::Meetings => settings.meetings.enabled = on,
             Self::LearnFixes => settings.labs.learn_fixes = on,
             Self::QuoteScreen => settings.labs.quote_screen = on,
+            Self::RepeatedWords => settings.labs.repeated_words = on,
             Self::VoiceFilter => settings.experimental.hex_microphone = on,
             Self::Playground => settings.labs.playground = on,
             Self::LiveText => settings.labs.live_text = on,
@@ -1164,6 +1170,7 @@ pub fn log_launch() {
         // Hexium's labs.
         learn_fixes = learn_fixes(),
         quote_screen = quote_screen(),
+        repeated_words = repeated_words(),
         "labs"
     );
 }

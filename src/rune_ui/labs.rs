@@ -497,6 +497,12 @@ fn rows(ui: &Ui) -> Vec<Row> {
         tr("Quote what's on screen"),
         tr("Say a heading or label from the open window and it's quoted as written"),
     ));
+    rows.push(row(
+        Feature::RepeatedWords,
+        None,
+        tr("Remove repeated words"),
+        tr("Write a word or phrase you repeated, such as \"about to about to\", once, without an AI model"),
+    ));
     if caps.keyboard_model_switching {
         rows.push(row(
             Feature::KeyboardModelSwitching,
@@ -912,6 +918,7 @@ fn row_key(lab: Lab) -> &'static str {
         Feature::Meetings => "lab-meetings",
         Feature::LearnFixes => "lab-learn-fixes",
         Feature::QuoteScreen => "lab-quote-screen",
+        Feature::RepeatedWords => "lab-repeated-words",
         Feature::VoiceFilter => "lab-voice-filter",
         Feature::Playground => "lab-playground",
         Feature::LiveText => "lab-live-text",

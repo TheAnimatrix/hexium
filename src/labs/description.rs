@@ -12,6 +12,9 @@ impl Feature {
             Self::LearnFixes => {
                 "When you correct a word Hexium misheard, it adds the spelling to Vocabulary and writes it that way next time"
             }
+            Self::RepeatedWords => {
+                "Write a word or phrase you repeated (\"about to about to\") once, without an AI model"
+            }
             Self::QuoteScreen => {
                 "Quote headings, labels, and short messages from the open window when you say them, spelled as they appear"
             }

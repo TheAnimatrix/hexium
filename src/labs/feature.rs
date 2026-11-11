@@ -9,6 +9,7 @@ pub enum Feature {
     // Hexium: Labs › Learn from your fixes and Quote what's on screen.
     LearnFixes,
     QuoteScreen,
+    RepeatedWords,
     VoiceFilter,
     Playground,
     LiveText,
@@ -84,10 +85,11 @@ pub enum Feature {
 }
 
 impl Feature {
-    pub const ALL: [Self; 75] = [
+    pub const ALL: [Self; 76] = [
         Self::Meetings,
         Self::LearnFixes,
         Self::QuoteScreen,
+        Self::RepeatedWords,
         Self::VoiceFilter,
         Self::Playground,
         Self::LiveText,

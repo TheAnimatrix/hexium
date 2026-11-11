@@ -291,6 +291,11 @@ pub(super) const KEYS: &[Key] = &[
         "Labs: quote headings, labels, and short messages from the open window when a dictation says them",
     ),
     key(
+        "labs.repeated_words",
+        Kind::Bool,
+        "Labs: a word or phrase said again straight after itself is written once",
+    ),
+    key(
         "labs.live_text",
         Kind::Bool,
         "Labs: provisional words beside the HUD while dictating",

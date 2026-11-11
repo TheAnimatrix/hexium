@@ -987,6 +987,8 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("Correct a misheard word once and Hexium spells it your way from then on", "Corrigez une fois un mot mal entendu et Hexium l'écrira ainsi ensuite"),
     ("Added to Vocabulary", "Ajouté au vocabulaire"),
     ("{term} instead of {heard}", "{term} au lieu de {heard}"),
+    ("Remove repeated words", "Supprimer les mots répétés"),
+    ("Write a word or phrase you repeated, such as \"about to about to\", once, without an AI model", "Écrit une seule fois un mot ou une expression que vous avez répété, comme \"about to about to\", sans modèle d'IA"),
     ("Quote what's on screen", "Citer ce qui est à l'écran"),
     ("Say a heading or label from the open window and it's quoted as written", "Dites un titre ou un libellé de la fenêtre ouverte et il est cité tel quel"),
     ("Russian, with punctuation. A small download", "Russe, avec ponctuation. Un petit téléchargement"),
