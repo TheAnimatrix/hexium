@@ -33,6 +33,8 @@ mod description;
 mod feature;
 mod gates;
 mod group;
+// Hexium: its own switches, outside upstream's full bit word.
+mod hexium;
 
 pub use self::cli::{LabsCommand, run, run_retired_experiments};
 pub use self::feature::Feature;
@@ -799,9 +801,7 @@ impl Feature {
 
 /// Set once this process knows its settings.
 const KNOWN: u64 = 1;
-// Hexium's switches sit at the top, clear of upstream's.
-const LEARN_FIXES: u64 = 1 << 62;
-const QUOTE_SCREEN: u64 = 1 << 61;
+// Hexium's switches have their own word (`hexium`): this one is full.
 const LIVE_TEXT: u64 = 1 << 1;
 const LIVE_CHAPTERS: u64 = 1 << 2;
 const PLAYGROUND: u64 = 1 << 3;
@@ -927,6 +927,7 @@ pub fn window_dark(labs: &LabsSettings, system_dark: bool) -> bool {
 /// Records the switches the loaded or saved settings hold.
 pub(crate) fn apply(settings: &LabsSettings) {
     STATE.store(encode(settings), Ordering::Release);
+    hexium::apply(settings);
     // Labs › Pause from menu bar: turning it off resumes at once, without
     // waiting for the menu to refresh; the menu row hides itself there.
     crate::shortcut_pause::reconcile(pause_menu());
@@ -944,8 +945,6 @@ fn encode(settings: &LabsSettings) -> u64 {
 fn encode_where(settings: &LabsSettings, reaches: impl Fn(Feature) -> bool) -> u64 {
     let minutes = u64::from(settings.unload_idle_minutes.clamp(1, 24 * 60)) << MINUTES_SHIFT;
     [
-        (Feature::LearnFixes, settings.learn_fixes, LEARN_FIXES),
-        (Feature::QuoteScreen, settings.quote_screen, QUOTE_SCREEN),
         (Feature::LiveText, settings.live_text, LIVE_TEXT),
         (
             Feature::FailureNotices,
