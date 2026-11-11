@@ -23,6 +23,9 @@ use rune::{
 use super::controls::Paint;
 use crate::transcription::engine::Partial;
 
+// Hexium: Labs › Learn from your fixes' toast, installed beside live text.
+pub(crate) mod learned_words;
+
 /// The overlay's size: room for about a dozen words on one line.
 pub(crate) const SIZE: (f32, f32) = (560.0, 44.0);
 /// The plate's height inside the overlay.

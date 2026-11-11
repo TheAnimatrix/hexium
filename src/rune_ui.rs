@@ -137,6 +137,7 @@ pub(crate) fn run_app(
     }
     crate::linux::rune_hud::install(&mut app);
     live_text::install(&mut app, crate::rune_hud::live_text_place);
+    live_text::learned_words::install(&mut app);
     // The capture capsule, picker, and ink.
     let _capture_overlays =
         crate::rune_ui::capture_capsule::feed::CaptureOverlays::install(&mut app);

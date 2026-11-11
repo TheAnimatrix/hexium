@@ -524,6 +524,7 @@ pub fn run(shutdown: &'static AtomicBool, listener: ListenerConfig, hidden: bool
     };
     let hud = crate::rune_hud::install(&mut app);
     crate::rune_ui::live_text::install(&mut app, crate::rune_hud::live_text_place);
+    crate::rune_ui::live_text::learned_words::install(&mut app);
     #[cfg(hex_capture)]
     crate::rune_ui::paste_picker::install(&mut app);
     // The capture capsule, picker, and ink.
