@@ -401,7 +401,8 @@ fn the_browser_labs_toggle_turns_on_and_asks_for_system_audio() {
 
 #[test]
 fn contributed_options_are_labs_toggles_off_by_default() {
-    let mut rt = runtime("mac-settings", true, (980.0, 2000.0));
+    // Hexium: taller, so Labs' lower cards stay on screen below Hexium's own.
+    let mut rt = runtime("mac-settings", true, (980.0, 2400.0));
     open_labs(&mut rt);
     for row in [
         "lab-mouse-shortcuts",
