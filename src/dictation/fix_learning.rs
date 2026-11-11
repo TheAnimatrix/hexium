@@ -4,6 +4,9 @@
 //! you changed that looks like a mishearing ("hexy um" → "Hexium", "github"
 //! → "GitHub") goes into Vocabulary with what was heard as its "sounds
 //! like"; rewrites, added sentences, and common-word swaps are left alone.
+//! Where the app runs, a toast says what it's adding, with a bar that
+//! drains; Undo before it empties and nothing is learned
+//! (`rune_ui::learned_words`).
 //! Later dictations then write the learned spelling: Parakeet, Whisper, and
 //! Qwen3-ASR are steered toward it, and [`spell`] corrects every model's
 //! transcript (Indic-Transcribe-Flex can't be steered).
@@ -15,6 +18,7 @@ use std::collections::HashMap;
 use std::ops::Range;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc::Sender;
 use std::time::{Duration, Instant};
 
 use crate::dictation::screen_quotes::{distance, word_char, words};
@@ -168,16 +172,52 @@ fn watch(generation: u64, pasted: &str) {
     if found.is_empty() {
         tracing::info!("learn from fixes: the changes looked like edits, not misheard words");
     }
+    let mut learnable = Vec::new();
     for (fix, confidence) in found {
-        if !crate::labs::learn_fixes() {
-            return;
-        }
         if confidence == Confidence::Strong || repeated(&fix) {
-            learn(&fix);
+            learnable.push(fix);
         } else {
             tracing::info!("a fix was seen once; it's learned if you make it again");
         }
     }
+    if learnable.is_empty() || !crate::labs::learn_fixes() || !confirmed(&learnable) {
+        return;
+    }
+    for fix in &learnable {
+        // Turning the lab off while the toast showed learns nothing.
+        if !crate::labs::learn_fixes() {
+            return;
+        }
+        learn(fix);
+    }
+}
+
+/// Shows fixes to the person; its answer says whether to learn them.
+type Proposer = Box<dyn Fn(Vec<Fix>, Sender<bool>) + Send>;
+static PROPOSER: Mutex<Option<Proposer>> = Mutex::new(None);
+/// The longest a proposal waits for its answer: an overlay that never
+/// showed (or a pointer left resting on it) then learns the fixes.
+const DECIDE_LIMIT: Duration = Duration::from_secs(120);
+
+/// Hands each set of fixes to `propose` (the app's toast) before they are
+/// learned: it answers `true` to learn them, `false` to drop them.
+pub(crate) fn on_proposal(propose: impl Fn(Vec<Fix>, Sender<bool>) + Send + 'static) {
+    *PROPOSER.lock().unwrap_or_else(|error| error.into_inner()) = Some(Box::new(propose));
+}
+
+/// Whether `fixes` should be learned: asked through the toast where the app
+/// shows one, else yes.
+fn confirmed(fixes: &[Fix]) -> bool {
+    let (reply, answer) = std::sync::mpsc::channel();
+    {
+        let proposer = PROPOSER.lock().unwrap_or_else(|error| error.into_inner());
+        let Some(propose) = proposer.as_ref() else {
+            return true;
+        };
+        propose(fixes.to_vec(), reply);
+    }
+    // No answer in time, or the overlay gone, learns them.
+    answer.recv_timeout(DECIDE_LIMIT).unwrap_or(true)
 }
 
 /// Whether a weak fix has now been made [`WEAK_FIX_REPEATS`] times.

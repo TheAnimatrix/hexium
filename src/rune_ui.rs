@@ -33,6 +33,8 @@ mod labs;
 mod list_detail;
 mod lists;
 mod live_notes;
+// Hexium: Labs › Learn from your fixes' toast.
+pub(crate) mod learned_words;
 pub(crate) mod live_text;
 pub(crate) mod meeting_capsules;
 mod meetings;
@@ -124,6 +126,7 @@ pub(crate) fn run_app(
     }
     crate::linux::rune_hud::install(&mut app);
     live_text::install(&mut app, crate::rune_hud::live_text_place);
+    learned_words::install(&mut app);
     // The capture capsule, picker, and ink.
     let _capture_overlays =
         crate::rune_ui::capture_capsule::feed::CaptureOverlays::install(&mut app);

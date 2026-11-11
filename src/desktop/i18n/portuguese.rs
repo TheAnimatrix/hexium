@@ -988,6 +988,8 @@ const TRANSLATIONS: &[(&str, &str)] = &[
     ("27 Indian languages, with English mixed in as you speak it", "27 idiomas indianos, com inglês misturado do jeito que você fala"),
     ("Learn from your fixes", "Aprender com suas correções"),
     ("Correct a misheard word once and Hexium spells it your way from then on", "Corrija uma vez uma palavra mal ouvida e o Hexium passa a escrevê-la assim"),
+    ("Added to Vocabulary", "Adicionado ao vocabulário"),
+    ("{term} instead of {heard}", "{term} em vez de {heard}"),
     ("Quote what's on screen", "Citar o que está na tela"),
     ("Say a heading or label from the open window and it's quoted as written", "Diga um título ou rótulo da janela aberta e ele é citado como está escrito"),
     ("Russian, with punctuation. A small download", "Russo, com pontuação. Um download pequeno"),
