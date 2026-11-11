@@ -121,6 +121,7 @@ impl Feature {
             Self::Meetings => settings.meetings.enabled,
             Self::LearnFixes => settings.labs.learn_fixes,
             Self::QuoteScreen => settings.labs.quote_screen,
+            Self::RepeatedWords => settings.labs.repeated_words,
             Self::VoiceFilter => settings.experimental.hex_microphone,
             Self::Playground => settings.labs.playground,
             Self::LiveText => settings.labs.live_text,
@@ -218,6 +219,7 @@ impl Feature {
             &mut settings.paste_with_shift,
             &mut labs.learn_fixes,
             &mut labs.quote_screen,
+            &mut labs.repeated_words,
             &mut settings.keyboard_model_switching.enabled,
             &mut settings.pause_browser_media,
             &mut settings.share_dictation_shortcut,
@@ -313,6 +315,7 @@ impl Feature {
             Self::Meetings => settings.meetings.enabled = on,
             Self::LearnFixes => settings.labs.learn_fixes = on,
             Self::QuoteScreen => settings.labs.quote_screen = on,
+            Self::RepeatedWords => settings.labs.repeated_words = on,
             Self::VoiceFilter => settings.experimental.hex_microphone = on,
             Self::Playground => settings.labs.playground = on,
             Self::LiveText => settings.labs.live_text = on,
@@ -1060,6 +1063,7 @@ pub fn log_launch() {
         // Hexium's labs.
         learn_fixes = learn_fixes(),
         quote_screen = quote_screen(),
+        repeated_words = repeated_words(),
         "labs"
     );
 }

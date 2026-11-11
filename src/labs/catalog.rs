@@ -11,7 +11,7 @@ impl Feature {
     pub const fn audience(self) -> Audience {
         match self {
             // Hexium's own.
-            Self::LearnFixes | Self::QuoteScreen => Audience::Everyone,
+            Self::LearnFixes | Self::QuoteScreen | Self::RepeatedWords => Audience::Everyone,
             // Developer tools: the story browser, and the virtual microphone
             // (a stable build keeps only its Uninstall while the driver is
             // installed).
@@ -106,6 +106,7 @@ impl Feature {
     pub const fn added(self) -> u32 {
         match self {
             Self::LearnFixes | Self::QuoteScreen => 20261106,
+            Self::RepeatedWords => 20261111,
             Self::Meetings
             | Self::VoiceFilter
             | Self::Playground
@@ -271,7 +272,7 @@ impl Feature {
         const EVERY: &[Os] = &[Os::Macos, Os::Windows, Os::Linux];
         match self {
             // Hexium: each OS's accessibility interface reads the open app.
-            Self::LearnFixes | Self::QuoteScreen => EVERY,
+            Self::LearnFixes | Self::QuoteScreen | Self::RepeatedWords => EVERY,
             Self::Meetings
             | Self::LiveChapters
             | Self::SubtitleExport
@@ -364,6 +365,7 @@ impl Feature {
         match self {
             Self::LearnFixes => "learn-fixes",
             Self::QuoteScreen => "quote-screen",
+            Self::RepeatedWords => "repeated-words",
             Self::Meetings => "meetings",
             Self::VoiceFilter => "voice-filter",
             Self::Playground => "playground",
@@ -457,6 +459,7 @@ impl Feature {
         match self {
             Self::LearnFixes => "labs.learn_fixes",
             Self::QuoteScreen => "labs.quote_screen",
+            Self::RepeatedWords => "labs.repeated_words",
             Self::Meetings => "meetings.enabled",
             Self::VoiceFilter => "experimental.hex_microphone",
             Self::Playground => "labs.playground",

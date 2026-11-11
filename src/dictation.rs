@@ -23,6 +23,8 @@ pub(crate) mod modes;
 pub(crate) mod processor;
 #[cfg_attr(not(any(target_os = "macos", test)), allow(dead_code))]
 pub(crate) mod screen_vocabulary;
+// Hexium: Labs › Remove repeated words.
+pub(crate) mod repeated_words;
 pub(crate) mod screen_quotes;
 pub(crate) mod screen_text;
 pub(crate) mod service;

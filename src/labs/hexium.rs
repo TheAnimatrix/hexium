@@ -11,6 +11,7 @@ use crate::app_settings::AppSettings;
 const KNOWN: u64 = 1;
 pub(super) const LEARN_FIXES: u64 = 1 << 1;
 pub(super) const QUOTE_SCREEN: u64 = 1 << 2;
+pub(super) const REPEATED_WORDS: u64 = 1 << 3;
 
 static STATE: AtomicU64 = AtomicU64::new(0);
 
@@ -46,6 +47,11 @@ pub(super) fn encode_where(settings: &LabsSettings, reaches: impl Fn(Feature) ->
     [
         (Feature::LearnFixes, settings.learn_fixes, LEARN_FIXES),
         (Feature::QuoteScreen, settings.quote_screen, QUOTE_SCREEN),
+        (
+            Feature::RepeatedWords,
+            settings.repeated_words,
+            REPEATED_WORDS,
+        ),
     ]
     .into_iter()
     .filter(|(feature, on, _)| *on && reaches(*feature))
@@ -63,9 +69,10 @@ mod tests {
         labs.learn_fixes = true;
         assert_eq!(encode_where(&labs, |_| true), KNOWN | LEARN_FIXES);
         labs.quote_screen = true;
+        labs.repeated_words = true;
         assert_eq!(
             encode_where(&labs, |_| true),
-            KNOWN | LEARN_FIXES | QUOTE_SCREEN
+            KNOWN | LEARN_FIXES | QUOTE_SCREEN | REPEATED_WORDS
         );
     }
 
@@ -74,6 +81,7 @@ mod tests {
         let labs = LabsSettings {
             learn_fixes: true,
             quote_screen: true,
+            repeated_words: true,
             ..LabsSettings::default()
         };
         assert_eq!(
