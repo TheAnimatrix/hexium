@@ -14,6 +14,11 @@ pub fn quote_screen() -> bool {
     feature_on(Feature::QuoteScreen)
 }
 
+/// Hexium: Labs › Remove repeated words (`dictation::repeated_words`).
+pub fn repeated_words() -> bool {
+    feature_on(Feature::RepeatedWords)
+}
+
 /// Live text: provisional words beside the HUD (read as each dictation starts).
 pub fn live_text() -> bool {
     feature_on(Feature::LiveText)

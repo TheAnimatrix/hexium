@@ -341,6 +341,11 @@ pub(super) const KEYS: &[Key] = &[
         "Labs: quote headings, labels, and short messages from the open window when a dictation says them",
     ),
     key(
+        "labs.repeated_words",
+        Kind::Bool,
+        "Labs: a word or phrase said again straight after itself is written once",
+    ),
+    key(
         "typing_wpm",
         Kind::Integer { min: 10, max: 200 },
         "Words a minute you type, which Dictation stats compares against your dictations to show the time saved; 40 by default",

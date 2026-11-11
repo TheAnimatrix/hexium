@@ -61,6 +61,8 @@ struct DictationLabs {
     /// Labs › Dictation style's choice while on; None leaves the text as
     /// the corrections and rewrite wrote it.
     dictation_style: Option<DictationStyle>,
+    // Hexium: Labs › Remove repeated words.
+    repeated_words: bool,
 }
 
 impl DictationLabs {
@@ -71,6 +73,7 @@ impl DictationLabs {
             spoken_symbols: crate::labs::spoken_symbols(),
             filler_words: crate::labs::filler_words(),
             dictation_style: crate::labs::dictation_style(),
+            repeated_words: crate::labs::repeated_words(),
         }
     }
 }
@@ -1289,8 +1292,12 @@ fn prepare_transcript(
     };
     // Only English dictations drop fillers: "er" and "um" are ordinary words
     // in other languages, and "auto" says nothing about the language.
-    crate::dictation::filler_words::strip_if(transcript, language, labs.filler_words)
-        .unwrap_or_else(|| transcript.to_owned())
+    let unfilled =
+        crate::dictation::filler_words::strip_if(transcript, language, labs.filler_words)
+            .unwrap_or_else(|| transcript.to_owned());
+    // Hexium: after fillers, so "about to, um, about to" is one repeat.
+    crate::dictation::repeated_words::remove_if(&unfilled, language, labs.repeated_words)
+        .unwrap_or(unfilled)
 }
 
 fn prompt(
@@ -2065,6 +2072,7 @@ mod tests {
             spoken_symbols: true,
             filler_words: true,
             dictation_style: None,
+            repeated_words: true,
         };
         let speech = "um first new line done comma thanks";
         let dictated = prepare_transcript(speech, "en", Source::Dictation, labs);

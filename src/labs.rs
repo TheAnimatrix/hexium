@@ -372,6 +372,7 @@ pub fn log_launch() {
         // Hexium's labs.
         learn_fixes = learn_fixes(),
         quote_screen = quote_screen(),
+        repeated_words = repeated_words(),
         "labs"
     );
 }

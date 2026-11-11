@@ -641,6 +641,7 @@ fn rows(ui: &Ui) -> Vec<Row> {
     // Hexium: both read the open app through each OS's accessibility interface.
     rows.push(row(Feature::LearnFixes, Some(&BOOK)));
     rows.push(row(Feature::QuoteScreen, None));
+    rows.push(row(Feature::RepeatedWords, None));
     if caps.keyboard_model_switching {
         rows.push(row(Feature::KeyboardModelSwitching, Some(&KEYBOARD)));
     }
@@ -980,6 +981,7 @@ fn row_key(lab: Lab) -> &'static str {
         Feature::Meetings => "lab-meetings",
         Feature::LearnFixes => "lab-learn-fixes",
         Feature::QuoteScreen => "lab-quote-screen",
+        Feature::RepeatedWords => "lab-repeated-words",
         Feature::VoiceFilter => "lab-voice-filter",
         Feature::Playground => "lab-playground",
         Feature::LiveText => "lab-live-text",

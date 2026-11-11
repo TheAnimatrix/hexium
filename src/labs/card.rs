@@ -10,6 +10,7 @@ impl Feature {
         match self {
             Self::LearnFixes => "Learn from your fixes",
             Self::QuoteScreen => "Quote what's on screen",
+            Self::RepeatedWords => "Remove repeated words",
             Self::Meetings => "Meetings (beta)",
             Self::VoiceFilter => "Voice Filter",
             Self::Playground => "Playground",
@@ -104,6 +105,9 @@ impl Feature {
             }
             Self::QuoteScreen => {
                 "Say a heading or label from the open window and it's quoted as written"
+            }
+            Self::RepeatedWords => {
+                "Write a word or phrase you repeated, such as \"about to about to\", once, without an AI model"
             }
             Self::Meetings => "Record calls and keep a written copy",
             Self::VoiceFilter => "A Hex Microphone other apps can pick, with live voice filters",

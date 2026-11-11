@@ -150,6 +150,8 @@ define_features! {
     // OS's accessibility interface reads the open app.
     LearnFixes => labs(learn_fixes), "learn-fixes", Output, Everyone, EVERY, 20261106;
     QuoteScreen => labs(quote_screen), "quote-screen", Output, Everyone, EVERY, 20261106;
+    // Hexium: Labs › Remove repeated words.
+    RepeatedWords => labs(repeated_words), "repeated-words", Output, Everyone, EVERY, 20261111;
     VoiceFilter => app(experimental.hex_microphone), "voice-filter", Dictation, Dev, MACOS_LINUX, 20261030;
     Playground => labs(playground), "playground", Dictation, Dev, EVERY, 20261030;
     LiveText => labs(live_text), "live-text", Dictation, Everyone, EVERY, 20261030;
