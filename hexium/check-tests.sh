@@ -76,6 +76,12 @@ fi
 if [ -s "$work/ours" ]; then
   say "Hexium broke:"
   sed 's/^/  /' "$work/ours"
+  # Each test's panic, which the log's tail above may not reach.
+  sed 's/\x1b\[[0-9;]*m//g' "$work/hexium.log" > "$work/hexium.plain"
+  grep -v '^golden' "$work/ours" | while read -r test; do
+    say "why $test failed:"
+    grep -F -A 6 "thread '$test' (" "$work/hexium.plain" | head -n 12 | sed 's/^/    /'
+  done
   say "fix them, or list one in hexium/expected-failures if Hexium changes it on purpose"
   exit 1
 fi
