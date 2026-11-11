@@ -80,7 +80,7 @@ if [ -s "$work/ours" ]; then
   sed 's/\x1b\[[0-9;]*m//g' "$work/hexium.log" > "$work/hexium.plain"
   grep -v '^golden' "$work/ours" | while read -r test; do
     say "why $test failed:"
-    grep -F -A 6 "thread '$test' (" "$work/hexium.plain" | head -n 12 | sed 's/^/    /'
+    grep -F -m 1 -A 3 "thread '$test' (" "$work/hexium.plain" | sed 's/^/    /'
   done
   say "fix them, or list one in hexium/expected-failures if Hexium changes it on purpose"
   exit 1
