@@ -64,6 +64,8 @@ pub struct LabsSettings {
     pub learn_fixes: bool,
     /// Hexium: a dictation quotes and spells text the focused window shows.
     pub quote_screen: bool,
+    /// Hexium: a word or phrase said again straight after itself is written once.
+    pub repeated_words: bool,
     /// Live text beside the HUD while dictating.
     pub live_text: bool,
     /// A failed dictation's explanation beside the HUD for a few seconds.
@@ -232,6 +234,7 @@ impl Default for LabsSettings {
         Self {
             learn_fixes: false,
             quote_screen: false,
+            repeated_words: false,
             live_text: false,
             failure_notices: false,
             live_typing: false,

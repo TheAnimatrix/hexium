@@ -17,6 +17,8 @@ pub(crate) mod live_text;
 pub(crate) mod modes;
 #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
 pub(crate) mod processor;
+// Hexium: Labs › Remove repeated words.
+pub(crate) mod repeated_words;
 pub(crate) mod screen_quotes;
 pub(crate) mod screen_text;
 pub(crate) mod service;
