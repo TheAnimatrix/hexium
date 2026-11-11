@@ -2,7 +2,7 @@
 
 Hexium keeps its changes the way [Zen](https://github.com/zen-browser/desktop)
 keeps Firefox's: upstream stays pinned and untouched, Hexium's changes are a
-short **patch queue** replayed on top, and a weekly job re-applies the queue to
+short **patch queue** replayed on top, and a job every three days re-applies the queue to
 the newest upstream, tests it, and ships it.
 
 - **Upstream:** [Hex](https://github.com/anomalyco/hex) `dev`. The base of
@@ -32,9 +32,9 @@ the newest upstream, tests it, and ships it.
 | say Hexium in the UI | `src/hexium_brand.rs`, one call in `desktop::i18n::tr` |
 | sync and checks | `hexium/sync.sh`, `hexium/forks`, `hexium/scrub-docs.py`, `hexium/check-tests.sh`, `hexium/expected-failures`, `.github/workflows/hexium-{sync,check}.yml` |
 
-## The weekly sync
+## The sync
 
-**Hexium sync** (`.github/workflows/hexium-sync.yml`, Mondays 08:00 IST, or
+**Hexium sync** (`.github/workflows/hexium-sync.yml`, every three days at 08:00 IST, or
 run it from the Actions tab) does everything:
 
 1. **Replay.** `hexium/sync.sh` replays each fork's queue if Hex moved its

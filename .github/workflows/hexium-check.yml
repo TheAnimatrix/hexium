@@ -4,7 +4,7 @@ name: Hexium check
 # packaging Hexium doesn't ship): format, every unit and golden test, and a
 # real dictation through a virtual microphone. Test failures count only when
 # Hexium causes them (hexium/check-tests.sh reruns them on upstream). Runs on pull requests, and on
-# each weekly sync's candidate before it becomes dev (hexium-sync.yml).
+# each upstream sync's candidate before it becomes dev (hexium-sync.yml).
 on:
   pull_request:
     branches: [dev]
