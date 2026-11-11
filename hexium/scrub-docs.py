@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Remove OpenCode from Markdown docs, mechanically, so the docs never block
-the weekly sync. hexium/sync.sh runs it on a docs file that conflicts (after
+the upstream sync. hexium/sync.sh runs it on a docs file that conflicts (after
 taking upstream's version) and on all of docs/ after each sync.
 
 Rules, per file:

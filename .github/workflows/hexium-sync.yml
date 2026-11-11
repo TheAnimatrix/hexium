@@ -1,6 +1,6 @@
 name: Hexium sync
 
-# The weekly upstream sync, patch-queue style (as Zen keeps Firefox):
+# The upstream sync, every three days, patch-queue style (as Zen keeps Firefox):
 #   1. replay: hexium/sync.sh replays the forks' queues (hexium/forks) and the
 #      "hexium: …" queue on upstream Hex and pushes the result to
 #      sync/upstream. A patch that no longer applies opens an issue (label
@@ -12,7 +12,9 @@ name: Hexium sync
 # made with GITHUB_TOKEN would not start the release.
 on:
   schedule:
-    - cron: "30 2 * * 1" # Mondays, 08:00 IST
+    # 08:00 IST on the 1st, 4th, 7th, … of each month: every three days,
+    # with one day between the 31st (or the 28th, 29th or 30th) and the 1st.
+    - cron: "30 2 */3 * *"
   workflow_dispatch:
 
 permissions:
@@ -91,7 +93,7 @@ jobs:
           RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
-            echo "The weekly sync could not replay Hexium's patches on upstream Hex \`$UPSTREAM\` ([run]($RUN)). dev is unchanged."
+            echo "The upstream sync could not replay Hexium's patches on upstream Hex \`$UPSTREAM\` ([run]($RUN)). dev is unchanged."
             echo
             echo '```'
             grep -v '^hint:' "$RUNNER_TEMP/sync.log" | tail -n 40
@@ -99,7 +101,7 @@ jobs:
             echo
             echo "To fix: run \`hexium/sync.sh\` in a clone, fix the files it names, \`git add\` them, and run \`sh .git/hexium-sync/sync.sh\`: it finishes the rebase, checks and pushes dev, which closes this on the next sync."
           } > body.md
-          gh label create -R "$GITHUB_REPOSITORY" upstream-sync --color FF9933 --description "Weekly upstream sync" --force > /dev/null
+          gh label create -R "$GITHUB_REPOSITORY" upstream-sync --color FF9933 --description "Upstream sync" --force > /dev/null
           number=$(gh issue list -R "$GITHUB_REPOSITORY" --label upstream-sync --state open --json number --jq '.[0].number // empty')
           if [ -n "$number" ]; then
             gh issue comment -R "$GITHUB_REPOSITORY" "$number" --body-file body.md
