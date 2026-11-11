@@ -20,6 +20,8 @@ golden:modes-light
 golden:modes-opencode-not-running-light
 golden:modes-picker-dark
 golden:modes-picker-light
+golden:modes-speech-dark
+golden:modes-speech-light
 golden:output-dark
 golden:output-light
 golden:output-trust-light
@@ -36,6 +38,10 @@ golden:screenshot-editor-marks-dark
 golden:screenshot-editor-marks-light
 golden:screenshot-editor-send-dark
 golden:screenshot-editor-send-light
+golden:screenshot-editor-trim-dark
+golden:screenshot-editor-trim-light
+golden:screenshot-editor-words-dark
+golden:screenshot-editor-words-light
 
 # Labs with Learn from your fixes and Quote what's on screen (Hexium's own labs).
 golden:mac-labs-dark

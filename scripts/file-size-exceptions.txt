@@ -9,6 +9,7 @@ crates/router/src/routing/jev.rs 2300
 crates/router/src/routing/router.rs 2400
 ios/HEXShared/DotScope.swift 1850
 src/capture_host.rs 3100
+src/linux/dictation.rs 1508
 src/meeting/query.rs 2450
 src/meeting/transcript.rs 2250
 src/recognition.rs 1756
