@@ -268,6 +268,60 @@ pub fn stage(file: &Path, console: Option<&Path>, version: &str) -> Result<Stage
     Ok(Staged(executable))
 }
 
+/// Hexium: a managed install's current version still running as `hex.exe`
+/// (Setup, or an updater from before Hexium renamed it, put it there) copies
+/// itself to `hexium.exe` beside it and points the Start Menu shortcut and
+/// Launch at login there, so it starts as `hexium.exe` from then on and
+/// Discord and NVIDIA stop taking it for a game. The running `hex.exe`
+/// stays; updates prune its version later. Anything else is left alone.
+pub fn adopt_executable_name() -> Result<()> {
+    let name = crate::app_paths::WINDOWS_EXECUTABLE;
+    let running = std::env::current_exe()?;
+    let is_named = |file: &str| {
+        running
+            .file_name()
+            .is_some_and(|own| own.eq_ignore_ascii_case(file))
+    };
+    if is_named(name) || !is_named("hex.exe") {
+        return Ok(());
+    }
+    let support = crate::app_paths::support_dir()?;
+    let current = fs::read_to_string(support.join("current-version")).unwrap_or_default();
+    let Some(folder) = running.parent() else {
+        return Ok(());
+    };
+    let in_current_version =
+        folder
+            .parent()
+            .zip(folder.file_name())
+            .is_some_and(|(versions, version)| {
+                same_file(versions, &support.join("versions"))
+                    && version.eq_ignore_ascii_case(current.trim())
+            });
+    if current.trim().is_empty() || !in_current_version {
+        return Ok(());
+    }
+    let renamed = folder.join(name);
+    if !renamed.is_file() {
+        let partial = folder.join(format!("{name}.partial"));
+        let _ = fs::remove_file(&partial);
+        fs::copy(&running, &partial)?;
+        sync_file(&partial)?;
+        fs::rename(&partial, &renamed)?;
+    }
+    crate::windows::login_item::repoint(&renamed)?;
+    repoint_start_menu_shortcut(&renamed)?;
+    tracing::info!(executable = %renamed.display(), "Hexium starts as hexium.exe from now on");
+    Ok(())
+}
+
+fn same_file(left: &Path, right: &Path) -> bool {
+    match (left.canonicalize(), right.canonicalize()) {
+        (Ok(left), Ok(right)) => left == right,
+        _ => false,
+    }
+}
+
 /// Anomaly's Authenticode signature on Hex's downloads; Hexium's are unsigned
 /// and rest on the manifest's SHA-256 (see the module notes).
 fn verify_signer(file: &Path) -> Result<()> {
@@ -547,8 +601,9 @@ pub(super) fn activate(
     let versions = support.join("versions");
     let version_dir = versions.join(version);
     fs::create_dir_all(&version_dir)?;
-    let executable = version_dir.join("hex.exe");
-    let staged = version_dir.join("hex.exe.partial");
+    let name = crate::app_paths::WINDOWS_EXECUTABLE;
+    let executable = version_dir.join(name);
+    let staged = version_dir.join(format!("{name}.partial"));
     let _ = fs::remove_file(&staged);
     fs::rename(staging, &staged)?;
     // FlushFileBuffers requires write access on Windows, unlike fsync.
@@ -727,6 +782,11 @@ mod tests {
         let executable = activate(&root, "1.1.0", &staging, None).unwrap();
 
         assert_eq!(fs::read(&executable).unwrap(), b"new");
+        assert_eq!(
+            executable,
+            root.join("versions/1.1.0")
+                .join(crate::app_paths::WINDOWS_EXECUTABLE)
+        );
         assert_eq!(
             fs::read_to_string(root.join("current-version"))
                 .unwrap()

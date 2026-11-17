@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $support = Join-Path $env:APPDATA 'hexium'
-$installed = Join-Path $support "versions\$Version\hex.exe"
+$installed = Join-Path $support "versions\$Version\hexium.exe"
 $installedConsole = Join-Path $support "versions\$Version\hex.com"
 $bin = Join-Path $support 'bin'
 $pointer = Join-Path $support 'current-version'
@@ -44,8 +44,8 @@ if (Test-Path $support) { throw "$support already exists; run this only on a cle
 $expected = (Get-FileHash -Algorithm SHA256 $Executable).Hash
 
 Check ((Run-Setup 'install') -eq 0) 'silent install exits 0'
-Check (Test-Path $installed) "hex.exe is at versions\$Version"
-Check ((Get-FileHash -Algorithm SHA256 $installed).Hash -eq $expected) 'installed hex.exe matches the release bytes'
+Check (Test-Path $installed) "hexium.exe is at versions\$Version"
+Check ((Get-FileHash -Algorithm SHA256 $installed).Hash -eq $expected) 'installed hexium.exe matches the release bytes'
 Check ((Get-Content $pointer -Raw).Trim() -eq $Version) "current-version names $Version"
 $installReceipt = Get-Content $receipt -Raw | ConvertFrom-Json
 Check ($installReceipt.app -eq 'hex' -and $installReceipt.artifact -eq 'desktop' -and $installReceipt.channel -eq 'stable' -and $installReceipt.method -eq 'direct') 'install.json marks a direct install of hex desktop stable'
@@ -65,7 +65,7 @@ Check ($entry.DisplayVersion -eq $Version) "Apps & Features shows $Version"
 $uninstaller = ($entry.UninstallString -replace '"', '')
 Check ($uninstaller -like "$support\uninstall\*") 'the uninstaller lives outside versions\, which updates prune'
 Check (Test-Path $uninstaller) 'the uninstaller exists'
-function Run-Value { (Get-ItemProperty -Path $runKey -Name 'Hex' -ErrorAction SilentlyContinue).Hex }
+function Run-Value { (Get-ItemProperty -Path $runKey -Name 'Hexium' -ErrorAction SilentlyContinue).Hexium }
 Check ($null -eq (Run-Value)) 'installing leaves Launch at login off'
 
 function User-Path { [Environment]::GetEnvironmentVariable('Path', 'User') }
@@ -106,7 +106,7 @@ if ($Console) {
 # A Launch at login value outside the managed layout is the user's.
 if (-not (Test-Path $runKey)) { New-Item -Path $runKey | Out-Null }
 $foreign = '"C:\Tools\hex.exe" app --hidden'
-Set-ItemProperty -Path $runKey -Name 'Hex' -Value $foreign
+Set-ItemProperty -Path $runKey -Name 'Hexium' -Value $foreign
 Check ((Run-Setup 'reinstall') -eq 0) 'reinstalling the same version exits 0'
 Check ((Get-FileHash -Algorithm SHA256 $installed).Hash -eq $expected) 'reinstall keeps the release bytes'
 Check ((Run-Value) -eq $foreign) 'Setup leaves a Launch at login value outside versions\ alone'
@@ -117,7 +117,7 @@ if ($Console) {
 # Versions are never compared: the installer installs its own over any other.
 Set-Content -Path $pointer -Value '99.0.0' -NoNewline
 # Launch at login as the version this replaces registered it.
-Set-ItemProperty -Path $runKey -Name 'Hex' -Value "`"$support\versions\99.0.0\hex.exe`" app --hidden"
+Set-ItemProperty -Path $runKey -Name 'Hexium' -Value "`"$support\versions\99.0.0\hex.exe`" app --hidden"
 Check ((Run-Setup 'over-another') -eq 0) 'installing over another version exits 0'
 Check ((Get-Content $pointer -Raw).Trim() -eq $Version) 'current-version names this installer''s version'
 Check ((Run-Value) -eq "`"$installed`" app --hidden") "Launch at login now starts versions\$Version ($(Run-Value))"
