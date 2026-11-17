@@ -242,8 +242,8 @@ BEGIN
       VALUE "ProductName", "Hexium"
       VALUE "FileVersion", "{version}"
       VALUE "ProductVersion", "{version}"
-      VALUE "OriginalFilename", "hex.exe"
-      VALUE "InternalName", "hex"
+      VALUE "OriginalFilename", "hexium.exe"
+      VALUE "InternalName", "hexium"
     END
   END
   BLOCK "VarFileInfo"

@@ -70,13 +70,26 @@ fn main() {
     std::process::exit(2);
 }
 
+/// Hexium: the GUI executable's names, newest first. Hexium installs
+/// `hexium.exe` (Discord and NVIDIA take `hex.exe` for a game); versions
+/// installed before that have `hex.exe`.
+const EXECUTABLES: [&str; 2] = ["hexium.exe", "hex.exe"];
+
+/// The executable in `folder`, under any of its names.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn in_folder(folder: &std::path::Path) -> Option<std::path::PathBuf> {
+    EXECUTABLES
+        .iter()
+        .map(|name| folder.join(name))
+        .find(|path| path.is_file())
+}
+
 /// `hex.exe` beside `console`, or in the version `current-version` beside
 /// its folder names.
 #[cfg_attr(not(windows), allow(dead_code))]
 fn locate(console: &std::path::Path) -> Option<std::path::PathBuf> {
     let folder = console.parent()?;
-    let beside = folder.join("hex.exe");
-    if beside.is_file() {
+    if let Some(beside) = in_folder(folder) {
         return Some(beside);
     }
     let support = folder.parent()?;
@@ -86,8 +99,10 @@ fn locate(console: &std::path::Path) -> Option<std::path::PathBuf> {
         && version
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || b".+_-".contains(&byte));
-    let current = support.join("versions").join(version).join("hex.exe");
-    (named && current.is_file()).then_some(current)
+    if !named {
+        return None;
+    }
+    in_folder(&support.join("versions").join(version))
 }
 
 #[cfg(test)]
@@ -131,6 +146,14 @@ mod tests {
             None,
             "a pointer that leaves versions is ignored"
         );
+        // Hexium installs hexium.exe; it wins over an older hex.exe beside it.
+        std::fs::write(root.join("current-version"), "3.4.0\n").unwrap();
+        std::fs::write(version.join("hexium.exe"), b"").unwrap();
+        assert_eq!(
+            locate(&version.join("hex.com")),
+            Some(version.join("hexium.exe"))
+        );
+        assert_eq!(locate(&bin), Some(version.join("hexium.exe")));
         let _ = std::fs::remove_dir_all(root);
     }
 }

@@ -501,6 +501,13 @@ fn updates_off_by_env() -> bool {
 
 /// Whether an administrator turned updates off (`DisableUpdates`), read
 /// once per launch so a managed value applies at the next one.
+/// Hexium: moves a managed Windows install still running as `hex.exe` to
+/// `hexium.exe` (see `platform::adopt_executable_name`).
+#[cfg(target_os = "windows")]
+pub fn adopt_windows_executable_name() -> Result<()> {
+    platform::adopt_executable_name()
+}
+
 pub fn managed_by_policy() -> bool {
     static MANAGED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *MANAGED.get_or_init(platform::updates_disabled_by_policy)
