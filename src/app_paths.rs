@@ -18,6 +18,12 @@ pub const HEXIUM: bool = true;
 /// OpenCode, and sending captures to sessions are absent, not just off.
 pub const OPENCODE: bool = false;
 
+/// Hexium: the installed Windows executable's file name in
+/// `versions\<version>`. Not `hex.exe`, which Discord and NVIDIA's overlay
+/// take for the game "HEX: Shards of Fate" and show as playing. Older
+/// installs still have `hex.exe`, so nothing else may assume either name.
+pub const WINDOWS_EXECUTABLE: &str = if HEXIUM { "hexium.exe" } else { "hex.exe" };
+
 /// Whether this is a local build (`HEX_LOCAL_BUILD=1`): made from a checkout
 /// for its owner's own machine, so it never checks for or offers updates.
 pub fn is_local_build() -> bool {

@@ -94,7 +94,7 @@ pub fn follow_current_version() -> Result<()> {
     Ok(())
 }
 
-/// Whether the Run value `command` starts a `hex.exe` in `support\versions`
+/// Whether the Run value `command` starts Hex in `support\versions`
 /// other than `executable`, which is that install's current version.
 fn starts_another_version(
     command: &str,
@@ -114,12 +114,17 @@ fn starts_another_version(
     let Some(version) = running.strip_prefix(&versions) else {
         return false;
     };
-    let is_current = current.is_some_and(|current| {
-        version.eq_ignore_ascii_case(&format!(r"{}\hex.exe", current.trim()))
-    });
-    is_current
-        && command.to_lowercase().contains(&versions)
-        && !command.eq_ignore_ascii_case(&startup_command(executable))
+    // Whatever the executable is called: Hexium's is hexium.exe, an older
+    // install's hex.exe.
+    let Some((folder, file)) = version.split_once('\\') else {
+        return false;
+    };
+    let is_current = !file.contains('\\')
+        && current.is_some_and(|current| folder.eq_ignore_ascii_case(current.trim()));
+    let command = command.to_lowercase();
+    // A value already in this version's folder (its hexium.exe while this
+    // runs as the hex.exe beside it) is this version.
+    is_current && command.contains(&versions) && !command.contains(&format!(r"{versions}{folder}\"))
 }
 
 fn write_startup_command(executable: &Path, context: &'static str) -> Result<()> {
@@ -177,6 +182,43 @@ mod tests {
             old,
             Path::new(r"C:\src\hex\target\release\hex.exe"),
             Some("3.4.0")
+        ));
+    }
+
+    /// Hexium's executable is hexium.exe; the version it replaced may still
+    /// be a hex.exe.
+    #[test]
+    fn launch_at_login_follows_hexium_exe_from_an_older_hex_exe() {
+        let support = Path::new(r"C:\Users\a\AppData\Roaming\hexium");
+        let running = support.join(r"versions\3.4.0-hexium.31\hexium.exe");
+        let old =
+            r#""C:\Users\a\AppData\Roaming\hexium\versions\3.4.0-hexium.30\hex.exe" app --hidden"#;
+        assert!(starts_another_version(
+            old,
+            &running,
+            support,
+            Some("3.4.0-hexium.31")
+        ));
+        assert!(!starts_another_version(
+            &startup_command(&running),
+            &running,
+            support,
+            Some("3.4.0-hexium.31")
+        ));
+        // Running as the version's old hex.exe once Launch at login names
+        // its hexium.exe: already this version.
+        assert!(!starts_another_version(
+            &startup_command(&running),
+            &support.join(r"versions\3.4.0-hexium.31\hex.exe"),
+            support,
+            Some("3.4.0-hexium.31")
+        ));
+        // Not directly in the version folder.
+        assert!(!starts_another_version(
+            old,
+            &support.join(r"versions\3.4.0-hexium.31\sub\hexium.exe"),
+            support,
+            Some("3.4.0-hexium.31")
         ));
     }
 }

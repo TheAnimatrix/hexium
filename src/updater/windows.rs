@@ -276,6 +276,60 @@ pub fn stage(file: &Path, console: Option<&Path>, version: &str) -> Result<Stage
     Ok(Staged(executable))
 }
 
+/// Hexium: a managed install's current version still running as `hex.exe`
+/// (Setup, or an updater from before Hexium renamed it, put it there) copies
+/// itself to `hexium.exe` beside it and points the Start Menu shortcut and
+/// Launch at login there, so it starts as `hexium.exe` from then on and
+/// Discord and NVIDIA stop taking it for a game. The running `hex.exe`
+/// stays; updates prune its version later. Anything else is left alone.
+pub fn adopt_executable_name() -> Result<()> {
+    let name = crate::app_paths::WINDOWS_EXECUTABLE;
+    let running = std::env::current_exe()?;
+    let is_named = |file: &str| {
+        running
+            .file_name()
+            .is_some_and(|own| own.eq_ignore_ascii_case(file))
+    };
+    if is_named(name) || !is_named("hex.exe") {
+        return Ok(());
+    }
+    let support = crate::app_paths::support_dir()?;
+    let current = fs::read_to_string(support.join("current-version")).unwrap_or_default();
+    let Some(folder) = running.parent() else {
+        return Ok(());
+    };
+    let in_current_version =
+        folder
+            .parent()
+            .zip(folder.file_name())
+            .is_some_and(|(versions, version)| {
+                same_file(versions, &support.join("versions"))
+                    && version.eq_ignore_ascii_case(current.trim())
+            });
+    if current.trim().is_empty() || !in_current_version {
+        return Ok(());
+    }
+    let renamed = folder.join(name);
+    if !renamed.is_file() {
+        let partial = folder.join(format!("{name}.partial"));
+        let _ = fs::remove_file(&partial);
+        fs::copy(&running, &partial)?;
+        sync_file(&partial)?;
+        fs::rename(&partial, &renamed)?;
+    }
+    crate::windows::login_item::repoint(&renamed)?;
+    repoint_shortcuts(&support, &renamed)?;
+    tracing::info!(executable = %renamed.display(), "Hexium starts as hexium.exe from now on");
+    Ok(())
+}
+
+fn same_file(left: &Path, right: &Path) -> bool {
+    match (left.canonicalize(), right.canonicalize()) {
+        (Ok(left), Ok(right)) => left == right,
+        _ => false,
+    }
+}
+
 /// Anomaly's Authenticode signature on Hex's downloads; Hexium's are unsigned
 /// and rest on the manifest's SHA-256 (see the module notes).
 fn verify_signer(file: &Path) -> Result<()> {
@@ -317,7 +371,8 @@ pub fn verify_authenticode(file: &Path, signer: &str) -> Result<()> {
 
 /// Retarget every shortcut that belongs to this install in one PowerShell
 /// run: the Start Menu, Desktop, and taskbar pins. Only a shortcut whose
-/// target is `hex.exe` in this install's `versions\<version>` folder is
+/// target is `hex.exe` (or Hexium's `hexium.exe`, `app_paths::WINDOWS_EXECUTABLE`)
+/// in this install's `versions\<version>` folder is
 /// touched; its arguments and name stay, and an icon from an old version
 /// follows. A managed Start Menu link that still exists but reads as empty
 /// (zero-filled, for example) is recreated as the installer writes it. One bad
@@ -366,6 +421,7 @@ fn retarget_shortcuts(folders: &[PathBuf; 3], support: &Path, executable: &Path)
         .env("HEX_VERSIONS", support.join("versions"))
         .env("HEX_STAGING", &staging)
         .env("HEX_SHORTCUT_NAME", format!("{}.lnk", shortcut_name()))
+        .env("HEX_EXECUTABLE_NAME", crate::app_paths::WINDOWS_EXECUTABLE)
         .env(
             "HEX_SHORTCUT_DESCRIPTION",
             format!("{} managed install", shortcut_name()),
@@ -483,7 +539,7 @@ const SHORTCUT_REPOINT_SCRIPT: &str = "\
             $s = $shell.CreateShortcut($file.FullName); \
             $target = [string]$s.TargetPath; \
             if (-not $target -or -not $target.StartsWith($versions, [StringComparison]::OrdinalIgnoreCase)) { continue } \
-            if ([IO.Path]::GetFileName($target) -ine 'hex.exe') { continue } \
+            if (@('hex.exe', $env:HEX_EXECUTABLE_NAME) -notcontains [IO.Path]::GetFileName($target)) { continue } \
             $relative = $target.Substring($versions.Length).Split('\\'); \
             if ($relative.Count -ne 2 -or -not $relative[0]) { continue } \
             $matched = $true; \
@@ -497,7 +553,7 @@ const SHORTCUT_REPOINT_SCRIPT: &str = "\
             $cleanIcon = [Environment]::ExpandEnvironmentVariables($iconPath.Trim().Trim('\"')); \
             if ($cleanIcon.StartsWith($versions, [StringComparison]::OrdinalIgnoreCase)) { \
               $iconRelative = $cleanIcon.Substring($versions.Length).Split('\\'); \
-              if ($iconRelative.Count -eq 2 -and $iconRelative[0] -and $iconRelative[1] -ieq 'hex.exe') { \
+              if ($iconRelative.Count -eq 2 -and $iconRelative[0] -and (@('hex.exe', $env:HEX_EXECUTABLE_NAME) -contains $iconRelative[1])) { \
                 $index = if ($comma -ge 0) { $icon.Substring($comma) } else { ',0' }; \
                 $newIcon = $executable + $index; \
                 if (-not [string]::Equals($icon, $newIcon, [StringComparison]::OrdinalIgnoreCase)) { $changed = $true } } } \
@@ -725,8 +781,9 @@ pub(super) fn activate(
     let versions = support.join("versions");
     let version_dir = versions.join(version);
     fs::create_dir_all(&version_dir)?;
-    let executable = version_dir.join("hex.exe");
-    let staged = version_dir.join("hex.exe.partial");
+    let name = crate::app_paths::WINDOWS_EXECUTABLE;
+    let executable = version_dir.join(name);
+    let staged = version_dir.join(format!("{name}.partial"));
     let _ = fs::remove_file(&staged);
     fs::rename(staging, &staged)?;
     // FlushFileBuffers requires write access on Windows, unlike fsync.
@@ -905,6 +962,11 @@ mod tests {
         let executable = activate(&root, "1.1.0", &staging, None).unwrap();
 
         assert_eq!(fs::read(&executable).unwrap(), b"new");
+        assert_eq!(
+            executable,
+            root.join("versions/1.1.0")
+                .join(crate::app_paths::WINDOWS_EXECUTABLE)
+        );
         assert_eq!(
             fs::read_to_string(root.join("current-version"))
                 .unwrap()

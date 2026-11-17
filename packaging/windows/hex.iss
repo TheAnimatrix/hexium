@@ -1,5 +1,8 @@
 ; Per-user Windows installer for Hexium, a fork of Hex with its own AppId and
-; %APPDATA%\hexium, so it installs beside Hex. Upstream notes follow.
+; %APPDATA%\hexium, so it installs beside Hex. Its executable is hexium.exe,
+; not hex.exe, which Discord and NVIDIA take for the game "HEX: Shards of
+; Fate"; versions installed before keep their hex.exe. Launch at login is the
+; Run value "Hexium". Upstream notes follow.
 ;
 ; Per-user Windows installer for Hex. It installs exactly the managed layout
 ; that .github/release/install-windows.ps1 creates and src/windows_updater.rs updates:
@@ -90,7 +93,7 @@ SignedUninstallerDir="{#SignedEngineDir}"
 #endif
 
 [Files]
-Source: "{#Executable}"; DestDir: "{app}\versions\{#AppVersion}"; DestName: "hex.exe"; Flags: ignoreversion
+Source: "{#Executable}"; DestDir: "{app}\versions\{#AppVersion}"; DestName: "hexium.exe"; Flags: ignoreversion
 #ifdef Console
 Source: "{#Console}"; DestDir: "{app}\versions\{#AppVersion}"; DestName: "hex.com"; Flags: ignoreversion
 Source: "{#Console}"; DestDir: "{app}\bin"; DestName: "hex.com"; Flags: ignoreversion
@@ -98,10 +101,10 @@ Source: "{#Console}"; DestDir: "{app}\bin"; DestName: "hex.com"; Flags: ignoreve
 Source: "..\..\resources\windows\hex.ico"; DestDir: "{app}\uninstall"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\Hexium"; Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; WorkingDir: "{app}\versions\{#AppVersion}"; Comment: "Hexium managed install"
+Name: "{userprograms}\Hexium"; Filename: "{app}\versions\{#AppVersion}\hexium.exe"; Parameters: "app"; WorkingDir: "{app}\versions\{#AppVersion}"; Comment: "Hexium managed install"
 
 [Run]
-Filename: "{app}\versions\{#AppVersion}\hex.exe"; Parameters: "app"; Description: "Open Hexium"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\versions\{#AppVersion}\hexium.exe"; Parameters: "app"; Description: "Open Hexium"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\versions"
@@ -129,7 +132,7 @@ begin
   Bin := ExpandConstant('{app}\bin\');
   StringChangeEx(Bin, '''', '''''', True);
   Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
-    '-NoProfile -NonInteractive -WindowStyle Hidden -Command "Get-Process hex -ErrorAction SilentlyContinue | ' +
+    '-NoProfile -NonInteractive -WindowStyle Hidden -Command "Get-Process hex,hexium -ErrorAction SilentlyContinue | ' +
     'Where-Object { $_.Path -and ($_.Path.StartsWith(''' + Versions + ''', [StringComparison]::OrdinalIgnoreCase) -or ' +
     '$_.Path.StartsWith(''' + Bin + ''', [StringComparison]::OrdinalIgnoreCase)) } | ' +
     'Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500"',
@@ -240,10 +243,10 @@ procedure FollowLaunchAtLogin();
 var
   Command: String;
 begin
-  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hex', Command) and
+  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hexium', Command) and
      (Pos(LowerCase(ExpandConstant('{app}\versions\')), LowerCase(Command)) > 0) then
-    RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hex',
-      '"' + ExpandConstant('{app}\versions\{#AppVersion}\hex.exe') + '" app --hidden');
+    RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'Hexium',
+      '"' + ExpandConstant('{app}\versions\{#AppVersion}\hexium.exe') + '" app --hidden');
 end;
 
 { Point current-version at this version only once its files are in place,

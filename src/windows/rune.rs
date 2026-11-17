@@ -168,6 +168,9 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
 }
 
 pub fn open(event_path: PathBuf, shutdown: &'static AtomicBool, start_hidden: bool) -> Result<()> {
+    if let Err(error) = crate::updater::adopt_windows_executable_name() {
+        tracing::warn!(%error, "could not move Hexium to hexium.exe");
+    }
     // Rune ends a quitting app with `_exit` unless it is told an app has work
     // after the loop. Hex does: the teardown below stops a meeting recording
     // and joins its workers.
